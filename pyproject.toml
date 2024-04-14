@@ -11,6 +11,8 @@ python-dotenv = "^1.0.1"
 aiogram = "^3.4.1"
 sqlalchemy = "^2.0.29"
 aioredis = "^2.0.1"
+logger = "^1.4"
+loguru = "^0.7.2"
 
 
 [build-system]
