@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "my-administrator"
+version = "0.1.0"
+description = ""
+authors = ["timosii <tsimashev@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+python-dotenv = "^1.0.1"
+aiogram = "^3.4.1"
+sqlalchemy = "^2.0.29"
+aioredis = "^2.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
