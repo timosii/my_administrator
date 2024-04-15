@@ -13,6 +13,7 @@ sqlalchemy = "^2.0.29"
 aioredis = "^2.0.1"
 logger = "^1.4"
 loguru = "^0.7.2"
+redis = "^5.0.3"
 
 
 [build-system]
