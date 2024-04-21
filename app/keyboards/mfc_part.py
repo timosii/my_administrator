@@ -1,4 +1,4 @@
-from aiogram.types import ReplyKeyboardMarkup
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from app.data import TIME_POINTS, ZONES
 
@@ -12,24 +12,24 @@ def choose_check_time() -> ReplyKeyboardMarkup:
 
 def choose_zone() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
-    for zone in ZONES.keys():
-        kb.button(zone)
+    buttons = [KeyboardButton(text=zone) for zone in ZONES.keys()]
+    kb.add(*buttons)
     kb.adjust(len(ZONES))
     return kb.as_markup(resize_keyboard=True)
 
 
 def choose_violation(zone: str) -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
-    for violation in ZONES[zone]:
-        kb.button(violation)
+    buttons = [KeyboardButton(text=violation) for violation in ZONES[zone]]
+    kb.add(*buttons)
     kb.adjust(len(ZONES[zone]))
     return kb.as_markup(resize_keyboard=True)
 
 
 def choose_photo_comm() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
-    kb.button('Загрузить фото')
-    kb.button('Написать комментарий')
+    buttons = [KeyboardButton(text=s) for s in ['Загрузить фото', 'Написать комментарий']]
+    kb.add(*buttons)
     return kb.as_markup(resize_keyboard=True)
 
 

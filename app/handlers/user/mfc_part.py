@@ -21,8 +21,8 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.set_state(MfcStates.choose_zone)
 
 
-@router.message(F.text in TIME_POINTS, StateFilter(MfcStates.choose_zone))
-async def choose_zone(message: Message, state: FSMContext):
+@router.message(lambda message: message.text in TIME_POINTS, StateFilter(MfcStates.choose_zone))
+async def choose_zone_handler(message: Message, state: FSMContext):
     mes = Messages()
     await message.answer(
         text=mes.choose_zone(),
@@ -32,20 +32,21 @@ async def choose_zone(message: Message, state: FSMContext):
     await state.set_state(MfcStates.choose_violation)
 
 
-@router.message(F.text in ZONES.keys(), StateFilter(MfcStates.choose_violation))
-async def choose_violation(message: Message, state: FSMContext):
+@router.message(lambda message: message.text in ZONES.keys(), StateFilter(MfcStates.choose_violation))
+async def choose_violation_handler(message: Message, state: FSMContext):
     mes = Messages()
-    mes.zone = message.text
+    zone = message.text
+    mes.zone = zone
     await message.answer(
         text=mes.choose_violation(),
-        reply_markup=choose_violation()
+        reply_markup=choose_violation(zone=zone)
     )
     await state.update_data(zone=message.text)
     await state.set_state(MfcStates.choose_photo_comm)
 
 
-@router.message(F.text in ZONES.values(), StateFilter(MfcStates.choose_photo_comm))
-async def make_choice(message: Message, state: FSMContext):
+@router.message(lambda message: message.text in sum(list(ZONES.values()), []), StateFilter(MfcStates.choose_photo_comm))
+async def make_choice_handler(message: Message, state: FSMContext):
     mes = Messages()
     mes.violation = message.text
     await message.answer(
@@ -56,8 +57,8 @@ async def make_choice(message: Message, state: FSMContext):
     # await state.set_state(MfcStates.add_comm)
 
 
-@router.message(F.text in CHOOSE, StateFilter(MfcStates.choose_photo_comm))
-async def result_choose(message: Message, state: FSMContext):
+@router.message(lambda message: message.text in CHOOSE, StateFilter(MfcStates.choose_photo_comm))
+async def result_choose_handler(message: Message, state: FSMContext):
     mes = Messages()
     choice = message.text
     await message.answer(

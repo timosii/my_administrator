@@ -1,6 +1,7 @@
 from loguru import logger
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage, Redis
+from aiogram.fsm.storage.memory import MemoryStorage
 from app.config import settings
 from app.handlers.user import mfc_part, mo_part
 
@@ -31,8 +32,9 @@ from app.handlers.user import mfc_part, mo_part
 
 async def start_bot() -> None:
     bot = Bot(token=settings.BOT_TOKEN, parse_mode='HTML')
-    redis = Redis(host='localhost')
-    storage = RedisStorage(redis=redis)
+    # redis = Redis(host='localhost', port=6379)
+    # storage = RedisStorage(redis=redis)
+    storage = MemoryStorage() # при использовании MemoryStorage
     dp = Dispatcher(storage=storage)
     dp.include_routers(
         mfc_part.router,
