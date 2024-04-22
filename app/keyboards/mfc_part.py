@@ -2,6 +2,13 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from app.data import TIME_POINTS, ZONES
 
+def main_menu() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardBuilder()
+    kb.button(text='Начать проверку')
+    kb.adjust(1)
+    return kb.as_markup(resize_keyboard=True)
+
+
 def choose_check_time() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardBuilder()
     for time in TIME_POINTS:
@@ -39,3 +46,9 @@ def back_level(zone: str) -> ReplyKeyboardMarkup:
     kb.button('Вернуться к зонам нарушений')
     return kb.as_markup(resize_keyboard=True)
 
+
+def add_photo_comm_kb() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardBuilder()
+    kb.button(text='Назад')
+    kb.adjust(1)
+    return kb.as_markup(resize_keyboard=True)

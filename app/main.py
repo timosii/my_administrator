@@ -32,7 +32,7 @@ from app.handlers.user import mfc_part, mo_part
 
 async def start_bot() -> None:
     bot = Bot(token=settings.BOT_TOKEN, parse_mode='HTML')
-    # redis = Redis(host='localhost', port=6379)
+    # redis = Redis(host='localhost')
     # storage = RedisStorage(redis=redis)
     storage = MemoryStorage() # при использовании MemoryStorage
     dp = Dispatcher(storage=storage)
