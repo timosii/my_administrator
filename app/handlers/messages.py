@@ -2,29 +2,32 @@ from app.utils.utils import time_determiner
 from app.data import ZONES
 
 class Messages:
-    def __init__(self) -> None:
-        self.zone = None
-        self.violation = None
 
+    @staticmethod
+    def start_message() -> str:
+        return 'Для начала нажмите /start'
+    
     @staticmethod
     def main_menu() -> str:
         welcome_message = 'Нажмите, чтобы начать проверку'
         return welcome_message
 
     @staticmethod
-    def get_welcome_message() -> str:
-        start_message = f'{time_determiner()}.Выберите время проверки:'
+    def choose_time() -> str:
+        start_message = f'{time_determiner()}. Выберите время проверки:'
         return start_message
     
     @staticmethod
     def choose_zone() -> str:
         return 'Выберите зону нарушения:'
     
-    def choose_violation(self) -> str:
-        return f'Выберите нарушение в зоне {self.zone}'
+    @staticmethod
+    def choose_violation(zone: str) -> str:
+        return f'Выберите нарушение в зоне {zone}'
     
-    def add_photo_comm(self) -> str:
-        return f'Приложите фото и напишите комментарий по проблеме {self.violation}'
+    @staticmethod
+    def add_photo_comm(violation: str) -> str:
+        return f'Приложите фото и напишите комментарий по проблеме {violation}'
     
     @staticmethod
     def add_photo() -> str:
@@ -34,8 +37,17 @@ class Messages:
     def add_comm() -> str:
         return 'Напишите и отправьте комментарий'
     
-    def photo_comm_added(self) -> str:
-        message = f'Вы приложили фото и написали комментарий по проблеме {self.violation}, вернуться к зоне нарушения {self.zone} или к выбору зон нарушений?'
+    @staticmethod
+    def photo_added() -> str:
+        return 'Фото добавлено!'
+    
+    @staticmethod
+    def comm_added() -> str:
+        return 'Комментарий добавлен!'
+    
+    @staticmethod
+    def photo_comm_added(zone: str, violation: str) -> str:
+        message = f'Вы приложили фото и написали комментарий по проблеме {violation}, вернуться к зоне нарушения {zone} или к выбору зон нарушений?'
         return message
 
 

@@ -38,7 +38,7 @@ async def start_bot() -> None:
     dp = Dispatcher(storage=storage)
     dp.include_routers(
         mfc_part.router,
-        mo_part.router
+        # mo_part.router
     )
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
