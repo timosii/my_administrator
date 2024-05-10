@@ -1,4 +1,4 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from app.data import TIME_POINTS, ZONES
 
@@ -10,44 +10,81 @@ class MfcKeyboards:
     def main_menu(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Начать проверку')
         self.kb.button(text='Назад')
-        self.kb.adjust(2)
+        self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
     def choose_check_time(self) -> ReplyKeyboardMarkup:
         for time in TIME_POINTS:
             self.kb.button(text=time)
         self.kb.button(text='Назад')
-        self.kb.adjust(len(TIME_POINTS) + 1)
+        self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
     def choose_zone(self) -> ReplyKeyboardMarkup:
         buttons = [KeyboardButton(text=zone) for zone in ZONES.keys()]
         self.kb.add(*buttons)
         self.kb.button(text='Назад')
-        self.kb.adjust(len(ZONES) + 1)
+        self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
     def choose_violation(self, zone: str) -> ReplyKeyboardMarkup:
         buttons = [KeyboardButton(text=violation) for violation in ZONES[zone]]
         self.kb.add(*buttons)
         self.kb.button(text='Назад')
-        self.kb.adjust(len(ZONES[zone]) + 1)
+        self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
     def choose_photo_comm(self) -> ReplyKeyboardMarkup:
         buttons = [KeyboardButton(text=s) for s in ['Загрузить фото', 'Написать комментарий']]
         self.kb.add(*buttons)
         self.kb.button(text='Назад')
-        self.kb.adjust(3)
+        self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
     def back_level(self, zone: str) -> ReplyKeyboardMarkup:
         self.kb.button(f'Вернуться к блоку {zone}')
         self.kb.button('Вернуться к зонам нарушений')
-        self.kb.adjust(2)
+        self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def add_photo_comm_kb(self) -> ReplyKeyboardMarkup:
+    def just_back(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
+    
+    def just_back_finish(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Продолжить проверку')
+        self.kb.button(text='Закончить проверку')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+    
+    def photo_added(self) -> InlineKeyboardMarkup:
+        self.kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text='Добавить комментарий', callback_data='add_comm_'),
+                InlineKeyboardButton(text='Продолжить проверку', callback_data='continue_check_')
+            ]
+        ])
+        return self.kb
+    
+    def comm_added(self) -> InlineKeyboardMarkup:
+        self.kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text='Добавить фото', callback_data='add_photo_'),
+                InlineKeyboardButton(text='Продолжить проверку', callback_data='continue_check_')
+            ]
+        ])
+        return self.kb
+    
+    def continue_finish_check(self) -> InlineKeyboardMarkup:
+        self.kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text='Продолжить проверку', callback_data='continue_check_'),
+                InlineKeyboardButton(text='Закончить проверку', callback_data='finish_check_'),
+            ]
+        ])
+        return self.kb
+    
+    
+    
+

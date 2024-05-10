@@ -1,0 +1,19 @@
+digraph "Aiogram Dialog" {
+	graph [fontcolor="#2D3436" fontname="Sans-Serif" fontsize=15 label="Aiogram Dialog" nodesep=0.60 pad=2.0 rankdir=LR ranksep=0.75 splines=ortho]
+	node [fixedsize=true fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13 height=1.4 imagescale=true labelloc=b shape=box style=rounded width=1.4]
+	edge [color="#7B8894"]
+	subgraph cluster_NameSG {
+		graph [bgcolor="#E5F5FD" fontname="Sans-Serif" fontsize=12 label=NameSG labeljust=l pencolor="#AEB6BE" rankdir=LR shape=box style=rounded]
+		bf7ad16ca5484c8d9fb74486660f1eb1 [label=input height=1.9 image="/home/timosii/.cache/pypoetry/virtualenvs/my-administrator-dXv7kOcj-py3.10/lib/python3.10/site-packages/aiogram_dialog/tools/calculator.png" shape=none]
+		"8e3e903545f04f92a14f25d6c453f814" [label=confirm height=1.9 image="/home/timosii/.cache/pypoetry/virtualenvs/my-administrator-dXv7kOcj-py3.10/lib/python3.10/site-packages/aiogram_dialog/tools/calculator.png" shape=none]
+	}
+	subgraph cluster_MainSG {
+		graph [bgcolor="#E5F5FD" fontname="Sans-Serif" fontsize=12 label=MainSG labeljust=l pencolor="#AEB6BE" rankdir=LR shape=box style=rounded]
+		f77a0975410e40faa716781f59ebe51f [label=main height=1.9 image="/home/timosii/.cache/pypoetry/virtualenvs/my-administrator-dXv7kOcj-py3.10/lib/python3.10/site-packages/aiogram_dialog/tools/calculator.png" shape=none]
+	}
+	bf7ad16ca5484c8d9fb74486660f1eb1 -> f77a0975410e40faa716781f59ebe51f [color=grey dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13 style=dashed]
+	bf7ad16ca5484c8d9fb74486660f1eb1 -> "8e3e903545f04f92a14f25d6c453f814" [color="#0086c3" dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13]
+	"8e3e903545f04f92a14f25d6c453f814" -> bf7ad16ca5484c8d9fb74486660f1eb1 [color=grey dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13]
+	"8e3e903545f04f92a14f25d6c453f814" -> f77a0975410e40faa716781f59ebe51f [color=grey dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13 style=dashed]
+	f77a0975410e40faa716781f59ebe51f -> bf7ad16ca5484c8d9fb74486660f1eb1 [color="#338a3e" dir=forward fontcolor="#2D3436" fontname="Sans-Serif" fontsize=13]
+}
