@@ -46,8 +46,21 @@ class Messages:
         return 'Комментарий добавлен!'
     
     @staticmethod
-    def photo_comm_added(zone: str, violation: str) -> str:
-        message = f'Вы приложили фото и написали комментарий по проблеме <b>{violation}</b>. Сохранить нарушение?'
+    def continue_check() -> str:
+        return 'Вы можете продолжить проверку'
+    
+    @staticmethod
+    def cancel_check() -> str:
+        return 'Возвращаемся в начало ...'
+    
+    @staticmethod
+    def finish_check() -> str:
+        return 'Проверка закончена! Все данные были сохранены. Спасибо за участие!'
+
+    @staticmethod
+    def photo_comm_added(zone: str,
+                         violation: str) -> str:
+        message = f'Вы приложили фото и написали комментарий по проблеме <b>{violation}</b>.\nСохранить нарушение?'
         return message
 
 

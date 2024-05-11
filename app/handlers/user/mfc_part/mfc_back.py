@@ -42,6 +42,7 @@ async def back_command(message: Message, state: FSMContext):
         )
 
     elif current_state == MfcStates.choose_photo_comm:
+        await state.set_state(MfcStates.choose_violation)
         data = await state.get_data()
         zone = data['zone']
         await state.update_data(violation=None)
@@ -68,27 +69,13 @@ async def back_command(message: Message, state: FSMContext):
         await message.answer(
             text=Messages.start_message()
         )
-
-
-@router.message(F.text.lower() == 'вернуться к зонам нарушений')
-async def return_to_zones(message: Message, state: FSMContext):
-    data = await state.get_data()
-    zone = data['zone']
-    await state.set_state(MfcStates.choose_violation)
-    await state.update_data(zone=None, violation=None)
-    await message.answer(
-            text=Messages.choose_zone(),
-            reply_markup=MfcKeyboards().choose_zone()
-        )
     
-@router.message(F.text.lower().startswith('вернуться к блоку проблематики'))
-async def return_to_zones(message: Message, state: FSMContext):
-    data = await state.get_data()
-    zone = data['zone']
-    await state.update_data(violation=None)
-    await state.set_state(MfcStates.choose_photo_comm)
-    await message.answer(
-            text=Messages.choose_violation(zone=zone),
-            reply_markup=MfcKeyboards().choose_violation(zone=zone)
+@router.message(F.text.lower() == 'закончить проверку',
+                StateFilter(MfcStates.choose_zone))
+async def finish_check(message: Message, state: FSMContext):
+     await state.clear()
+     await message.answer(
+            text=Messages.finish_check(),
+            reply_markup=ReplyKeyboardRemove()
         )
         

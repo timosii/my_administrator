@@ -37,7 +37,6 @@ async def add_comm_handler(message: Message, state: FSMContext):
     await message.answer(
         text=Messages.comm_added(),
         reply_markup=MfcKeyboards().comm_added()
-
     )
     await state.set_state(MfcStates.continue_state) 
 
@@ -59,5 +58,4 @@ async def add_photo_after_comm_handler(message: Message, state: FSMContext):
     await message.answer(
         text=Messages.photo_comm_added(zone=zone, violation=violation),
         reply_markup=MfcKeyboards().save_or_cancel()
-        # reply_markup=MfcKeyboards().continue_finish_check(zone=zone)
     )

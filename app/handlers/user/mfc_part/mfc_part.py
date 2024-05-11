@@ -71,21 +71,31 @@ async def add_photo_handler(message: Message, state: FSMContext):
 @router.callback_query(F.data == "save_and_go",
                        StateFilter(MfcStates.continue_state))
 async def continue_check(callback: CallbackQuery, state: FSMContext):
-    await callback.answer(text='Информация о нарушении сохранена!', show_alert=True)
-    # сохраняем всё
+    
+    await callback.message.answer(
+        text=Messages.continue_check(),
+    )
     await callback.message.answer(
         text=Messages.choose_zone(),
         reply_markup=MfcKeyboards().choose_zone()
     )
-    await state.set_state(MfcStates.choose_violation)
+    # сохранить всё здесь
+    await callback.answer(text='Информация о нарушении сохранена!', show_alert=True)
+    await state.set_state(MfcStates.choose_zone)
 
 
-@router.callback_query(F.data == "",
+@router.callback_query(F.data == "cancel",
                        StateFilter(MfcStates.continue_state))
 # добавить окошко "проверка закончена"
-async def finish_check(callback: CallbackQuery, state: FSMContext):
+async def cancel_check(callback: CallbackQuery,
+                       state: FSMContext):
     await callback.message.answer(
-        text=Messages.add_photo(),
-        reply_markup=MfcKeyboards().just_back()
+        text=Messages.cancel_check(),
+    )
+    await callback.message.answer(
+        text=Messages.choose_zone(),
+        reply_markup=MfcKeyboards().choose_zone()
     )
     await callback.answer()
+    await state.set_state(MfcStates.choose_zone)
+

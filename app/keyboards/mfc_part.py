@@ -23,6 +23,7 @@ class MfcKeyboards:
     def choose_zone(self) -> ReplyKeyboardMarkup:
         buttons = [KeyboardButton(text=zone) for zone in ZONES.keys()]
         self.kb.add(*buttons)
+        self.kb.button(text='Закончить проверку')
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
@@ -41,30 +42,15 @@ class MfcKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def back_level(self, zone: str) -> ReplyKeyboardMarkup:
-        self.kb.button(f'Вернуться к блоку {zone}')
-        self.kb.button('Вернуться к зонам нарушений')
-        self.kb.adjust(1)
-        return self.kb.as_markup(resize_keyboard=True)
-
     def just_back(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
-    
-    def just_back_finish(self) -> ReplyKeyboardMarkup:
-        self.kb.button(text='Продолжить проверку')
-        # self.kb.button(text='Закончить проверку')
-        self.kb.adjust(1)
-        return self.kb.as_markup(resize_keyboard=True)
-    
+
     def photo_added(self) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text='Добавить комментарий', callback_data='add_comm_'),
-                # InlineKeyboardButton(text='Вернуться к зонам нарушений', callback_data='continue_check_zones'),
-                # InlineKeyboardButton(text=f'Вернуться к блоку {zone}', callback_data='continue_check_violations'),
-                # InlineKeyboardButton(text='Продолжить проверку', callback_data='continue_check_')
             ]
         ])
         return self.kb
@@ -73,23 +59,14 @@ class MfcKeyboards:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text='Добавить фото', callback_data='add_photo_'),
-                # InlineKeyboardButton(text='Вернуться к зонам нарушений', callback_data='continue_check_zones'),
-                # InlineKeyboardButton(text=f'Вернуться к блоку проблематики {zone}', callback_data='continue_check_violations'),
             ]
         ])
         return self.kb
-    
-    def continue_finish_check(self, zone: str) -> ReplyKeyboardMarkup:
-        self.kb.button(text='Вернуться к выбору зоны')
-        self.kb.button(text=f'Вернуться к нарушениям зоны {zone}')
-        self.kb.adjust(1)
-        return self.kb.as_markup(resize_keyboard=True)
     
     def save_or_cancel(self) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text='Сохранить', callback_data='save_and_go'),
-                # InlineKeyboardButton(text=f'Вернуться к блоку проблематики {zone}', callback_data='continue_check_violations'),
             ],
             [
                 InlineKeyboardButton(text='Отменить', callback_data='cancel'),
@@ -97,15 +74,3 @@ class MfcKeyboards:
 
         ])
         return self.kb
-    
-    
-    # def continue_finish_check(self, zone) -> InlineKeyboardMarkup:
-    #     self.kb = InlineKeyboardMarkup(inline_keyboard=[
-    #         [
-    #             InlineKeyboardButton(text='Вернуться к зонам нарушений', callback_data='continue_check_zones')
-    #         ],
-    #         [
-    #             InlineKeyboardButton(text=f'Вернуться к блоку проблематики {zone}', callback_data='continue_check_violations')
-    #         ]
-    #     ])
-    #     return self.kb   
