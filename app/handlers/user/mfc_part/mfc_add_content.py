@@ -19,7 +19,6 @@ async def add_photo_handler(message: Message, state: FSMContext):
     await message.answer(
         text=Messages.photo_added(),
         reply_markup=MfcKeyboards().photo_added()
-        # reply_markup=MfcKeyboards().just_back()
     )
     await state.set_state(MfcStates.continue_state)
 
@@ -31,7 +30,6 @@ async def start_check(callback: CallbackQuery, state: FSMContext):
         reply_markup=MfcKeyboards().just_back()
     )
     await callback.answer()
-    # await state.set_state(MfcStates.continue_state)
 
 @router.message(F.text,
                 StateFilter(MfcStates.add_comm))
@@ -39,19 +37,9 @@ async def add_comm_handler(message: Message, state: FSMContext):
     await message.answer(
         text=Messages.comm_added(),
         reply_markup=MfcKeyboards().comm_added()
-        # reply_markup=MfcKeyboards().just_back()
-    )
-    await state.set_state(MfcStates.continue_state)
 
-@router.message(F.text,
-                StateFilter(MfcStates.continue_state))
-async def add_comm_handler(message: Message, state: FSMContext):
-    await message.answer(
-        text=Messages.comm_added(),
-        reply_markup=MfcKeyboards().continue_finish_check()
-        # reply_markup=MfcKeyboards().just_back()
     )
-    # await state.set_state(MfcStates.add_photo_after_comm)
+    await state.set_state(MfcStates.continue_state) 
 
 @router.callback_query(F.data == "add_photo_",
                        StateFilter(MfcStates.continue_state))
@@ -61,13 +49,15 @@ async def start_check(callback: CallbackQuery, state: FSMContext):
         reply_markup=MfcKeyboards().just_back()
     )
     await callback.answer()
-    # await state.set_state(MfcStates.add_photo_after_comm)
 
-@router.message(F.photo,
+@router.message(F.photo | F.text,
                 StateFilter(MfcStates.continue_state))
 async def add_photo_after_comm_handler(message: Message, state: FSMContext):
+    data = await state.get_data()
+    zone = data['zone']
+    violation = data['violation']
     await message.answer(
-        text=Messages.photo_added(),
-        reply_markup=MfcKeyboards().continue_finish_check()
+        text=Messages.photo_comm_added(zone=zone, violation=violation),
+        reply_markup=MfcKeyboards().save_or_cancel()
+        # reply_markup=MfcKeyboards().continue_finish_check(zone=zone)
     )
-    # await state.set_state(default_state)

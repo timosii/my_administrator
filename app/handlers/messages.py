@@ -47,7 +47,7 @@ class Messages:
     
     @staticmethod
     def photo_comm_added(zone: str, violation: str) -> str:
-        message = f'Вы приложили фото и написали комментарий по проблеме {violation}, вернуться к зоне нарушения {zone} или к выбору зон нарушений?'
+        message = f'Вы приложили фото и написали комментарий по проблеме <b>{violation}</b>. Сохранить нарушение?'
         return message
 
 

@@ -3,7 +3,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage, Redis
 from aiogram.fsm.storage.memory import MemoryStorage
 from app.config import settings
-from app.handlers.user import mo_part
+from app.handlers.user.mo_part import mo_part
 from app.handlers.user.mfc_part import mfc_part, mfc_add_content, mfc_back, mfc_start
 
 

@@ -14,37 +14,38 @@ router = Router()
 
 
 @router.message(lambda message: message.text in TIME_POINTS,
-                StateFilter(MfcStates.choose_zone))
-async def choose_zone_handler(message: Message, state: FSMContext):
+                StateFilter(MfcStates.choose_time))
+async def choose_time_handler(message: Message, state: FSMContext):
     await message.answer(
         text=Messages.choose_zone(),
         reply_markup=MfcKeyboards().choose_zone()
     )
-    await state.update_data(time_check=message.text) # первое сохраняемое состояние -- время проверки
-    await state.set_state(MfcStates.choose_violation)
+    await state.update_data(time_check=message.text)
+    await state.set_state(MfcStates.choose_zone)
 
 
 @router.message(lambda message: message.text in ZONES.keys(),
-                StateFilter(MfcStates.choose_violation))
-async def choose_violation_handler(message: Message, state: FSMContext):
+                StateFilter(MfcStates.choose_zone))
+async def choose_zone_handler(message: Message, state: FSMContext):
     zone = message.text
     await message.answer(
         text=Messages.choose_violation(zone=zone),
         reply_markup=MfcKeyboards().choose_violation(zone=zone)
     )
     await state.update_data(zone=message.text)
-    await state.set_state(MfcStates.choose_photo_comm)
+    await state.set_state(MfcStates.choose_violation)
 
 
 @router.message(lambda message: message.text in sum(list(ZONES.values()), []),
-                StateFilter(MfcStates.choose_photo_comm))
-async def make_choice_handler(message: Message, state: FSMContext):
+                StateFilter(MfcStates.choose_violation))
+async def choose_violation_handler(message: Message, state: FSMContext):
     violation = message.text
     await message.answer(
         text=Messages.add_photo_comm(violation=violation),
         reply_markup=MfcKeyboards().choose_photo_comm()
     )
     await state.update_data(violation=message.text)
+    await state.set_state(MfcStates.choose_photo_comm)
 
 
 @router.message(F.text.lower() == 'загрузить фото',
@@ -67,17 +68,19 @@ async def add_photo_handler(message: Message, state: FSMContext):
     await state.set_state(MfcStates.add_comm)
 
 
-@router.callback_query(F.data == "continue_check_",
-                       StateFilter(MfcStates.continue_state))  
+@router.callback_query(F.data == "save_and_go",
+                       StateFilter(MfcStates.continue_state))
 async def continue_check(callback: CallbackQuery, state: FSMContext):
+    await callback.answer(text='Информация о нарушении сохранена!', show_alert=True)
+    # сохраняем всё
     await callback.message.answer(
         text=Messages.choose_zone(),
-        reply_markup=MfcKeyboards().just_back()
+        reply_markup=MfcKeyboards().choose_zone()
     )
-    await callback.answer()
+    await state.set_state(MfcStates.choose_violation)
 
 
-@router.callback_query(F.data == "finish_check_",
+@router.callback_query(F.data == "",
                        StateFilter(MfcStates.continue_state))
 # добавить окошко "проверка закончена"
 async def finish_check(callback: CallbackQuery, state: FSMContext):

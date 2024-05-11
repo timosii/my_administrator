@@ -20,14 +20,14 @@ async def cmd_start(message: Message, state: FSMContext):
         text=Messages.main_menu(),
         reply_markup=MfcKeyboards().main_menu()
     )
-    await state.set_state(MfcStates.choose_time)
+    await state.set_state(MfcStates.start_checking)
 
 
 @router.message(F.text.lower() == 'начать проверку',
-                StateFilter(MfcStates.choose_time))
+                StateFilter(MfcStates.start_checking))
 async def choose_time_handler(message: Message, state: FSMContext):
     await message.answer(
         text=Messages.choose_time(),
         reply_markup=MfcKeyboards().choose_check_time()
     )
-    await state.set_state(MfcStates.choose_zone)
+    await state.set_state(MfcStates.choose_time)

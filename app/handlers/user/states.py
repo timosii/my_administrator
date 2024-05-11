@@ -1,6 +1,7 @@
 from aiogram.fsm.state import State, StatesGroup
 
 class MfcStates(StatesGroup):
+    start_checking = State()
     choose_time= State()
     choose_zone = State()
     choose_violation = State()
@@ -8,7 +9,5 @@ class MfcStates(StatesGroup):
     add_photo = State()
     add_comm = State()
     continue_state = State()
-    # add_photo_after_comm = State()
-    # add_comm_after_photo = State()
-    
+  
 
