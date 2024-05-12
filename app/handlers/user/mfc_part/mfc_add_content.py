@@ -1,4 +1,4 @@
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -15,11 +15,21 @@ router = Router()
 
 @router.message(F.photo,
                 StateFilter(MfcStates.add_photo))
-async def add_photo_handler(message: Message, state: FSMContext):
+async def add_photo_handler(message: Message, state: FSMContext, bot: Bot):
     await message.answer(
         text=Messages.photo_added(),
         reply_markup=MfcKeyboards().photo_added()
     )
+    # id_photo = message.photo[-1].file_id
+    # await message.answer(
+    #     text=id_photo,
+    #     # reply_markup=MfcKeyboards().photo_added()
+    # )
+    # await message.reply_photo(
+    #     photo=id_photo,
+    #     # reply_markup=MfcKeyboards().photo_added()
+    # )
+    # await bot.send_photo(chat_id=message.from_user.id, photo=id_photo)
     await state.set_state(MfcStates.continue_state)
 
 @router.callback_query(F.data == "add_comm_",
