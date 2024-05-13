@@ -10,5 +10,3 @@ from crud import (
 
 asyncio.run(create_tables())
 # asyncio.run(insert_data())
-
-
