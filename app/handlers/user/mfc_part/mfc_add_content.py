@@ -17,7 +17,7 @@ router = Router()
                 StateFilter(MfcStates.add_photo))
 async def add_photo_handler(message: Message, state: FSMContext, bot: Bot):
     await message.answer(
-        text=Messages.photo_added(),
+        text=Messages.photo_added,
         reply_markup=MfcKeyboards().photo_added()
     )
     # id_photo = message.photo[-1].file_id
@@ -36,7 +36,7 @@ async def add_photo_handler(message: Message, state: FSMContext, bot: Bot):
                        StateFilter(MfcStates.continue_state))
 async def start_check(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
-        text=Messages.add_comm(),
+        text=Messages.add_comm,
         reply_markup=MfcKeyboards().just_back()
     )
     await callback.answer()
@@ -45,7 +45,7 @@ async def start_check(callback: CallbackQuery, state: FSMContext):
                 StateFilter(MfcStates.add_comm))
 async def add_comm_handler(message: Message, state: FSMContext):
     await message.answer(
-        text=Messages.comm_added(),
+        text=Messages.comm_added,
         reply_markup=MfcKeyboards().comm_added()
     )
     await state.set_state(MfcStates.continue_state) 
@@ -54,7 +54,7 @@ async def add_comm_handler(message: Message, state: FSMContext):
                        StateFilter(MfcStates.continue_state))
 async def start_check(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
-        text=Messages.add_photo(),
+        text=Messages.add_photo,
         reply_markup=MfcKeyboards().just_back()
     )
     await callback.answer()
@@ -66,6 +66,6 @@ async def add_photo_after_comm_handler(message: Message, state: FSMContext):
     zone = data['zone']
     violation = data['violation']
     await message.answer(
-        text=Messages.photo_comm_added(zone=zone, violation=violation),
+        text=Messages.photo_comm_added(violation=violation),
         reply_markup=MfcKeyboards().save_or_cancel()
     )

@@ -17,7 +17,7 @@ router = Router()
                 StateFilter(default_state))
 async def cmd_start(message: Message, state: FSMContext):
     await message.answer(
-        text=Messages.main_menu(),
+        text=Messages.welcome_message,
         reply_markup=MfcKeyboards().main_menu()
     )
     await state.set_state(MfcStates.start_checking)
@@ -27,7 +27,7 @@ async def cmd_start(message: Message, state: FSMContext):
                 StateFilter(MfcStates.start_checking))
 async def choose_time_handler(message: Message, state: FSMContext):
     await message.answer(
-        text=Messages.choose_time(),
+        text=Messages.choose_time,
         reply_markup=MfcKeyboards().choose_check_time()
     )
     await state.set_state(MfcStates.choose_time)

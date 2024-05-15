@@ -19,25 +19,25 @@ async def back_command(message: Message, state: FSMContext):
     if current_state == MfcStates.start_checking:
         await state.set_state(default_state)
         await message.answer(
-            text=Messages.start_message(),
+            text=Messages.start_message,
             reply_markup=ReplyKeyboardRemove()
         )
     elif current_state == MfcStates.choose_time:
         await state.set_state(MfcStates.start_checking)
         await message.answer(
-            text=Messages.main_menu(),
+            text=Messages.welcome_message,
             reply_markup=MfcKeyboards().main_menu()
         )
     elif current_state == MfcStates.choose_zone:
         await state.set_state(MfcStates.choose_time)
         await message.answer(
-            text=Messages.choose_time(),
+            text=Messages.choose_time,
             reply_markup=MfcKeyboards().choose_check_time()
         )
     elif current_state == MfcStates.choose_violation:
         await state.set_state(MfcStates.choose_zone)
         await message.answer(
-            text=Messages.choose_zone(),
+            text=Messages.choose_zone,
             reply_markup=MfcKeyboards().choose_zone()
         )
 
@@ -75,7 +75,7 @@ async def back_command(message: Message, state: FSMContext):
 async def finish_check(message: Message, state: FSMContext):
      await state.clear()
      await message.answer(
-            text=Messages.finish_check(),
+            text=Messages.finish_check,
             reply_markup=ReplyKeyboardRemove()
         )
         

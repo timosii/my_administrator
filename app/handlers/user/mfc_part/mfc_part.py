@@ -17,7 +17,7 @@ router = Router()
                 StateFilter(MfcStates.choose_time))
 async def choose_time_handler(message: Message, state: FSMContext):
     await message.answer(
-        text=Messages.choose_zone(),
+        text=Messages.choose_zone,
         reply_markup=MfcKeyboards().choose_zone()
     )
     await state.update_data(time_check=message.text)
@@ -52,7 +52,7 @@ async def choose_violation_handler(message: Message, state: FSMContext):
                 StateFilter(MfcStates.choose_photo_comm))
 async def add_photo_handler(message: Message, state: FSMContext):
     await message.answer(
-        text=Messages.add_photo(),
+        text=Messages.add_photo,
         reply_markup=MfcKeyboards().just_back()
     )
     await state.set_state(MfcStates.add_photo)
@@ -62,7 +62,7 @@ async def add_photo_handler(message: Message, state: FSMContext):
                 StateFilter(MfcStates.choose_photo_comm))
 async def add_photo_handler(message: Message, state: FSMContext):
     await message.answer(
-        text=Messages.add_comm(),
+        text=Messages.add_comm,
         reply_markup=MfcKeyboards().just_back()
     )
     await state.set_state(MfcStates.add_comm)
@@ -73,10 +73,10 @@ async def add_photo_handler(message: Message, state: FSMContext):
 async def continue_check(callback: CallbackQuery, state: FSMContext):
     
     await callback.message.answer(
-        text=Messages.continue_check(),
+        text=Messages.continue_check,
     )
     await callback.message.answer(
-        text=Messages.choose_zone(),
+        text=Messages.choose_zone,
         reply_markup=MfcKeyboards().choose_zone()
     )
     # сохранить всё здесь
@@ -90,10 +90,10 @@ async def continue_check(callback: CallbackQuery, state: FSMContext):
 async def cancel_check(callback: CallbackQuery,
                        state: FSMContext):
     await callback.message.answer(
-        text=Messages.cancel_check(),
+        text=Messages.cancel_check,
     )
     await callback.message.answer(
-        text=Messages.choose_zone(),
+        text=Messages.choose_zone,
         reply_markup=MfcKeyboards().choose_zone()
     )
     await callback.answer()

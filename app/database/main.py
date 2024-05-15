@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from sqlalchemy.orm import Session, sessionmaker, DeclarativeBase
 from sqlalchemy import create_engine, URL, text
 from app.config import settings
-from crud import (
+from app.database.methods.create_db import (
     create_tables,
     # insert_data
 )

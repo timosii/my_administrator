@@ -1,6 +1,6 @@
 import asyncio
 from database import engine, session_maker, Base
-from models import Users
+from app.database.models.dicts import Users
 
 async def create_tables():
     async with engine.begin() as conn:

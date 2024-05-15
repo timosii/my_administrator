@@ -2,24 +2,17 @@ from app.utils.utils import time_determiner
 from app.data import ZONES
 
 class Messages:
-
-    @staticmethod
-    def start_message() -> str:
-        return 'Для начала нажмите /start'
-    
-    @staticmethod
-    def main_menu() -> str:
-        welcome_message = 'Нажмите, чтобы начать проверку'
-        return welcome_message
-
-    @staticmethod
-    def choose_time() -> str:
-        start_message = f'{time_determiner()}. Выберите время проверки:'
-        return start_message
-    
-    @staticmethod
-    def choose_zone() -> str:
-        return 'Выберите зону нарушения:'
+    start_message = 'Для начала нажмите /start'
+    welcome_message = 'Нажмите, чтобы начать проверку'
+    choose_time = f'{time_determiner()}. Выберите время проверки:'
+    choose_zone = 'Выберите зону нарушения:'
+    add_photo = 'Отправьте фото'
+    add_comm = 'Напишите и отправьте комментарий'
+    photo_added = 'Фото добавлено!'
+    comm_added = 'Комментарий добавлен!'
+    continue_check = 'Вы можете продолжить проверку'
+    cancel_check = 'Возвращаемся в начало ...'
+    finish_check = 'Проверка закончена! Все данные были сохранены. Спасибо за участие!'
     
     @staticmethod
     def choose_violation(zone: str) -> str:
@@ -28,38 +21,9 @@ class Messages:
     @staticmethod
     def add_photo_comm(violation: str) -> str:
         return f'Приложите фото и напишите комментарий по проблеме {violation}'
-    
-    @staticmethod
-    def add_photo() -> str:
-        return 'Отправьте фото'
-    
-    @staticmethod
-    def add_comm() -> str:
-        return 'Напишите и отправьте комментарий'
-    
-    @staticmethod
-    def photo_added() -> str:
-        return 'Фото добавлено!'
-    
-    @staticmethod
-    def comm_added() -> str:
-        return 'Комментарий добавлен!'
-    
-    @staticmethod
-    def continue_check() -> str:
-        return 'Вы можете продолжить проверку'
-    
-    @staticmethod
-    def cancel_check() -> str:
-        return 'Возвращаемся в начало ...'
-    
-    @staticmethod
-    def finish_check() -> str:
-        return 'Проверка закончена! Все данные были сохранены. Спасибо за участие!'
 
     @staticmethod
-    def photo_comm_added(zone: str,
-                         violation: str) -> str:
+    def photo_comm_added(violation: str) -> str:
         message = f'Вы приложили фото и написали комментарий по проблеме <b>{violation}</b>.\nСохранить нарушение?'
         return message
 
