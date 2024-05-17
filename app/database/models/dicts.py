@@ -27,6 +27,8 @@ class Mos(Base):
     
     # id: Mapped[intpk]
     mo_name: Mapped[str_pk]
+    mo_population: Mapped[str_256]
+    mo_type: Mapped[str_256]
 
 
 class Filials(Base):
@@ -35,6 +37,8 @@ class Filials(Base):
 
     # id: Mapped[intpk]
     fil_name: Mapped[str_pk]
+    fil_population: Mapped[str_256]
+    fil_type: Mapped[str_256]
     mo_name: Mapped[int] = mapped_column(ForeignKey("dicts.mos.mo_name", ondelete="CASCADE"))
 
 
@@ -62,9 +66,9 @@ class Violations(Base):
     zone: Mapped[str_256] = mapped_column(ForeignKey("dicts.zones.zone_name", ondelete="CASCADE"))
     problem: Mapped[str_256] = mapped_column(ForeignKey("dicts.problems.problem_name", ondelete="CASCADE"))
     description: Mapped[str] = mapped_column(nullable=True)
-    need_photo_mfc: Mapped[bool]
-    need_comment_mfc: Mapped[bool]
-    need_photo_mo: Mapped[bool]
-    need_comment_mo: Mapped[bool]
-    no_data_button: Mapped[bool]
+    is_photo_mfc: Mapped[bool]
+    is_comment_mfc: Mapped[bool]
+    is_photo_mo: Mapped[bool]
+    is_comment_mo: Mapped[bool]
+    is_no_data_button: Mapped[bool]
     time_to_correct: Mapped[dt.timedelta] = mapped_column(Interval)

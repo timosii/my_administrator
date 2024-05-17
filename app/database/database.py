@@ -33,7 +33,7 @@ bigint = Annotated[int, mapped_column(
     )]
 str_pk = Annotated[str, mapped_column(
     primary_key=True,
-    unique=True,
+    # unique=True,
     type_=String(256)
 )]
 str_256 = Annotated[str, mapped_column(
