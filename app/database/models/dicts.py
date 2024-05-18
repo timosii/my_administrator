@@ -39,7 +39,7 @@ class Filials(Base):
     fil_name: Mapped[str_pk]
     fil_population: Mapped[str_256]
     fil_type: Mapped[str_256]
-    mo_name: Mapped[int] = mapped_column(ForeignKey("dicts.mos.mo_name", ondelete="CASCADE"))
+    mo_name: Mapped[str_256] = mapped_column(ForeignKey("dicts.mos.mo_name", ondelete="CASCADE"))
 
 
 class ProblemBlocs(Base):

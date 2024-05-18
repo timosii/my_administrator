@@ -29,7 +29,7 @@ class User(Base):
     id: Mapped[intpk]
     telegram_id: Mapped[str_256]
 
-    mo: Mapped[int] = mapped_column(ForeignKey("dicts.mos.mo_name"))
+    mo_: Mapped[str_256] = mapped_column(ForeignKey("dicts.mos.mo_name"))
     is_admin: Mapped[bool] = mapped_column(default=False)
     is_mfc: Mapped[bool]
     is_mfc_leader: Mapped[bool] = mapped_column(default=False)
