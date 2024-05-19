@@ -72,7 +72,7 @@ class Check(Base):
     __table_args__ = {'schema': 'data'}
 
     id: Mapped[bigint_pk]
-    fil: Mapped[str_255] = mapped_column(ForeignKey("dicts.filials.fil_"))
+    fil_: Mapped[str_255] = mapped_column(ForeignKey("dicts.filials.fil_"))
     user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.id"))
     mfc_start: Mapped[dt.datetime]
     mfc_finish: Mapped[dt.datetime] = mapped_column(nullable=True)

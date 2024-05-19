@@ -4,23 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import engine, session_maker, Base
 from app.database.models.data import (
     User,
-    Check,
-    ViolationFound
 )
 
 async def add_user(
-        # new_user: User
+        new_user: User
         ) -> None:
     async with session_maker() as session:
-        new_user = User(
-            id=112,
-            mo_='ГП 107',
-            last_name='Тестов',
-            first_name='Тест',
-            patronymic='Тестович',
-            post='Менеджер',
-            is_mfc=True
-            )
         session.add(new_user)
         await session.commit()
 
@@ -114,26 +103,4 @@ async def is_mo_controler(id: int) -> bool:
         return bool(is_mo_controler)
 
 
-if __name__ == '__main__':
-    # new_user = User(
-    #     id=112,
-    #     mo_='ГП 107',
-    #     last_name='Тестов',
-    #     first_name='Тест',
-    #     patronymic='Тестович',
-    #     post='Менеджер',
-    #     is_mfc=True
-    #     )
-    print(asyncio.run(is_admin(id=581145287)))
-    print(asyncio.run(is_mfc(id=581145287)))
-    print(asyncio.run(is_mfc_leader(id=581145287)))
-    print(asyncio.run(is_mo_performer(id=581145287)))
-    print(asyncio.run(is_mo_controler(id=581145287)))
-    print(asyncio.run(add_user(
-        # new_user=new_user
-        )))
-    # print(asyncio.run(is_admin(id=new_user.id)))
-    # print(asyncio.run(is_mfc(id=new_user.id)))
-    # print(asyncio.run(is_mfc_leader(id=new_user.id)))
-    # print(asyncio.run(is_mo_performer(id=new_user.id)))
-    # print(asyncio.run(is_mo_controler(id=new_user.id)))
+

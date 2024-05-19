@@ -32,12 +32,12 @@ async def insert_data_user():
 async def insert_data_check():
     async with session_maker() as session:
         check_test_1 = Check(
-            fil='ДГП 69 филиал 2',
+            fil_='ДГП 69 филиал 2',
             user_id = '581145287',
             mfc_start=dt.datetime.now(),
         )
         check_test_2 = Check(
-            fil='ДГП 69 филиал 1',
+            fil_='ДГП 69 филиал 1',
             user_id = '111',
             mfc_start=dt.datetime.now(),
         )
