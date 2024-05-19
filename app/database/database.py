@@ -19,13 +19,10 @@ engine = create_async_engine(
 session_maker = async_sessionmaker(engine)
 
 intpk = Annotated[int, mapped_column(
-    primary_key=True,
-    unique=True,
-    autoincrement=False
+    primary_key=True
     )]
 bigint_pk = Annotated[int, mapped_column(
     primary_key=True,
-    unique=True,
     type_=BigInteger
     )]
 bigint = Annotated[int, mapped_column(
@@ -33,7 +30,6 @@ bigint = Annotated[int, mapped_column(
     )]
 str_pk = Annotated[str, mapped_column(
     primary_key=True,
-    unique=True,
     type_=String(256)
 )]
 str_256 = Annotated[str, mapped_column(

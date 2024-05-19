@@ -57,11 +57,11 @@ class DictsInsert():
             await session.commit()
 
     async def insert_violations(self):
+        self.dfs['violations_dict']['time_to_correct'] = pd.to_timedelta(self.dfs['violations_dict']['time_to_correct']).astype(str)
         async with session_maker() as session:
             violations = [Violations(**row) for _, row in self.dfs['violations_dict'].iterrows()]
             session.add_all(violations)
             await session.commit()
-
 
     def insert_dicts_to_db(self):
         asyncio.run(self.insert_mos())
@@ -71,7 +71,6 @@ class DictsInsert():
         asyncio.run(self.insert_violations())
         
         
-
     # async def insert_data():
     # async with session_maker() as session:
     #     user_test = User(user_id='661772')

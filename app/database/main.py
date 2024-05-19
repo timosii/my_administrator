@@ -11,4 +11,3 @@ from app.database.insert_dicts.insert_dicts import DictsInsert
 
 asyncio.run(create_tables())
 DictsInsert().insert_dicts_to_db()
-# asyncio.run(insert_data())
