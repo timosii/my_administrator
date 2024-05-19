@@ -15,26 +15,32 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.database import (
     Base,
     intpk,
-    str_256,
+    str_255,
     datetime_now,
     updated_at,
     bigint_pk,
-    bigint
+    bigint,
+    str_pk
 )
+
 
 class User(Base):
     __tablename__ = 'user'
     __table_args__ = {'schema': 'data'}
 
-    id: Mapped[intpk]
-    telegram_id: Mapped[str_256]
+    tg_id: Mapped[str_pk]
 
-    mo_: Mapped[str_256] = mapped_column(ForeignKey("dicts.mos.mo_name"))
+    mo_: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_name"))
+    surname: Mapped[str_255]
+    name: Mapped[str_255]
+    patronymic: Mapped[str_255]
+    post: Mapped[str_255]
     is_admin: Mapped[bool] = mapped_column(default=False)
     is_mfc: Mapped[bool] = mapped_column(default=False)
     is_mfc_leader: Mapped[bool] = mapped_column(default=False)
     is_mo_performer: Mapped[bool] = mapped_column(default=False)
     is_mo_controler: Mapped[bool] = mapped_column(default=False)
+    is_archived: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime_now]
     updated_at: Mapped[updated_at]
 
@@ -42,14 +48,16 @@ class User(Base):
         back_populates = "user"
     )
 
+
 class ViolationFound(Base):
     __tablename__ = 'violation_found'
     __table_args__ = {'schema': 'data'}
 
     id: Mapped[bigint_pk]
+
     check_id: Mapped[bigint] = mapped_column(ForeignKey("data.check.id"))
     violation_id: Mapped[int] = mapped_column(ForeignKey("dicts.violations.id"))
-    photo_id: Mapped[str_256] = mapped_column(nullable=True)
+    photo_id: Mapped[str_255] = mapped_column(nullable=True)
     comm: Mapped[str] = mapped_column(nullable=True)
     violation_detected: Mapped[dt.datetime]
     violation_fixed: Mapped[dt.datetime] = mapped_column(nullable=True)
@@ -64,10 +72,12 @@ class Check(Base):
     __table_args__ = {'schema': 'data'}
 
     id: Mapped[bigint_pk]
-    fil: Mapped[str_256] = mapped_column(ForeignKey("dicts.filials.fil_name"))
-    user_id: Mapped[int] = mapped_column(ForeignKey("data.user.id"))
-    check_start: Mapped[dt.datetime]
-    check_finish: Mapped[dt.datetime]
+    fil: Mapped[str_255] = mapped_column(ForeignKey("dicts.filials.fil_name"))
+    user_id: Mapped[str_255] = mapped_column(ForeignKey("data.user.tg_id"))
+    mfc_start: Mapped[dt.datetime]
+    mfc_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
+    mo_start: Mapped[dt.datetime] = mapped_column(nullable=True)
+    mo_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
 
     user: Mapped["User"] = relationship(
         back_populates="checks",
@@ -76,3 +86,4 @@ class Check(Base):
     violations: Mapped[list['ViolationFound']] = relationship(
         back_populates="check"
     )
+    # Добавить валидацию, что время финиша больше времени старта проверки

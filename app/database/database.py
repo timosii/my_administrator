@@ -30,10 +30,10 @@ bigint = Annotated[int, mapped_column(
     )]
 str_pk = Annotated[str, mapped_column(
     primary_key=True,
-    type_=String(256)
+    type_=String(255)
 )]
-str_256 = Annotated[str, mapped_column(
-    type_=String(256)
+str_255 = Annotated[str, mapped_column(
+    type_=String(255)
 )]
 datetime_now = Annotated[dt.datetime, mapped_column(server_default=func.now())]
 updated_at = Annotated[dt.datetime, mapped_column(
