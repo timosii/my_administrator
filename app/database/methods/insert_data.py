@@ -9,20 +9,20 @@ from app.database.models.data import (
 async def insert_data_user():
     async with session_maker() as session:
         user_test = User(
-            tg_id='581145287',
+            id=581145287,
             mo_='УМ ДЗМ',
             is_admin=True,
-            surname='Тестов',
-            name='Тест',
+            last_name='Тестов',
+            first_name='Тест',
             patronymic='Тестович',
             post='Аналитик'
             )
         user_test_2 = User(
-            tg_id='111',
+            id=111,
             mo_='УМ ДЗМ',
             is_admin=True,
-            surname='Тестов',
-            name='Тест',
+            last_name='Тестов',
+            first_name='Тест',
             patronymic='Тестович',
             post='Аналитик 2.0'
         )

@@ -25,7 +25,7 @@ class Mos(Base):
     __tablename__ = 'mos'
     __table_args__ = {'schema': 'dicts'}
     
-    mo_name: Mapped[str_pk]
+    mo_: Mapped[str_pk]
     mo_population: Mapped[str_255]
     mo_type: Mapped[str_255]
 
@@ -34,10 +34,10 @@ class Filials(Base):
     __tablename__ = 'filials'
     __table_args__ = {'schema': 'dicts'}
 
-    fil_name: Mapped[str_pk]
+    fil_: Mapped[str_pk]
     fil_population: Mapped[str_255]
     fil_type: Mapped[str_255]
-    mo_name: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_name", ondelete="CASCADE"))
+    mo_: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_", ondelete="CASCADE"))
 
 
 class ProblemBlocs(Base):

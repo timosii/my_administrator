@@ -28,11 +28,11 @@ class User(Base):
     __tablename__ = 'user'
     __table_args__ = {'schema': 'data'}
 
-    tg_id: Mapped[str_pk]
+    id: Mapped[bigint_pk]
 
-    mo_: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_name"))
-    surname: Mapped[str_255]
-    name: Mapped[str_255]
+    mo_: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_"))
+    last_name: Mapped[str_255]
+    first_name: Mapped[str_255]
     patronymic: Mapped[str_255]
     post: Mapped[str_255]
     is_admin: Mapped[bool] = mapped_column(default=False)
@@ -72,8 +72,8 @@ class Check(Base):
     __table_args__ = {'schema': 'data'}
 
     id: Mapped[bigint_pk]
-    fil: Mapped[str_255] = mapped_column(ForeignKey("dicts.filials.fil_name"))
-    user_id: Mapped[str_255] = mapped_column(ForeignKey("data.user.tg_id"))
+    fil: Mapped[str_255] = mapped_column(ForeignKey("dicts.filials.fil_"))
+    user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.id"))
     mfc_start: Mapped[dt.datetime]
     mfc_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
     mo_start: Mapped[dt.datetime] = mapped_column(nullable=True)

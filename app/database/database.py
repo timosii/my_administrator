@@ -13,7 +13,7 @@ from sqlalchemy.orm import mapped_column
 
 engine = create_async_engine(
     url= settings.url_constructor,
-    echo=True
+    # echo=True
 )
 
 session_maker = async_sessionmaker(engine)

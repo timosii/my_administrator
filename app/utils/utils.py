@@ -5,6 +5,5 @@ def time_determiner():
     current_date = dt.datetime.now(tz=tz).strftime('%d.%m.%Y')
     return current_date
 
-
 if __name__ == '__main__':
     print(time_determiner())
