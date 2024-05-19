@@ -4,6 +4,7 @@ from typing import Optional
 from pydantic import BaseModel
 # expire_on_commit=False
 
+# проверить, протестировать
 class CheckAddDTO(BaseModel):
     mo_id: int
     fil_id: int

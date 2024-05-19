@@ -31,10 +31,10 @@ class User(Base):
 
     mo_: Mapped[str_256] = mapped_column(ForeignKey("dicts.mos.mo_name"))
     is_admin: Mapped[bool] = mapped_column(default=False)
-    is_mfc: Mapped[bool]
+    is_mfc: Mapped[bool] = mapped_column(default=False)
     is_mfc_leader: Mapped[bool] = mapped_column(default=False)
-    is_mo_performer: Mapped[bool]
-    is_mo_controler: Mapped[bool]
+    is_mo_performer: Mapped[bool] = mapped_column(default=False)
+    is_mo_controler: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime_now]
     updated_at: Mapped[updated_at]
 
