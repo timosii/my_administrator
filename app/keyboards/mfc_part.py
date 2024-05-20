@@ -3,6 +3,17 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from app.data import TIME_POINTS, ZONES
 
 
+class DefaultKeyboards:
+    def __init__(self) -> None:
+        self.kb = ReplyKeyboardBuilder()
+
+    def get_authorization(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Пройти авторизацию')
+        self.kb.button(text='Назад')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+
+
 class MfcKeyboards:
     def __init__(self) -> None:
         self.kb = ReplyKeyboardBuilder()
@@ -74,3 +85,15 @@ class MfcKeyboards:
 
         ])
         return self.kb
+    
+
+class MfcLeaderKeyboards:
+    def __init__(self) -> None:
+        self.kb = ReplyKeyboardBuilder()
+
+    def main_menu(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Добавить пользователя')
+        self.kb.button(text='Посмотреть отчет о работе сотрудников МФЦ')
+        self.kb.button(text='Назад')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)

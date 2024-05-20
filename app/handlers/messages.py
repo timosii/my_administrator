@@ -1,7 +1,16 @@
 from app.utils.utils import time_determiner
 from app.data import ZONES
 
-class Messages:
+
+class AdminMessages:
+    start_message = 'Привет, админ! Что делать будем'
+
+
+class DefaultMessages:
+    start_message = 'Добрый день! Нажмите кнопку, чтобы я узнал вас!'
+
+
+class MfcMessages:
     start_message = 'Для начала нажмите /start'
     welcome_message = 'Нажмите, чтобы начать проверку'
     choose_time = f'{time_determiner()}. Выберите время проверки:'
@@ -26,5 +35,15 @@ class Messages:
     def photo_comm_added(violation: str) -> str:
         message = f'Вы приложили фото и написали комментарий по проблеме <b>{violation}</b>.\nСохранить нарушение?'
         return message
+    
+
+class MfcLeaderMessages:
+    start_message = 'Добро пожаловать, администратор МФЦ!'
 
 
+class MoPerformerMessages:
+    start_message = 'Добро пожаловать, исполнитель МО!'
+
+
+class MoControlerMessages:
+    start_message = 'Добро пожаловать, куратор МО!'

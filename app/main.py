@@ -3,8 +3,10 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage, Redis
 from aiogram.fsm.storage.memory import MemoryStorage
 from app.config import settings
-from app.handlers.user.mo_part import mo_part
-from app.handlers.user.mfc_part import mfc_part, mfc_add_content, mfc_back, mfc_start
+from app.handlers import default
+from app.handlers.admin import admin
+from app.handlers.user.mo_part import mo_performer, mo_controler
+from app.handlers.user.mfc_part import mfc_part, mfc_add_content, mfc_back, mfc_start, mfc_leader
 
 
 # async def __on_start_up(dp: Dispatcher) -> None:
@@ -38,10 +40,15 @@ async def start_bot() -> None:
     storage = MemoryStorage() # при использовании MemoryStorage
     dp = Dispatcher(storage=storage)
     dp.include_routers(
+        admin.router,
+        default.router,
+        mfc_leader.router,
         mfc_start.router,
         mfc_back.router,
         mfc_part.router,
-        mfc_add_content.router
+        mfc_add_content.router,
+        mo_performer.router,
+        mo_controler.router
         # mo_part.router
     )
     await bot.delete_webhook(drop_pending_updates=True)

@@ -6,12 +6,13 @@ from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.state import default_state, State, StatesGroup
 from app.keyboards.mfc_part import MfcKeyboards
 # from app.keyboards.mfc_inline import MfcKeyboards
-from app.handlers.messages import Messages
+from app.handlers.messages import MfcMessages
 from app.data import ZONES, TIME_POINTS, CHOOSE
-from app.handlers.user.states import MfcStates
+from app.handlers.states import MfcStates
+from app.filters.mfc_filters import MfcFilter
 
 router = Router() 
-
+router.message.filter(MfcFilter())
 
 @router.message(F.text.lower() == 'назад')
 async def back_command(message: Message, state: FSMContext):
@@ -19,25 +20,25 @@ async def back_command(message: Message, state: FSMContext):
     if current_state == MfcStates.start_checking:
         await state.set_state(default_state)
         await message.answer(
-            text=Messages.start_message,
+            text=MfcMessages.start_message,
             reply_markup=ReplyKeyboardRemove()
         )
     elif current_state == MfcStates.choose_time:
         await state.set_state(MfcStates.start_checking)
         await message.answer(
-            text=Messages.welcome_message,
+            text=MfcMessages.welcome_message,
             reply_markup=MfcKeyboards().main_menu()
         )
     elif current_state == MfcStates.choose_zone:
         await state.set_state(MfcStates.choose_time)
         await message.answer(
-            text=Messages.choose_time,
+            text=MfcMessages.choose_time,
             reply_markup=MfcKeyboards().choose_check_time()
         )
     elif current_state == MfcStates.choose_violation:
         await state.set_state(MfcStates.choose_zone)
         await message.answer(
-            text=Messages.choose_zone,
+            text=MfcMessages.choose_zone,
             reply_markup=MfcKeyboards().choose_zone()
         )
 
@@ -47,7 +48,7 @@ async def back_command(message: Message, state: FSMContext):
         zone = data['zone']
         await state.update_data(violation=None)
         await message.answer(
-            text=Messages.choose_violation(zone=zone),
+            text=MfcMessages.choose_violation(zone=zone),
             reply_markup=MfcKeyboards().choose_violation(zone=zone)
             )
     
@@ -60,14 +61,14 @@ async def back_command(message: Message, state: FSMContext):
         data = await state.get_data()
         violation = data['violation']
         await message.answer(
-            text=Messages.add_photo_comm(violation=violation),
+            text=MfcMessages.add_photo_comm(violation=violation),
             reply_markup=MfcKeyboards().choose_photo_comm()
         )
 
     else:
         await state.clear()
         await message.answer(
-            text=Messages.start_message()
+            text=MfcMessages.start_message()
         )
     
 @router.message(F.text.lower() == 'закончить проверку',
@@ -75,7 +76,7 @@ async def back_command(message: Message, state: FSMContext):
 async def finish_check(message: Message, state: FSMContext):
      await state.clear()
      await message.answer(
-            text=Messages.finish_check,
+            text=MfcMessages.finish_check,
             reply_markup=ReplyKeyboardRemove()
         )
         

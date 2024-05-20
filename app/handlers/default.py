@@ -4,21 +4,19 @@ from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.state import default_state, State, StatesGroup
-from app.keyboards.admin import AdminKeyboards
-from app.handlers.messages import AdminMessages
+from app.keyboards.default import DefaultKeyboards
+# from app.keyboards.mfc_inline import MfcKeyboards
+from app.handlers.messages import DefaultMessages
 from app.data import ZONES, TIME_POINTS, CHOOSE
-from app.handlers.states import AdminStates
-from app.filters.admin import AdminFilter
+from app.handlers.states import MfcStates
+from app.filters.mfc_filters import MfcFilter
 
 router = Router() 
-router.message.filter(AdminFilter())
 
-
-@router.message(F.text.lower() == 'пройти авторизацию',
+@router.message(Command("start"),
                 StateFilter(default_state))
 async def cmd_start(message: Message, state: FSMContext):
     await message.answer(
-        text=AdminMessages.start_message,
-        reply_markup=AdminKeyboards().main_menu()
+        text=DefaultMessages.start_message,
+        reply_markup=DefaultKeyboards().get_authorization()
     )
-    await state.set_state(AdminStates.admin)
