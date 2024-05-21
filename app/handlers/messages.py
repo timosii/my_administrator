@@ -1,5 +1,4 @@
 from app.utils.utils import time_determiner
-from app.data import ZONES
 
 
 class AdminMessages:

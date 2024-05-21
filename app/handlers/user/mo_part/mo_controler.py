@@ -7,7 +7,6 @@ from aiogram.fsm.state import default_state, State, StatesGroup
 from app.keyboards.mo_part import MoControlerKeyboards
 # from app.keyboards.mfc_inline import MfcKeyboards
 from app.handlers.messages import MoControlerMessages
-from app.data import ZONES, TIME_POINTS, CHOOSE
 from app.handlers.states import MoControlerStates
 from app.filters.mo_filters import MoControlerFilter
 

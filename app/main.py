@@ -6,7 +6,7 @@ from app.config import settings
 from app.handlers import default
 from app.handlers.admin import admin
 from app.handlers.user.mo_part import mo_performer, mo_controler
-from app.handlers.user.mfc_part import mfc_main, mfc_part, mfc_add_content, mfc_back, mfc_leader
+from app.handlers.user.mfc_part import mfc_main, mfc_leader
 
 
 # async def __on_start_up(dp: Dispatcher) -> None:

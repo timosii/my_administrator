@@ -6,7 +6,6 @@ from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.state import default_state, State, StatesGroup
 from app.keyboards.admin import AdminKeyboards
 from app.handlers.messages import AdminMessages
-from app.data import ZONES, TIME_POINTS, CHOOSE
 from app.handlers.states import AdminStates
 from app.filters.admin import AdminFilter
 

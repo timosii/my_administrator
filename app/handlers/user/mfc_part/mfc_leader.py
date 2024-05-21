@@ -6,7 +6,6 @@ from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.state import default_state, State, StatesGroup
 from app.keyboards.mfc_part import MfcLeaderKeyboards
 from app.handlers.messages import MfcLeaderMessages
-from app.data import ZONES, TIME_POINTS, CHOOSE
 from app.handlers.states import MfcLeaderStates
 from app.filters.mfc_filters import MfcLeaderFilter
 

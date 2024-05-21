@@ -1,3 +1,4 @@
+import asyncio
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
@@ -7,9 +8,10 @@ from aiogram.fsm.state import default_state, State, StatesGroup
 from app.keyboards.mfc_part import MfcKeyboards
 # from app.keyboards.mfc_inline import MfcKeyboards
 from app.handlers.messages import MfcMessages
-from app.data import ZONES, TIME_POINTS, CHOOSE
+from app.data import TIME_POINTS
 from app.handlers.states import MfcStates
 from app.filters.mfc_filters import MfcFilter
+from app.database.methods.form_menu import get_zones, get_violations
 
 router = Router() 
 router.message.filter(MfcFilter())
@@ -33,6 +35,68 @@ async def choose_time_handler(message: Message, state: FSMContext):
     )
     await state.set_state(MfcStates.choose_time)
 
+
+##############
+# back_logic #
+##############
+
+@router.message(F.text.lower() == 'назад')
+async def back_command(message: Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state == MfcStates.start_checking:
+        await state.set_state(default_state)
+        await message.answer(
+            text=MfcMessages.start_message,
+            reply_markup=ReplyKeyboardRemove()
+        )
+    elif current_state == MfcStates.choose_time:
+        await state.set_state(MfcStates.start_checking)
+        await message.answer(
+            text=MfcMessages.welcome_message,
+            reply_markup=MfcKeyboards().main_menu()
+        )
+    elif current_state == MfcStates.choose_zone:
+        await state.set_state(MfcStates.choose_time)
+        await message.answer(
+            text=MfcMessages.choose_time,
+            reply_markup=MfcKeyboards().choose_check_time()
+        )
+    elif current_state == MfcStates.choose_violation:
+        await state.set_state(MfcStates.choose_zone)
+        await message.answer(
+            text=MfcMessages.choose_zone,
+            reply_markup=MfcKeyboards().choose_zone()
+        )
+
+    elif current_state == MfcStates.choose_photo_comm:
+        await state.set_state(MfcStates.choose_violation)
+        data = await state.get_data()
+        zone = data['zone']
+        await state.update_data(violation=None)
+        await message.answer(
+            text=MfcMessages.choose_violation(zone=zone),
+            reply_markup=await MfcKeyboards().choose_violation(zone=zone)
+            )
+    
+    elif current_state in (
+        MfcStates.add_comm,
+        MfcStates.add_photo,
+        MfcStates.continue_state
+    ):
+        await state.set_state(MfcStates.choose_photo_comm)
+        data = await state.get_data()
+        violation = data['violation']
+        await message.answer(
+            text=MfcMessages.add_photo_comm(violation=violation),
+            reply_markup=MfcKeyboards().choose_photo_comm()
+        )
+
+    else:
+        await state.clear()
+        await message.answer(
+            text=MfcMessages.start_message()
+        )
+
 #######################
 # main mfc part logic #
 #######################
@@ -48,19 +112,19 @@ async def choose_time_handler(message: Message, state: FSMContext):
     await state.set_state(MfcStates.choose_zone)
 
 
-@router.message(lambda message: message.text in ZONES.keys(),
+@router.message(lambda message: message.text in get_zones(),
                 StateFilter(MfcStates.choose_zone))
 async def choose_zone_handler(message: Message, state: FSMContext):
     zone = message.text
     await message.answer(
         text=MfcMessages.choose_violation(zone=zone),
-        reply_markup=MfcKeyboards().choose_violation(zone=zone)
+        reply_markup=await MfcKeyboards().choose_violation(zone=zone)
     )
     await state.update_data(zone=message.text)
     await state.set_state(MfcStates.choose_violation)
 
 
-@router.message(lambda message: message.text in sum(list(ZONES.values()), []),
+@router.message(lambda message: message.text in get_violations(),
                 StateFilter(MfcStates.choose_violation))
 async def choose_violation_handler(message: Message, state: FSMContext):
     violation = message.text
@@ -183,68 +247,6 @@ async def add_photo_after_comm_handler(message: Message, state: FSMContext):
         text=MfcMessages.photo_comm_added(violation=violation),
         reply_markup=MfcKeyboards().save_or_cancel()
     )
-
-##############
-# back_logic #
-##############
-
-@router.message(F.text.lower() == 'назад')
-async def back_command(message: Message, state: FSMContext):
-    current_state = await state.get_state()
-    if current_state == MfcStates.start_checking:
-        await state.set_state(default_state)
-        await message.answer(
-            text=MfcMessages.start_message,
-            reply_markup=ReplyKeyboardRemove()
-        )
-    elif current_state == MfcStates.choose_time:
-        await state.set_state(MfcStates.start_checking)
-        await message.answer(
-            text=MfcMessages.welcome_message,
-            reply_markup=MfcKeyboards().main_menu()
-        )
-    elif current_state == MfcStates.choose_zone:
-        await state.set_state(MfcStates.choose_time)
-        await message.answer(
-            text=MfcMessages.choose_time,
-            reply_markup=MfcKeyboards().choose_check_time()
-        )
-    elif current_state == MfcStates.choose_violation:
-        await state.set_state(MfcStates.choose_zone)
-        await message.answer(
-            text=MfcMessages.choose_zone,
-            reply_markup=MfcKeyboards().choose_zone()
-        )
-
-    elif current_state == MfcStates.choose_photo_comm:
-        await state.set_state(MfcStates.choose_violation)
-        data = await state.get_data()
-        zone = data['zone']
-        await state.update_data(violation=None)
-        await message.answer(
-            text=MfcMessages.choose_violation(zone=zone),
-            reply_markup=MfcKeyboards().choose_violation(zone=zone)
-            )
-    
-    elif current_state in (
-        MfcStates.add_comm,
-        MfcStates.add_photo,
-        MfcStates.continue_state
-    ):
-        await state.set_state(MfcStates.choose_photo_comm)
-        data = await state.get_data()
-        violation = data['violation']
-        await message.answer(
-            text=MfcMessages.add_photo_comm(violation=violation),
-            reply_markup=MfcKeyboards().choose_photo_comm()
-        )
-
-    else:
-        await state.clear()
-        await message.answer(
-            text=MfcMessages.start_message()
-        )
-
 
 ################
 # finish_check #

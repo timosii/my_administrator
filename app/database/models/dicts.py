@@ -53,6 +53,11 @@ class Zones(Base):
 
     zone_name: Mapped[str_pk]
 
+    # def __repr__(self):
+    #     return f"Zone(id={self.id}, zone_name='{self.zone_name}')"
+
+
+
 
 class Violations(Base):
     __tablename__ = 'violations'
