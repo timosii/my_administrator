@@ -37,7 +37,6 @@ async def start_bot() -> None:
     bot = Bot(token=settings.BOT_TOKEN, parse_mode='HTML')
     redis = Redis(host='localhost')
     storage = RedisStorage(redis=redis)
-    # storage = MemoryStorage() # при использовании MemoryStorage
     dp = Dispatcher(storage=storage)
     dp.include_routers(
         admin.router,

@@ -1,7 +1,8 @@
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.database.methods.users import is_mo_controler, is_mo_performer
+# from app.database.methods.users import is_mo_controler, is_mo_performer
+from app.database.methods.services.users import UserService
 
 class MoPerformerFilter(BaseFilter):
     async def __call__(self, message: Message)-> bool:
@@ -9,7 +10,7 @@ class MoPerformerFilter(BaseFilter):
             return False
         
         user_id = message.from_user.id
-        return await is_mo_performer(id=user_id)
+        return await UserService().is_mo_performer(user_id=user_id)
     
 
 class MoControlerFilter(BaseFilter):
@@ -18,5 +19,5 @@ class MoControlerFilter(BaseFilter):
             return False
         
         user_id = message.from_user.id
-        return await is_mo_controler(id=user_id)
+        return await UserService().is_mo_controler(user_id=user_id)
     

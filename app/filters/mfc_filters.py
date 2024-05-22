@@ -1,7 +1,8 @@
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.database.methods.users import is_mfc_leader, is_mfc
+# from app.database.methods.users import is_mfc_leader, is_mfc
+from app.database.methods.services.users import UserService
 
 class MfcFilter(BaseFilter):
     async def __call__(self, message: Message)-> bool:
@@ -9,7 +10,8 @@ class MfcFilter(BaseFilter):
             return False
         
         user_id = message.from_user.id
-        return await is_mfc(id=user_id)
+
+        return await UserService().is_mfc(user_id=user_id)
         
 
 class MfcLeaderFilter(BaseFilter):
@@ -18,4 +20,4 @@ class MfcLeaderFilter(BaseFilter):
             return False
         
         user_id = message.from_user.id
-        return await is_mfc_leader(id=user_id)
+        return await UserService().is_mfc_leader(user_id=user_id)
