@@ -12,3 +12,19 @@ class DefaultKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
     
+
+class DevKeyboards:
+    def __init__(self) -> None:
+        self.kb = ReplyKeyboardBuilder()
+
+    def dev_inline(self) -> InlineKeyboardMarkup:
+        self.kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text='Проверить состояние', callback_data='check_state'),
+            ],
+            [
+                InlineKeyboardButton(text='Сбросить текущее состояние', callback_data='hard_reset'),
+            ],
+        ])
+        return self.kb
+    

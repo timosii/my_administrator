@@ -29,7 +29,7 @@ async def cmd_start(message: Message, state: FSMContext):
     await message.answer(
         text='Чиним всё ...',
     )
-    time.sleep(4)
+    time.sleep(2)
     await state.clear()
 
     await message.answer(

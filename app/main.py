@@ -3,7 +3,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage, Redis
 from aiogram.fsm.storage.memory import MemoryStorage
 from app.config import settings
-from app.handlers import default
+from app.handlers import default, dev
 from app.handlers.admin import admin
 from app.handlers.user.mo_part import mo_performer, mo_controler
 from app.handlers.user.mfc_part import mfc_main, mfc_leader
@@ -42,6 +42,7 @@ async def start_bot() -> None:
     dp.include_routers(
         admin.router,
         default.router,
+        dev.router,
         mfc_leader.router,
         mfc_main.router,
         mo_performer.router,
