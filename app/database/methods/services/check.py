@@ -6,13 +6,14 @@ from app.database.database import session_maker
 from app.database.models.data import Check
 from app.database.schemas.check_schema import CheckCreate, CheckUpdate, CheckInDB
 
+
 class CheckService:
-    def __init__(self, session_maker):
+    def __init__(self):
         self.session_maker = session_maker
 
     async def add_check(self, check_create: CheckCreate) -> CheckInDB:
         async with self.session_maker() as session:
-            new_check = Check(**check_create.dict())
+            new_check = Check(**check_create.model_dump())
             session.add(new_check)
             await session.commit()
             return CheckInDB.model_validate(new_check)

@@ -8,10 +8,23 @@ from aiogram.fsm.state import default_state, State, StatesGroup
 from app.keyboards.mfc_part import MfcKeyboards
 # from app.keyboards.mfc_inline import MfcKeyboards
 from app.handlers.messages import MfcMessages
-from app.data import TIME_POINTS
 from app.handlers.states import MfcStates
 from app.filters.mfc_filters import MfcFilter
-from app.database.methods.form_menu import get_zones, get_violations
+from app.database.methods.form_menu import get_zones, get_violations, get_filials
+from app.database.methods.services.users import UserService
+from app.database.methods.services.check import CheckService
+from app.database.methods.services.violations_found import ViolationService
+from app.database.schemas.check_schema import (
+    CheckCreate,
+    CheckInDB,
+    CheckUpdate
+)
+from app.database.schemas.violation_found_schema import (
+    ViolationFoundCreate,
+    ViolationFoundInDB,
+    ViolationFoundUpdate
+)
+
 
 router = Router() 
 router.message.filter(MfcFilter())
@@ -28,12 +41,13 @@ async def cmd_start(message: Message, state: FSMContext):
 
 @router.message(F.text.lower() == 'начать проверку',
                 StateFilter(MfcStates.start_checking))
-async def choose_time_handler(message: Message, state: FSMContext):
+async def choose_fil_handler(message: Message, state: FSMContext):
+    mo = await UserService().get_user_mo(message.from_user.id)
     await message.answer(
-        text=MfcMessages.choose_time,
-        reply_markup=MfcKeyboards().choose_check_time()
+        text=MfcMessages.choose_fil,
+        reply_markup=await MfcKeyboards().choose_fil(mo=mo)
     )
-    await state.set_state(MfcStates.choose_time)
+    await state.set_state(MfcStates.choose_fil)
 
 
 ##############
@@ -44,23 +58,24 @@ async def choose_time_handler(message: Message, state: FSMContext):
 async def back_command(message: Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state == MfcStates.start_checking:
-        await state.set_state(default_state)
+        await state.clear()
         await message.answer(
             text=MfcMessages.start_message,
             reply_markup=ReplyKeyboardRemove()
         )
-    elif current_state == MfcStates.choose_time:
+    elif current_state == MfcStates.choose_fil:
         await state.set_state(MfcStates.start_checking)
         await message.answer(
             text=MfcMessages.welcome_message,
             reply_markup=MfcKeyboards().main_menu()
         )
     elif current_state == MfcStates.choose_zone:
-        await state.set_state(MfcStates.choose_time)
+        mo = await UserService().get_user_mo(message.from_user.id)
         await message.answer(
-            text=MfcMessages.choose_time,
-            reply_markup=MfcKeyboards().choose_check_time()
+            text=MfcMessages.choose_fil,
+            reply_markup=await MfcKeyboards().choose_fil(mo=mo)
         )
+        await state.set_state(MfcStates.choose_fil)
     elif current_state == MfcStates.choose_violation:
         await state.set_state(MfcStates.choose_zone)
         await message.answer(
@@ -101,9 +116,9 @@ async def back_command(message: Message, state: FSMContext):
 # main mfc part logic #
 #######################
 
-@router.message(lambda message: message.text in TIME_POINTS,
-                StateFilter(MfcStates.choose_time))
-async def choose_time_handler(message: Message, state: FSMContext):
+@router.message(lambda message: message.text in get_filials(),
+                StateFilter(MfcStates.choose_fil))
+async def choose_fil_handler(message: Message, state: FSMContext):
     await message.answer(
         text=MfcMessages.choose_zone,
         reply_markup=MfcKeyboards().choose_zone()

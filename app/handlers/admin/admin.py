@@ -5,7 +5,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.state import default_state, State, StatesGroup
 from app.keyboards.admin import AdminKeyboards
-from app.handlers.messages import AdminMessages
+from app.keyboards.default import DefaultKeyboards
+from app.handlers.messages import AdminMessages, DefaultMessages
 from app.handlers.states import AdminStates
 from app.filters.admin import AdminFilter
 
@@ -21,3 +22,11 @@ async def cmd_start(message: Message, state: FSMContext):
         reply_markup=AdminKeyboards().main_menu()
     )
     await state.set_state(AdminStates.admin)
+
+@router.message(F.text.lower() == "назад", StateFilter(AdminStates.admin))
+async def back_command(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(
+            text=DefaultMessages.start_message,
+            reply_markup=DefaultKeyboards().get_authorization()
+        )

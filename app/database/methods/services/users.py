@@ -16,6 +16,10 @@ class UserService:
             session.add(new_user)
             await session.commit()
             return UserInDB.model_validate(new_user)
+        
+    async def get_user_mo(self, user_id: int) -> str:
+        result = await self._get_scalar(select(User.mo_).filter_by(id=user_id))
+        return result
 
     async def user_exists(self, user_id: int) -> bool:
         return await self._get_scalar(select(User.id).filter_by(id=user_id))

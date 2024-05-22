@@ -12,7 +12,7 @@ class DefaultMessages:
 class MfcMessages:
     start_message = 'Для начала нажмите /start'
     welcome_message = 'Нажмите, чтобы начать проверку'
-    choose_time = f'{time_determiner()}. Выберите время проверки:'
+    choose_fil = f'Вы начали проверку {time_determiner()}. Выберите филиал проверки:'
     choose_zone = 'Выберите зону нарушения:'
     add_photo = 'Отправьте фото'
     add_comm = 'Напишите и отправьте комментарий'

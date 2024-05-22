@@ -2,7 +2,7 @@ import asyncio
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from app.data import TIME_POINTS
-from app.database.methods.form_menu import get_zone_violations, get_zones, get_violations
+from app.database.methods.form_menu import get_zone_violations, get_zones, get_fils_by_mo
 
 
 class DefaultKeyboards:
@@ -26,12 +26,20 @@ class MfcKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def choose_check_time(self) -> ReplyKeyboardMarkup:
-        for time in TIME_POINTS:
-            self.kb.button(text=time)
+    async def choose_fil(self, mo: str) -> ReplyKeyboardMarkup:
+        fils = await get_fils_by_mo(mo=mo)
+        buttons = [KeyboardButton(text=fil) for fil in fils]
+        self.kb.add(*buttons)
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
+
+    # def choose_check_time(self) -> ReplyKeyboardMarkup:
+    #     for time in TIME_POINTS:
+    #         self.kb.button(text=time)
+    #     self.kb.button(text='Назад')
+    #     self.kb.adjust(1)
+    #     return self.kb.as_markup(resize_keyboard=True)
 
     def choose_zone(self) -> ReplyKeyboardMarkup:
         zones = get_zones()
