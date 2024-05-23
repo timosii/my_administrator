@@ -23,6 +23,9 @@ class DevKeyboards:
                 InlineKeyboardButton(text='Проверить состояние', callback_data='check_state'),
             ],
             [
+                InlineKeyboardButton(text='Посмотреть данные состояния', callback_data='data_fsm'),
+            ],
+            [
                 InlineKeyboardButton(text='Сбросить текущее состояние', callback_data='hard_reset'),
             ],
         ])

@@ -42,20 +42,20 @@ async def cmd_start(message: Message, state: FSMContext):
 
 @router.message(F.text.lower() == 'начать проверку',
                 StateFilter(MfcStates.start_checking))
-async def choose_fil_handler(message: Message, state: FSMContext):
+async def choose_fil_handler(message: Message,
+                             state: FSMContext,
+                             user: UserService = UserService()):
     user_id = message.from_user.id
-    mo = await UserService().get_user_mo(user_id=user_id)
+    mo = await user.get_user_mo(user_id=user_id)
     await state.update_data(
         user_id=user_id,
-        mo=mo,
-        mfc_start=dt.datetime.now().isoformat()
+        mo=mo
     )
     await message.answer(
         text=MfcMessages.choose_fil,
         reply_markup=await MfcKeyboards().choose_fil(mo=mo)
     )
     await state.set_state(MfcStates.choose_fil)
-
 
 ##############
 # back_logic #
@@ -131,25 +131,29 @@ async def choose_fil_handler(message: Message,
     await state.update_data(
         fil_=message.text
     )
-    check_dict = await state.get_data()
+    check_data = await state.get_data()
     check_obj = CheckCreate(
-        fil_= check_dict['fil_'],
-        user_id= check_dict['user_id'],
-        mfc_start=dt.datetime.fromisoformat(check_dict['mfc_start'])
+        fil_= check_data['fil_'],
+        user_id= check_data['user_id'],
+        mfc_start=dt.datetime.now()
     )
 
-    await check.add_check(check_create=check_obj)
+    check_in_obj = await check.add_check(check_create=check_obj)
+
+    await state.update_data(
+        check_id=check_in_obj.id
+    )
     await message.answer(
         text=MfcMessages.choose_zone,
         reply_markup=MfcKeyboards().choose_zone()
     )
-    await state.update_data(time_check=message.text)
     await state.set_state(MfcStates.choose_zone)
 
 
 @router.message(lambda message: message.text in get_zones(),
-                StateFilter(MfcStates.choose_zone))
-async def choose_zone_handler(message: Message, state: FSMContext):
+                StateFilter(MfcStates.choose_zone))                
+async def choose_zone_handler(message: Message,
+                              state: FSMContext):
     zone = message.text
     await message.answer(
         text=MfcMessages.choose_violation(zone=zone),
@@ -161,13 +165,22 @@ async def choose_zone_handler(message: Message, state: FSMContext):
 
 @router.message(lambda message: message.text in get_violations(),
                 StateFilter(MfcStates.choose_violation))
-async def choose_violation_handler(message: Message, state: FSMContext):
-    violation = message.text
+async def choose_violation_handler(message: Message,
+                                   state: FSMContext,
+                                   violation: ViolationService = ViolationService()):
+    violation_name = message.text
+    data = await state.get_data()
+    zone = data['zone']
     await message.answer(
-        text=MfcMessages.add_photo_comm(violation=violation),
+        text=MfcMessages.add_photo_comm(violation=violation_name),
         reply_markup=MfcKeyboards().choose_photo_comm()
     )
-    await state.update_data(violation=message.text)
+    await state.update_data(
+        violation_name=violation_name,
+        vio_id=await violation.get_id_by_name(zone=zone,
+                                              violation_name=violation_name)
+        )
+
     await state.set_state(MfcStates.choose_photo_comm)
 
 
@@ -190,50 +203,23 @@ async def add_photo_handler(message: Message, state: FSMContext):
     )
     await state.set_state(MfcStates.add_comm)
 
-
-@router.callback_query(F.data == "save_and_go",
-                       StateFilter(MfcStates.continue_state))
-async def continue_check(callback: CallbackQuery, state: FSMContext):
-    
-    await callback.message.answer(
-        text=MfcMessages.continue_check,
-    )
-    await callback.message.answer(
-        text=MfcMessages.choose_zone,
-        reply_markup=MfcKeyboards().choose_zone()
-    )
-    # сохранить всё здесь
-    await callback.answer(text='Информация о нарушении сохранена!', show_alert=True)
-    await state.set_state(MfcStates.choose_zone)
-
-
-@router.callback_query(F.data == "cancel",
-                       StateFilter(MfcStates.continue_state))
-# добавить окошко "проверка закончена"
-async def cancel_check(callback: CallbackQuery,
-                       state: FSMContext):
-    await callback.message.answer(
-        text=MfcMessages.cancel_check,
-    )
-    await callback.message.answer(
-        text=MfcMessages.choose_zone,
-        reply_markup=MfcKeyboards().choose_zone()
-    )
-    await callback.answer()
-    await state.set_state(MfcStates.choose_zone)
-
 ###############
 # add_content #
 ###############
 
 @router.message(F.photo,
                 StateFilter(MfcStates.add_photo))
-async def add_photo_handler(message: Message, state: FSMContext):
+async def add_photo_handler(message: Message,
+                            state: FSMContext):
+    photo_id = message.photo[-1].file_id
+    await state.update_data(
+        photo_id=photo_id
+    )
+
     await message.answer(
         text=MfcMessages.photo_added,
         reply_markup=MfcKeyboards().photo_added()
     )
-    # id_photo = message.photo[-1].file_id
     # await message.answer(
     #     text=id_photo,
     #     # reply_markup=MfcKeyboards().photo_added()
@@ -256,7 +242,12 @@ async def start_check(callback: CallbackQuery, state: FSMContext):
 
 @router.message(F.text,
                 StateFilter(MfcStates.add_comm))
-async def add_comm_handler(message: Message, state: FSMContext):
+async def add_comm_handler(message: Message,
+                           state: FSMContext):
+    comm = message.text
+    await state.update_data(
+        comm=comm
+    )
     await message.answer(
         text=MfcMessages.comm_added,
         reply_markup=MfcKeyboards().comm_added()
@@ -274,12 +265,22 @@ async def start_check(callback: CallbackQuery, state: FSMContext):
 
 @router.message(F.photo | F.text,
                 StateFilter(MfcStates.continue_state))
-async def add_photo_after_comm_handler(message: Message, state: FSMContext):
+async def add_photo_comm_after(message: Message, state: FSMContext):
     data = await state.get_data()
-    zone = data['zone']
-    violation = data['violation']
+    violation_name = data['violation_name']
+    if message.photo:
+        photo_id = message.photo[-1].file_id
+        await state.update_data(
+            photo_id=photo_id
+        )
+    else:
+        comm = message.text
+        await state.update_data(
+            comm=comm
+        )
+
     await message.answer(
-        text=MfcMessages.photo_comm_added(violation=violation),
+        text=MfcMessages.photo_comm_added(violation=violation_name),
         reply_markup=MfcKeyboards().save_or_cancel()
     )
 
@@ -287,9 +288,63 @@ async def add_photo_after_comm_handler(message: Message, state: FSMContext):
 # finish_check #
 ################
 
+@router.callback_query(F.data == "save_and_go",
+                       StateFilter(MfcStates.continue_state))
+async def continue_check(callback: CallbackQuery,
+                         state: FSMContext,
+                         violation: ViolationService = ViolationService()):
+    vio_data = await state.get_data()
+    vio_obj = ViolationFoundCreate(
+        check_id=vio_data['check_id'],
+        violation_id=vio_data['vio_id'],
+        violation_detected=dt.datetime.now(),
+        photo_id=vio_data['photo_id'],
+        comm=vio_data['comm']
+    )
+    await violation.add_violation(violation_create=vio_obj)
+    await callback.answer(text='Информация о нарушении сохранена!', show_alert=True)
+    
+    await callback.message.answer(
+        text=MfcMessages.continue_check,
+    )
+    await callback.message.answer(
+        text=MfcMessages.choose_zone,
+        reply_markup=MfcKeyboards().choose_zone()
+    )
+    
+    await state.set_state(MfcStates.choose_zone)
+
+
+@router.callback_query(F.data == "cancel",
+                       StateFilter(MfcStates.continue_state))
+# добавить окошко "проверка закончена"
+async def cancel_check(callback: CallbackQuery,
+                       state: FSMContext):
+    await callback.message.answer(
+        text=MfcMessages.cancel_check,
+    )
+    await callback.message.answer(
+        text=MfcMessages.choose_zone,
+        reply_markup=MfcKeyboards().choose_zone()
+    )
+    await callback.answer()
+    await state.set_state(MfcStates.choose_zone)
+
+
 @router.message(F.text.lower() == 'закончить проверку',
                 StateFilter(MfcStates.choose_zone))
-async def finish_check(message: Message, state: FSMContext):
+async def finish_check(message: Message,
+                       state: FSMContext,
+                       check: CheckService = CheckService()):
+     data = await state.get_data()
+     check_id = data['check_id']
+     check_upd = CheckUpdate(
+         mfc_finish=dt.datetime.now()
+     )
+     await check.update_check(
+         check_id=check_id,
+         check_update=check_upd
+     )
      await state.clear()
      await message.answer(
             text=MfcMessages.finish_check,

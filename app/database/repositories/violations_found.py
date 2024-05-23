@@ -11,7 +11,7 @@ from app.database.schemas.violation_found_schema import (
 )
 
 
-class ViolationRepo:
+class ViolationFoundRepo:
     def __init__(self):
         self.session_maker = session_maker
 
@@ -22,6 +22,7 @@ class ViolationRepo:
             new_violation = ViolationFound(**violation_create.model_dump())
             session.add(new_violation)
             await session.commit()
+            await session.refresh(new_violation)
             return ViolationFoundInDB.model_validate(new_violation)
 
     async def violation_exists(self, violation_id: int) -> bool:
@@ -36,7 +37,7 @@ class ViolationRepo:
                 select(ViolationFound).filter_by(id=violation_id)
             )
             violation = result.scalar_one_or_none()
-            return ViolationFoundInDB.model_validate(violation) if violation else None
+            return ViolationFoundInDB.model_validate(violation) if violation else None    
 
     async def update_violation(
         self, violation_id: int, violation_update: ViolationFoundUpdate

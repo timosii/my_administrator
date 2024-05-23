@@ -25,10 +25,9 @@ async def cmd_dev(message: Message, state: FSMContext):
         reply_markup=DevKeyboards().dev_inline()
     )
 
-
 @router.callback_query(F.data == "hard_reset",
                        StateFilter('*'))
-async def start_check(callback: CallbackQuery, state: FSMContext):
+async def hard_reset(callback: CallbackQuery, state: FSMContext):
     state_before = await state.get_state()
     await state.clear()
     time.sleep(1)
@@ -41,11 +40,14 @@ async def start_check(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "check_state",
                        StateFilter('*'))
-async def cmd_start(callback: CallbackQuery, state: FSMContext):
+async def сheck_state(callback: CallbackQuery, state: FSMContext):
     current_state = await state.get_state()
     await callback.message.answer(f"Вы находитесь в состоянии: {current_state}")
     await callback.answer()
 
-
-
-
+@router.callback_query(F.data == "data_fsm",
+                       StateFilter('*'))
+async def data_fsm(callback: CallbackQuery, state: FSMContext):
+    current_data = await state.get_data()
+    await callback.message.answer(f'{current_data}')
+    await callback.answer()
