@@ -1,4 +1,5 @@
 import asyncio
+import datetime as dt
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
@@ -42,7 +43,13 @@ async def cmd_start(message: Message, state: FSMContext):
 @router.message(F.text.lower() == 'начать проверку',
                 StateFilter(MfcStates.start_checking))
 async def choose_fil_handler(message: Message, state: FSMContext):
-    mo = await UserService().get_user_mo(message.from_user.id)
+    user_id = message.from_user.id
+    mo = await UserService().get_user_mo(user_id=user_id)
+    await state.update_data(
+        user_id=user_id,
+        mo=mo,
+        mfc_start=dt.datetime.now().isoformat()
+    )
     await message.answer(
         text=MfcMessages.choose_fil,
         reply_markup=await MfcKeyboards().choose_fil(mo=mo)
@@ -118,7 +125,20 @@ async def back_command(message: Message, state: FSMContext):
 
 @router.message(lambda message: message.text in get_filials(),
                 StateFilter(MfcStates.choose_fil))
-async def choose_fil_handler(message: Message, state: FSMContext):
+async def choose_fil_handler(message: Message,
+                             state: FSMContext,
+                             check: CheckService = CheckService()):
+    await state.update_data(
+        fil_=message.text
+    )
+    check_dict = await state.get_data()
+    check_obj = CheckCreate(
+        fil_= check_dict['fil_'],
+        user_id= check_dict['user_id'],
+        mfc_start=dt.datetime.fromisoformat(check_dict['mfc_start'])
+    )
+
+    await check.add_check(check_create=check_obj)
     await message.answer(
         text=MfcMessages.choose_zone,
         reply_markup=MfcKeyboards().choose_zone()

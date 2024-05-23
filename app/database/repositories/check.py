@@ -21,6 +21,7 @@ class CheckRepo:
             new_check = Check(**check_create.model_dump())
             session.add(new_check)
             await session.commit()
+            await session.refresh(new_check)
             return CheckInDB.model_validate(new_check)
 
     async def check_exists(self, check_id: int) -> bool:

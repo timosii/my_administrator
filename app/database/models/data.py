@@ -19,16 +19,16 @@ from app.database.database import (
     datetime_now,
     updated_at,
     bigint_pk,
+    bigint_pk_tg,
     bigint,
     str_pk
 )
-
 
 class User(Base):
     __tablename__ = 'user'
     __table_args__ = {'schema': 'data'}
 
-    id: Mapped[bigint_pk]
+    id: Mapped[bigint_pk_tg]
 
     mo_: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_"))
     last_name: Mapped[str_255]
@@ -65,7 +65,6 @@ class ViolationFound(Base):
     check: Mapped['Check'] = relationship(
         back_populates="violations"
     )
-
 
 class Check(Base):
     __tablename__ = 'check'

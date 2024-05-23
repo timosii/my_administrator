@@ -20,10 +20,10 @@ from app.database.services.users import UserService
 from app.database.insert_dicts.insert_dicts import DictsInsert
 
 # asyncio.run(create_tables())
-# DictsInsert().insert_dicts_to_db()
-# asyncio.run(insert_data_user())
-# asyncio.run(insert_data_check())
-# asyncio.run(insert_data_violation())
+DictsInsert().insert_dicts_to_db()
+asyncio.run(insert_data_user())
+asyncio.run(insert_data_check())
+asyncio.run(insert_data_violation())
 
 new_user = UserCreate(
     id=112,
@@ -46,3 +46,5 @@ asyncio.run(us_.add_user(
 # print(asyncio.run(us_.is_mfc_leader(id=112)))
 # print(asyncio.run(us_.is_mo_performer(id=112)))
 # print(asyncio.run(us_.is_mo_controler(id=112)))
+
+# drop table dicts.mos , dicts.filials , dicts.problems , dicts.violations , dicts.zones, "data"."check" , data."user" , data.violation_found cascade;

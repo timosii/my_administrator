@@ -25,6 +25,11 @@ bigint_pk = Annotated[int, mapped_column(
     primary_key=True,
     type_=BigInteger
     )]
+bigint_pk_tg = Annotated[int, mapped_column(
+    primary_key=True,
+    autoincrement=False,
+    type_=BigInteger
+    )]
 bigint = Annotated[int, mapped_column(
     type_=BigInteger
     )]

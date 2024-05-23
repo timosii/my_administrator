@@ -17,10 +17,7 @@ class UserCreate(UserBase):
     is_mo_performer: Optional[bool] = None
     is_mo_controler: Optional[bool] = None
     is_archived: Optional[bool] = None
-    created_at: dt.datetime = dt.datetime.now()
-
-    # def model_dump(self):
-    #     return self.dict()
+    # created_at: dt.datetime = dt.datetime.now()
 
 class UserUpdate(UserCreate):
     pass
