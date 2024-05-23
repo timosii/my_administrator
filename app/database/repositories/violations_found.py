@@ -11,7 +11,7 @@ from app.database.schemas.violation_found_schema import (
 )
 
 
-class ViolationService:
+class ViolationRepo:
     def __init__(self):
         self.session_maker = session_maker
 
@@ -25,9 +25,8 @@ class ViolationService:
             return ViolationFoundInDB.model_validate(new_violation)
 
     async def violation_exists(self, violation_id: int) -> bool:
-        return await self._get_scalar(
-            select(ViolationFound.id).filter_by(id=violation_id)
-        )
+        query = select(ViolationFound.id).filter_by(id=violation_id)
+        return await self._get_scalar(query=query)
 
     async def get_violation_by_id(
         self, violation_id: int
@@ -43,7 +42,7 @@ class ViolationService:
         self, violation_id: int, violation_update: ViolationFoundUpdate
     ) -> None:
         await self._update_field(
-            violation_id, **violation_update.dict(exclude_unset=True)
+            violation_id, **violation_update.model_dump(exclude_unset=True)
         )
 
     async def delete_violation(self, violation_id: int) -> None:
@@ -61,8 +60,9 @@ class ViolationService:
             ]
 
     async def get_violations_count(self) -> int:
+        query = select(func.count()).select_from(ViolationFound)
         return (
-            await self._get_scalar(select(func.count()).select_from(ViolationFound))
+            await self._get_scalar(query=query)
             or 0
         )
 

@@ -6,7 +6,7 @@ from app.database.database import session_maker
 from app.database.models.data import User
 from app.database.schemas.user_schema import UserCreate, UserUpdate, UserInDB
 
-class UserService:
+class UserRepo:
     def __init__(self):
         self.session_maker = session_maker
 
@@ -18,11 +18,13 @@ class UserService:
             return UserInDB.model_validate(new_user)
         
     async def get_user_mo(self, user_id: int) -> str:
-        result = await self._get_scalar(select(User.mo_).filter_by(id=user_id))
+        query = select(User.mo_).filter_by(id=user_id)
+        result = await self._get_scalar(query=query)
         return result
 
     async def user_exists(self, user_id: int) -> bool:
-        return await self._get_scalar(select(User.id).filter_by(id=user_id))
+        query = select(User.id).filter_by(id=user_id)
+        return await self._get_scalar(query=query)
 
     async def get_user_by_id(self, user_id: int) -> Optional[UserInDB]:
         async with self.session_maker() as session:
@@ -46,22 +48,28 @@ class UserService:
             return [UserInDB.model_validate(user) for user in users]
 
     async def get_user_count(self) -> int:
-        return await self._get_scalar(select(func.count()).select_from(User)) or 0
+        query = select(func.count()).select_from(User)
+        return await self._get_scalar(query=query) or 0
     
     async def is_admin(self, user_id: int) -> bool:
-        return await self._get_scalar(select(User.is_admin).filter_by(id=user_id, is_archived=False))
+        query = select(User.is_admin).filter_by(id=user_id, is_archived=False)
+        return await self._get_scalar(query=query)
 
     async def is_mfc(self, user_id: int) -> bool:
-        return await self._get_scalar(select(User.is_mfc).filter_by(id=user_id, is_archived=False))
+        query = select(User.is_mfc).filter_by(id=user_id, is_archived=False)
+        return await self._get_scalar(query=query)
 
     async def is_mfc_leader(self, user_id: int) -> bool:
-        return await self._get_scalar(select(User.is_mfc_leader).filter_by(id=user_id, is_archived=False))
+        query = select(User.is_mfc_leader).filter_by(id=user_id, is_archived=False)
+        return await self._get_scalar(query=query)
 
     async def is_mo_performer(self, user_id: int) -> bool:
-        return await self._get_scalar(select(User.is_mo_performer).filter_by(id=user_id, is_archived=False))
+        query = select(User.is_mo_performer).filter_by(id=user_id, is_archived=False)
+        return await self._get_scalar(query=query)
 
     async def is_mo_controler(self, user_id: int) -> bool:
-        return await self._get_scalar(select(User.is_mo_controler).filter_by(id=user_id, is_archived=False))
+        query = select(User.is_mo_controler).filter_by(id=user_id, is_archived=False)
+        return await self._get_scalar(query=query)
 
     async def _get_scalar(self, query) -> any:
         async with self.session_maker() as session:

@@ -10,10 +10,10 @@ from app.keyboards.mfc_part import MfcKeyboards
 from app.handlers.messages import MfcMessages
 from app.handlers.states import MfcStates
 from app.filters.mfc_filters import MfcFilter
-from app.database.methods.form_menu import get_zones, get_violations, get_filials
-from app.database.methods.services.users import UserService
-from app.database.methods.services.check import CheckService
-from app.database.methods.services.violations_found import ViolationService
+from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
+from app.database.services.users import UserService
+from app.database.services.check import CheckService
+from app.database.services.violations_found import ViolationService
 from app.database.schemas.check_schema import (
     CheckCreate,
     CheckInDB,

@@ -4,14 +4,19 @@ from sqlalchemy import select, update, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_maker
 from app.database.models.data import Check
-from app.database.schemas.check_schema import CheckCreate, CheckUpdate, CheckInDB
+from app.database.schemas.check_schema import (
+    CheckCreate,
+    CheckUpdate,
+    CheckInDB
+)
 
 
-class CheckService:
+class CheckRepo:
     def __init__(self):
         self.session_maker = session_maker
 
-    async def add_check(self, check_create: CheckCreate) -> CheckInDB:
+    async def add_check(self,
+                        check_create: CheckCreate) -> CheckInDB:
         async with self.session_maker() as session:
             new_check = Check(**check_create.model_dump())
             session.add(new_check)
@@ -19,7 +24,8 @@ class CheckService:
             return CheckInDB.model_validate(new_check)
 
     async def check_exists(self, check_id: int) -> bool:
-        return await self._get_scalar(select(Check.id).filter_by(id=check_id))
+        query = select(Check.id).filter_by(id=check_id)
+        return await self._get_scalar(query=query)
 
     async def get_check_by_id(self, check_id: int) -> Optional[CheckInDB]:
         async with self.session_maker() as session:
@@ -28,7 +34,7 @@ class CheckService:
             return CheckInDB.model_validate(check) if check else None
 
     async def update_check(self, check_id: int, check_update: CheckUpdate) -> None:
-        await self._update_field(check_id, **check_update.dict(exclude_unset=True))
+        await self._update_field(check_id, **check_update.model_dump(exclude_unset=True))
 
     async def delete_check(self, check_id: int) -> None:
         async with self.session_maker() as session:
@@ -43,7 +49,8 @@ class CheckService:
             return [CheckInDB.model_validate(check) for check in checks]
 
     async def get_checks_count(self) -> int:
-        return await self._get_scalar(select(func.count()).select_from(Check)) or 0
+        query = select(func.count()).select_from(Check)
+        return await self._get_scalar(query=query) or 0
 
     async def get_checks_by_user(self, user_id: int) -> List[CheckInDB]:
         async with self.session_maker() as session:

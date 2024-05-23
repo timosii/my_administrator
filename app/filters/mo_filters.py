@@ -2,7 +2,7 @@ from aiogram.filters import BaseFilter
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
 # from app.database.methods.users import is_mo_controler, is_mo_performer
-from app.database.methods.services.users import UserService
+from app.database.services.users import UserService
 
 class MoPerformerFilter(BaseFilter):
     async def __call__(self, message: Message)-> bool:
