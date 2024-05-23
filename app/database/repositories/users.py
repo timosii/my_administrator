@@ -15,6 +15,7 @@ class UserRepo:
             new_user = User(**user_create.model_dump())
             session.add(new_user)
             await session.commit()
+            await session.refresh(new_user)
             return UserInDB.model_validate(new_user)
         
     async def get_user_mo(self, user_id: int) -> str:

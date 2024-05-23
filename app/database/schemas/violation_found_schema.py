@@ -10,7 +10,8 @@ class ViolationFoundBase(BaseModel):
 
 
 class ViolationFoundCreate(ViolationFoundBase):
-    pass
+    photo_id: Optional[str] = None
+    comm: Optional[str] = None
 
 
 class ViolationFoundUpdate(BaseModel):
