@@ -57,6 +57,23 @@ async def choose_fil_handler(message: Message,
     )
     await state.set_state(MfcStates.choose_fil)
 
+@router.message(F.text.lower() == 'добавить уведомление о нарушении',
+                StateFilter(MfcStates.start_checking))
+async def choose_fil_handler(message: Message,
+                             state: FSMContext,
+                             user: UserService = UserService()):
+    user_id = message.from_user.id
+    mo = await user.get_user_mo(user_id=user_id)
+    await state.update_data(
+        user_id=user_id,
+        mo=mo
+    )
+    await message.answer(
+        text=MfcMessages.choose_fil,
+        reply_markup=await MfcKeyboards().choose_fil(mo=mo)
+    )
+    await state.set_state(MfcStates.choose_fil)
+
 ##############
 # back_logic #
 ##############
@@ -320,18 +337,20 @@ async def save_violation(callback: CallbackQuery,
 
 @router.callback_query(F.data == "cancel",
                        StateFilter(MfcStates.continue_state))
-# добавить окошко "проверка закончена"
 async def cancel_check(callback: CallbackQuery,
                        state: FSMContext):
-    await callback.message.answer(
-        text=MfcMessages.cancel_check,
+    await state.set_state(MfcStates.choose_photo_comm)
+    data = await state.get_data()
+    violation_name = data['violation_name']
+    await callback.message.edit_text(
+        text=MfcMessages.cancel_violation(violation=violation_name),
+        reply_markup=None
     )
     await callback.message.answer(
-        text=MfcMessages.choose_zone,
-        reply_markup=MfcKeyboards().choose_zone()
+        text=MfcMessages.add_photo_comm(violation=violation_name),
+        reply_markup=MfcKeyboards().choose_photo_comm()
     )
     await callback.answer()
-    await state.set_state(MfcStates.choose_zone)
 
 
 @router.message(F.text.lower() == 'закончить проверку',

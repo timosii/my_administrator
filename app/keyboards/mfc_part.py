@@ -22,6 +22,7 @@ class MfcKeyboards:
 
     def main_menu(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Начать проверку')
+        self.kb.button(text='Добавить уведомление о нарушении')
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
@@ -39,7 +40,7 @@ class MfcKeyboards:
         buttons = [KeyboardButton(text=zone) for zone in zones]
         self.kb.add(*buttons)
         self.kb.button(text='Закончить проверку')
-        self.kb.button(text='Назад')
+        # self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
@@ -85,7 +86,7 @@ class MfcKeyboards:
                 InlineKeyboardButton(text='Сохранить', callback_data='save_and_go'),
             ],
             [
-                InlineKeyboardButton(text='Отменить', callback_data='cancel'),
+                InlineKeyboardButton(text='Назад', callback_data='cancel'),
             ]
 
         ])

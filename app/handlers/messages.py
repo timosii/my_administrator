@@ -40,6 +40,11 @@ class MfcMessages:
         message = f'Мы сохранили нарушение <b>"{violation}"</b>. Спасибо!'
         return message
     
+    @staticmethod
+    def cancel_violation(violation: str) -> str:
+        message = f'Вы можете добавить фото и комментарии для проблемы <b>"{violation}"</b>.'
+        return message    
+    
 
 class MfcLeaderMessages:
     start_message = "Добро пожаловать, администратор МФЦ!"
