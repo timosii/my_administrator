@@ -42,12 +42,10 @@ class User(Base):
     is_mo_controler: Mapped[bool] = mapped_column(default=False)
     is_archived: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime_now]
-    updated_at: Mapped[updated_at]
 
     checks: Mapped[list['Check']] = relationship(
         back_populates = "user"
     )
-
 
 class ViolationFound(Base):
     __tablename__ = 'violation_found'
@@ -59,7 +57,7 @@ class ViolationFound(Base):
     violation_id: Mapped[int] = mapped_column(ForeignKey("dicts.violations.id"))
     photo_id: Mapped[str_255] = mapped_column(nullable=True)
     comm: Mapped[str] = mapped_column(nullable=True)
-    violation_detected: Mapped[dt.datetime]
+    violation_detected: Mapped[datetime_now]
     violation_fixed: Mapped[dt.datetime] = mapped_column(nullable=True)
 
     check: Mapped['Check'] = relationship(
@@ -73,7 +71,7 @@ class Check(Base):
     id: Mapped[bigint_pk]
     fil_: Mapped[str_255] = mapped_column(ForeignKey("dicts.filials.fil_"))
     user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.id"))
-    mfc_start: Mapped[dt.datetime]
+    mfc_start: Mapped[datetime_now]
     mfc_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
     mo_start: Mapped[dt.datetime] = mapped_column(nullable=True)
     mo_finish: Mapped[dt.datetime] = mapped_column(nullable=True)

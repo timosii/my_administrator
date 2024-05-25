@@ -135,7 +135,6 @@ async def choose_fil_handler(message: Message,
     check_obj = CheckCreate(
         fil_= check_data['fil_'],
         user_id= check_data['user_id'],
-        mfc_start=dt.datetime.now()
     )
 
     check_in_obj = await check.add_check(check_create=check_obj)
@@ -290,14 +289,18 @@ async def add_photo_comm_after(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == "save_and_go",
                        StateFilter(MfcStates.continue_state))
-async def continue_check(callback: CallbackQuery,
+async def save_violation(callback: CallbackQuery,
                          state: FSMContext,
                          violation: ViolationService = ViolationService()):
     vio_data = await state.get_data()
+    violation_name = vio_data['violation_name']
+    await callback.message.edit_text(
+        text=MfcMessages.save_violation(violation=violation_name),
+        reply_markup=None
+    )
     vio_obj = ViolationFoundCreate(
         check_id=vio_data['check_id'],
         violation_id=vio_data['vio_id'],
-        violation_detected=dt.datetime.now(),
         photo_id=vio_data['photo_id'],
         comm=vio_data['comm']
     )

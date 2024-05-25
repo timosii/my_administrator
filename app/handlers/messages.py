@@ -24,20 +24,25 @@ class MfcMessages:
     
     @staticmethod
     def choose_violation(zone: str) -> str:
-        return f'Выберите нарушение в зоне {zone}'
+        return f'Выберите нарушение в зоне <b>"{zone}"</b>'
     
     @staticmethod
     def add_photo_comm(violation: str) -> str:
-        return f'Приложите фото и напишите комментарий по проблеме {violation}'
+        return f'Приложите фото и напишите комментарий по проблеме <b>"{violation}"</b>'
 
     @staticmethod
     def photo_comm_added(violation: str) -> str:
-        message = f'Вы приложили фото и написали комментарий по проблеме <b>{violation}</b>.\nСохранить нарушение?'
+        message = f'Вы приложили фото и написали комментарий по проблеме <b>"{violation}"</b>.\nСохранить нарушение?'
+        return message
+    
+    @staticmethod
+    def save_violation(violation: str) -> str:
+        message = f'Мы сохранили нарушение <b>"{violation}"</b>. Спасибо!'
         return message
     
 
 class MfcLeaderMessages:
-    start_message = 'Добро пожаловать, администратор МФЦ!'
+    start_message = "Добро пожаловать, администратор МФЦ!"
 
 
 class MoPerformerMessages:

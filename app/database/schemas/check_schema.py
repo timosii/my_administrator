@@ -5,7 +5,6 @@ import datetime as dt
 class CheckBase(BaseModel):
     fil_: str
     user_id: int
-    mfc_start: dt.datetime
 
 class CheckCreate(CheckBase):
     pass
@@ -17,6 +16,7 @@ class CheckUpdate(BaseModel):
 
 class CheckInDB(CheckBase):
     id: int
+    mfc_start: dt.datetime
     mfc_finish: Optional[dt.datetime] = None
     mo_start: Optional[dt.datetime] = None
     mo_finish: Optional[dt.datetime] = None

@@ -25,26 +25,4 @@ asyncio.run(insert_data_user())
 asyncio.run(insert_data_check())
 asyncio.run(insert_data_violation())
 
-new_user = UserCreate(
-    id=112,
-    mo_='УМ ДЗМ',
-    is_mfc=True,
-    last_name='Тестов',
-    first_name='Тест',
-    patronymic='Тестович',
-    post='Менеджер',
-    created_at=dt.datetime.now()
-    )
-
-us_ = UserService()
-
-asyncio.run(us_.add_user(
-        user_create=new_user
-        ))
-# print(asyncio.run(us_.is_admin(id=112)))
-# print(asyncio.run(us_.is_mfc(id=112)))
-# print(asyncio.run(us_.is_mfc_leader(id=112)))
-# print(asyncio.run(us_.is_mo_performer(id=112)))
-# print(asyncio.run(us_.is_mo_controler(id=112)))
-
 # drop table dicts.mos , dicts.filials , dicts.problems , dicts.violations , dicts.zones, "data"."check" , data."user" , data.violation_found cascade;

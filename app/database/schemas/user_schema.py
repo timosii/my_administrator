@@ -17,7 +17,6 @@ class UserCreate(UserBase):
     is_mo_performer: Optional[bool] = None
     is_mo_controler: Optional[bool] = None
     is_archived: Optional[bool] = None
-    # created_at: dt.datetime = dt.datetime.now()
 
 class UserUpdate(UserCreate):
     pass
@@ -29,7 +28,6 @@ class UserInDB(UserBase):
     is_mo_performer: Optional[bool] = None
     is_mo_controler: Optional[bool] = None
     created_at: dt.datetime
-    updated_at: Optional[dt.datetime] = None
 
     class Config:
         from_attributes = True
