@@ -9,24 +9,101 @@ from app.keyboards.default import DefaultKeyboards
 from app.handlers.messages import MoPerformerMessages, DefaultMessages
 from app.handlers.states import MoPerformerStates
 from app.filters.mo_filters import MoPerformerFilter
+from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
+from app.database.services.check import CheckService
+from app.database.services.violations_found import ViolationFoundService
+from app.database.services.users import UserService
 
-router = Router() 
+from aiogram import Bot
+
+router = Router()
 router.message.filter(MoPerformerFilter())
 
 
-@router.message(F.text.lower() == 'пройти авторизацию',
-                StateFilter(default_state))
+@router.message(
+        F.text.lower() == "пройти авторизацию",
+        StateFilter(default_state))
 async def cmd_start(message: Message, state: FSMContext):
     await message.answer(
         text=MoPerformerMessages.start_message,
-        reply_markup=MoPerformerKeyboards().main_menu()
+        reply_markup=MoPerformerKeyboards().main_menu(),
     )
     await state.set_state(MoPerformerStates.mo_performer)
 
-@router.message(F.text.lower() == "назад", StateFilter(MoPerformerStates.mo_performer))
+
+@router.message(
+        F.text.lower() == "назад",
+        StateFilter(MoPerformerStates.mo_performer))
 async def back_command(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(
-            text=DefaultMessages.start_message,
-            reply_markup=DefaultKeyboards().get_authorization()
+        text=DefaultMessages.start_message,
+        reply_markup=DefaultKeyboards().get_authorization(),
+    )
+
+
+@router.message(
+    F.text.lower() == "проверить нарушения",
+    StateFilter(MoPerformerStates.mo_performer),
+)
+async def are_violations(message: Message,
+                         state: FSMContext,
+                         user: UserService = UserService()):
+    user_id = message.from_user.id
+    mo = await user.get_user_mo(user_id=user_id)
+
+    await message.answer(
+        text=MoPerformerMessages.choose_fil,
+        reply_markup=await MoPerformerKeyboards().choose_fil(mo=mo),
+    )
+
+
+@router.message(lambda message: message.text in get_filials(),
+                StateFilter(MoPerformerStates.mo_performer))
+async def choose_fil_handler(message: Message,
+                             state: FSMContext,
+                             violation_obj: ViolationFoundService = ViolationFoundService()):
+    fil_ = message.text
+    violations = await violation_obj.get_violations_found_by_fil(fil_=fil_)
+
+    for violation in violations:
+        vio = await violation_obj.get_violation_by_id(violation_id=violation.id)
+        zone = vio.zone
+        violation_name = vio.violation_name
+        keyboard = MoPerformerKeyboards().get_under_violation(violation_id=violation.id)
+        text_mes = MoPerformerMessages.view_violation_info(
+            violation_zone=zone,
+            violation_name=violation_name,
+            violation_detected=violation.violation_detected
         )
+
+        await message.answer(
+            text=text_mes,
+            reply_markup=keyboard
+            )
+
+
+@router.callback_query(F.data.startswith('comment_'))
+async def process_comment_callback(
+    callback: CallbackQuery,
+    violation_obj: ViolationFoundService = ViolationFoundService()
+    ):
+    violation_id = int(callback.data.split('_')[1])
+    violation = await violation_obj.get_violation_found_by_id(violation_id=violation_id)        
+    await callback.message.edit_text(
+        text=f"Комментарий для нарушения: {violation.comm}"
+        )
+    await callback.answer()
+
+@router.callback_query(F.data.startswith('photo_'))
+async def process_photo_callback(
+    callback: CallbackQuery,
+    violation_obj: ViolationFoundService = ViolationFoundService()
+    ):
+    violation_id = int(callback.data.split('_')[1])
+    violation = await violation_obj.get_violation_found_by_id(violation_id=violation_id)
+    await callback.message.answer_photo(
+        photo=violation.photo_id,
+        caption=f"Фото для нарушения {violation.id}"
+        )
+    await callback.answer()

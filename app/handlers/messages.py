@@ -1,4 +1,5 @@
 from app.utils.utils import time_determiner
+import datetime as dt
 
 
 class AdminMessages:
@@ -52,6 +53,16 @@ class MfcLeaderMessages:
 
 class MoPerformerMessages:
     start_message = 'Добро пожаловать, исполнитель МО!'
+    choose_fil = 'Выберите филиал:'
+    
+    
+    @staticmethod
+    def view_violation_info(violation_name: str,
+                            violation_zone: str,
+                            violation_detected: dt.datetime
+                            ) -> str:
+        violation_text = f"<b>{violation_zone}</b>\n<b>{violation_name}</b>\nДата нарушения: {violation_detected.strftime('%Y%m%d')}\n"
+        return violation_text
 
 
 class MoControlerMessages:

@@ -14,7 +14,7 @@ from app.filters.mfc_filters import MfcFilter
 from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
 from app.database.services.users import UserService
 from app.database.services.check import CheckService
-from app.database.services.violations_found import ViolationService
+from app.database.services.violations_found import ViolationFoundService
 from app.database.schemas.check_schema import (
     CheckCreate,
     CheckInDB,
@@ -57,22 +57,22 @@ async def choose_fil_handler(message: Message,
     )
     await state.set_state(MfcStates.choose_fil)
 
-@router.message(F.text.lower() == 'добавить уведомление о нарушении',
-                StateFilter(MfcStates.start_checking))
-async def choose_fil_handler(message: Message,
-                             state: FSMContext,
-                             user: UserService = UserService()):
-    user_id = message.from_user.id
-    mo = await user.get_user_mo(user_id=user_id)
-    await state.update_data(
-        user_id=user_id,
-        mo=mo
-    )
-    await message.answer(
-        text=MfcMessages.choose_fil,
-        reply_markup=await MfcKeyboards().choose_fil(mo=mo)
-    )
-    await state.set_state(MfcStates.choose_fil)
+# @router.message(F.text.lower() == 'добавить уведомление о нарушении',
+#                 StateFilter(MfcStates.start_checking))
+# async def choose_fil_handler(message: Message,
+#                              state: FSMContext,
+#                              user: UserService = UserService()):
+#     user_id = message.from_user.id
+#     mo = await user.get_user_mo(user_id=user_id)
+#     await state.update_data(
+#         user_id=user_id,
+#         mo=mo
+#     )
+#     await message.answer(
+#         text=MfcMessages.choose_fil,
+#         reply_markup=await MfcKeyboards().choose_fil(mo=mo)
+#     )
+#     await state.set_state(MfcStates.choose_fil)
 
 ##############
 # back_logic #
@@ -183,7 +183,7 @@ async def choose_zone_handler(message: Message,
                 StateFilter(MfcStates.choose_violation))
 async def choose_violation_handler(message: Message,
                                    state: FSMContext,
-                                   violation: ViolationService = ViolationService()):
+                                   violation: ViolationFoundService = ViolationFoundService()):
     violation_name = message.text
     data = await state.get_data()
     zone = data['zone']
@@ -308,7 +308,7 @@ async def add_photo_comm_after(message: Message, state: FSMContext):
                        StateFilter(MfcStates.continue_state))
 async def save_violation(callback: CallbackQuery,
                          state: FSMContext,
-                         violation: ViolationService = ViolationService()):
+                         violation: ViolationFoundService = ViolationFoundService()):
     vio_data = await state.get_data()
     violation_name = vio_data['violation_name']
     await callback.message.edit_text(
