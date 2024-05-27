@@ -39,6 +39,8 @@ class CheckService:
     
     async def get_all_active_checks_by_fil(self, fil_: str) -> List[CheckInDB]:
         result = await self.db_repository.get_all_active_checks_by_fil(fil_=fil_)
+        if not result:
+            return None
         return result
 
     async def get_checks_count(self) -> int:

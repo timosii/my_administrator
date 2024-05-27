@@ -11,7 +11,7 @@ class ViolationBase(BaseModel):
     description: str
 
 class ViolationInDB(ViolationBase):
-    pass
+    time_to_correct: Optional[dt.timedelta]
 
     class Config:
         from_attributes = True
