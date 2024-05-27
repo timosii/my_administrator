@@ -19,7 +19,6 @@ router = Router()
 @router.message(Command("dev"),
                 StateFilter('*'))
 async def cmd_dev(message: Message, state: FSMContext):
-    print(type(message.from_user.id))
     await message.answer(
         text='Вы в режиме разработчика. Выберите действие:',
         reply_markup=DevKeyboards().dev_inline()

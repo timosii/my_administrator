@@ -15,7 +15,6 @@ from app.database.schemas.violation_schema import (
     ViolationInDB,
 )
 
-
 class ViolationFoundService:
     def __init__(self, db_repository: ViolationFoundRepo = ViolationFoundRepo()):
         self.session_maker = session_maker

@@ -8,7 +8,7 @@ class MoPerformerKeyboards:
         self.kb = ReplyKeyboardBuilder()
 
     def main_menu(self) -> ReplyKeyboardMarkup:
-        self.kb.button(text='Проверить нарушения')
+        self.kb.button(text='Посмотреть активные проверки')
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
@@ -21,16 +21,23 @@ class MoPerformerKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def get_under_violation(self, violation_id: int) -> InlineKeyboardMarkup:
+    def get_under_violation_photo(self, violation_id: int) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
-            [
-                InlineKeyboardButton(text="Посмотреть комментарий", callback_data=f"comment_{violation_id}"),
-            ],
             [
                 InlineKeyboardButton(text="Посмотреть фото", callback_data=f"photo_{violation_id}")
             ]
         ])
-        return self.kb    
+        return self.kb   
+    
+    def get_under_check(self, check_id: int) -> InlineKeyboardMarkup:
+        self.kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Посмотреть нарушения", callback_data=f"violations_{check_id}"),
+            ],
+        ])
+        return self.kb
+    
+    
 
 class MoControlerKeyboards:
     def __init__(self) -> None:

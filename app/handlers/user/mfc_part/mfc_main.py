@@ -57,22 +57,22 @@ async def choose_fil_handler(message: Message,
     )
     await state.set_state(MfcStates.choose_fil)
 
-# @router.message(F.text.lower() == 'добавить уведомление о нарушении',
-#                 StateFilter(MfcStates.start_checking))
-# async def choose_fil_handler(message: Message,
-#                              state: FSMContext,
-#                              user: UserService = UserService()):
-#     user_id = message.from_user.id
-#     mo = await user.get_user_mo(user_id=user_id)
-#     await state.update_data(
-#         user_id=user_id,
-#         mo=mo
-#     )
-#     await message.answer(
-#         text=MfcMessages.choose_fil,
-#         reply_markup=await MfcKeyboards().choose_fil(mo=mo)
-#     )
-#     await state.set_state(MfcStates.choose_fil)
+@router.message(F.text.lower() == 'добавить уведомление о нарушении',
+                StateFilter(MfcStates.start_checking))
+async def choose_fil_handler(message: Message,
+                             state: FSMContext,
+                             user: UserService = UserService()):
+    user_id = message.from_user.id
+    mo = await user.get_user_mo(user_id=user_id)
+    await state.update_data(
+        user_id=user_id,
+        mo=mo
+    )
+    await message.answer(
+        text=MfcMessages.choose_fil,
+        reply_markup=await MfcKeyboards().choose_fil(mo=mo)
+    )
+    await state.set_state(MfcStates.choose_fil)
 
 ##############
 # back_logic #
@@ -122,13 +122,13 @@ async def back_command(message: Message, state: FSMContext):
         MfcStates.add_photo,
         MfcStates.continue_state
     ):
-        await state.set_state(MfcStates.choose_photo_comm)
         data = await state.get_data()
-        violation = data['violation']
+        violation = data['violation_name']
         await message.answer(
             text=MfcMessages.add_photo_comm(violation=violation),
             reply_markup=MfcKeyboards().choose_photo_comm()
         )
+        await state.set_state(MfcStates.choose_photo_comm)
 
     else:
         await state.clear()

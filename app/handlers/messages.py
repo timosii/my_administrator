@@ -55,14 +55,23 @@ class MoPerformerMessages:
     start_message = 'Добро пожаловать, исполнитель МО!'
     choose_fil = 'Выберите филиал:'
     
-    
     @staticmethod
     def view_violation_info(violation_name: str,
                             violation_zone: str,
-                            violation_detected: dt.datetime
+                            violation_detected: dt.datetime,
+                            violation_comm: str
                             ) -> str:
-        violation_text = f"<b>{violation_zone}</b>\n<b>{violation_name}</b>\nДата нарушения: {violation_detected.strftime('%Y%m%d')}\n"
+        violation_text = f"<b>Зона:</b>\n{violation_zone}\n<b>Нарушение:\n</b>{violation_name}\n<b>Время выявления нарушения:</b>\n{violation_detected.strftime('%d.%m.%Y %H:%M')}\n\nКомментарий: {violation_comm}"
         return violation_text
+    
+    @staticmethod
+    def view_check_info(
+        check_fil_: str,
+        check_date: dt.datetime,
+        violations_count: int,
+        ) -> str:
+        check_text = f"Дата проверки: {check_date.strftime('%d-%m-%Y')}\nФилиал проверки: {check_fil_}\nКоличество нарушений: {violations_count}"
+        return check_text
 
 
 class MoControlerMessages:

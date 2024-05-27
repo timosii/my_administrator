@@ -7,7 +7,7 @@ from app.database.models.data import (
 )
 from app.database.services.users import UserService
 from app.database.services.check import CheckService
-from app.database.services.violations_found import ViolationService
+from app.database.services.violations_found import ViolationFoundService
 from app.database.schemas.user_schema import UserCreate
 from app.database.schemas.check_schema import CheckCreate
 from app.database.schemas.violation_found_schema import ViolationFoundCreate
@@ -50,7 +50,7 @@ async def insert_data_check(check: CheckService = CheckService()):
     await check.add_check(check_test_2)
 
 
-async def insert_data_violation(violation: ViolationService = ViolationService()):
+async def insert_data_violation(violation: ViolationFoundService = ViolationFoundService()):
     vio_test_1 = ViolationFoundCreate(
         check_id=1,
         violation_id=13,

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
-from sqlalchemy import select, update, delete, func
+from sqlalchemy import select, update, delete, func, not_, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_maker
 from app.database.models.data import Check
@@ -46,6 +46,18 @@ class CheckRepo:
     async def get_all_checks(self) -> List[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check))
+            checks = result.scalars().all()
+            return [CheckInDB.model_validate(check) for check in checks]
+        
+    async def get_all_active_checks_by_fil(self, fil_: str) -> List[CheckInDB]:
+        async with self.session_maker() as session:
+            query = select(Check).where(
+                and_(
+                    Check.fil_ == fil_,
+                    not_(Check.mfc_finish.is_(None)),
+                    )
+            )
+            result = await session.execute(query)
             checks = result.scalars().all()
             return [CheckInDB.model_validate(check) for check in checks]
 
