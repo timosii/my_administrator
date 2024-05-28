@@ -60,14 +60,16 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
 
-    async def get_violations_found_count(self) -> int:
-        query = select(func.count()).select_from(ViolationFound)
+    async def get_violations_found_count_by_check(self, check_id: int) -> int:
+        query = select(func.count()).select_from(ViolationFound).where(
+            ViolationFound.check_id==check_id,
+            )
         return (
             await self._get_scalar(query=query)
             or 0
         )
 
-    async def get_violations_found_by_check(self, check_id: int) -> List[ViolationFoundInDB]:
+    async def get_violations_found_by_check(self, check_id: int) -> Optional[List[ViolationFoundInDB]]:
         async with self.session_maker() as session:
             result = await session.execute(
                 select(ViolationFound).filter_by(check_id=check_id)
@@ -75,7 +77,7 @@ class ViolationFoundRepo:
             violations = result.scalars().all()
             return [
                 ViolationFoundInDB.model_validate(violation) for violation in violations
-            ]
+            ] if violations else None
         
     async def get_violations_found_by_fil(self, fil_: str) -> Optional[List[ViolationFoundInDB]]:
         async with self.session_maker() as session:
@@ -93,7 +95,6 @@ class ViolationFoundRepo:
             return [
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
-
 
     async def _get_scalar(self, query) -> any:
         async with self.session_maker() as session:

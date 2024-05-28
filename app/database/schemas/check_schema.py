@@ -20,6 +20,18 @@ class CheckInDB(CheckBase):
     mfc_finish: Optional[dt.datetime] = None
     mo_start: Optional[dt.datetime] = None
     mo_finish: Optional[dt.datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+class CheckOut(BaseModel):
+    id: int
+    fil_: str
+    mfc_start: dt.datetime
+    mfc_finish: dt.datetime
+    violations_count: int
 
     class Config:
         from_attributes = True
+
+

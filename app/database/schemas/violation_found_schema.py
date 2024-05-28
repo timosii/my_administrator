@@ -28,3 +28,15 @@ class ViolationFoundInDB(ViolationFoundBase):
 
     class Config:
         from_attributes = True
+
+class ViolationFoundOut(BaseModel):
+    id: int
+    zone: str
+    violation_name: str
+    time_to_correct: dt.timedelta
+    violation_detected: dt.datetime
+    comm: Optional[str] = None,
+    photo_id: Optional[str] = None
+
+    class Config:
+        from_attributes = True

@@ -59,7 +59,7 @@ class MoPerformerMessages:
     add_comm = 'Вы можете написать и отправить текст. Он будет сохранен в качестве комментария к нарушению.'
     photo_added = 'Фото добавлено!'
     comm_added = 'Комментарий добавлен!'
-    
+    choose_another = 'Вы можете выбрать другое нарушение из списка нарушений'
     
     @staticmethod
     def form_no_checks_answer(fil_: str):
@@ -69,6 +69,10 @@ class MoPerformerMessages:
     def photo_comm_added(vio_id: int):
         return f'Информация для нарушения *INSERT_DATA* добавлена'
 
+    @staticmethod
+    def correct_mode(text_mes: str) -> str:
+        res = f"Вы в режиме исправления нарушения:\n{text_mes}\nВы можете добавить информацию (написать комментарий и приложить фото)"
+        return res
 
 class MoControlerMessages:
     start_message = 'Добро пожаловать, куратор МО!'

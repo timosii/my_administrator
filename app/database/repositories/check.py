@@ -49,17 +49,17 @@ class CheckRepo:
             checks = result.scalars().all()
             return [CheckInDB.model_validate(check) for check in checks]
         
-    async def get_all_active_checks_by_fil(self, fil_: str) -> List[CheckInDB]:
+    async def get_all_active_checks_by_fil(self, fil_: str) -> Optional[List[CheckInDB]]:
         async with self.session_maker() as session:
             query = select(Check).where(
                 and_(
                     Check.fil_ == fil_,
-                    not_(Check.mfc_finish.is_(None)),
+                    Check.mfc_finish.is_not(None),
                     )
             )
             result = await session.execute(query)
             checks = result.scalars().all()
-            return [CheckInDB.model_validate(check) for check in checks]
+            return [CheckInDB.model_validate(check) for check in checks] if checks else None
 
     async def get_checks_count(self) -> int:
         query = select(func.count()).select_from(Check)
