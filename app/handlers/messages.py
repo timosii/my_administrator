@@ -55,10 +55,19 @@ class MfcLeaderMessages:
 class MoPerformerMessages:
     start_message = 'Добро пожаловать, исполнитель МО!'
     choose_fil = 'Выберите филиал:'
+    add_photo = 'Вы можете приложить и отправить фотографию. Она будет сохранена в качестве фото к нарушению.'
+    add_comm = 'Вы можете написать и отправить текст. Он будет сохранен в качестве комментария к нарушению.'
+    photo_added = 'Фото добавлено!'
+    comm_added = 'Комментарий добавлен!'
+    
     
     @staticmethod
     def form_no_checks_answer(fil_: str):
         return f'Проверок для филиала {fil_} не найдено'
+    
+    @staticmethod
+    def photo_comm_added(vio_id: int):
+        return f'Информация для нарушения *INSERT_DATA* добавлена'
 
 
 class MoControlerMessages:

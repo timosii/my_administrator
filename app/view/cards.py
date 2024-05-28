@@ -1,5 +1,6 @@
 import datetime as dt
 from typing import Optional
+from app.utils.utils import format_timedelta
 
 
 class FormCards:
@@ -23,22 +24,27 @@ class FormCards:
 {violation_detected.strftime('%d.%m.%Y %H:%M')}
 
 Комментарий: {violation_comm if violation_comm else 'отсутствует'}
-Время на исправление: {str(violation_duration)}
+Время на исправление: {format_timedelta(violation_duration)}
         """
         return result
 
     @staticmethod
     def check_card(
         check_fil_: str,
-        check_date: dt.datetime,
+        check_start: dt.datetime,
+        check_finish: dt.datetime,
         violations_count: int,
     ) -> str:
         result = f"""
-<b>Дата проверки:</b>
-{check_date.strftime('%d-%m-%Y')}
-<b>Филиал проверки:</b>
+<b>Филиал:</b>
 {check_fil_}
+<b>Дата начала проверки:</b>
+{check_start.strftime('%d.%m.%Y %H:%M')}
+<b>Дата завершения проверки:</b>
+{check_finish.strftime('%d.%m.%Y %H:%M')}
+<b>Проверка заняла: {format_timedelta(check_finish - check_start)} </b>
 <b>Количество нарушений:</b>
 {violations_count}
         """
         return result
+    

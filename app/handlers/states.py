@@ -14,7 +14,10 @@ class MfcStates(StatesGroup):
 
 class MoPerformerStates(StatesGroup):
     mo_performer = State()
-
+    correct_violation = State()
+    add_photo = State()
+    add_comm = State()
+    continue_check = State()
 
 class MoControlerStates(StatesGroup):
     mo_controler = State()
