@@ -2,7 +2,7 @@ import asyncio
 import json
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
+from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery, InputMediaPhoto
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.state import default_state, State, StatesGroup
@@ -124,6 +124,7 @@ async def process_photo_callback(
     data = await state.get_data()
     violation_out = ViolationFoundOut(**json.loads(data[f"vio_{vio_id}"]))
     text_mes = await violation_obj.form_violation_card(violation=violation_out)
+
     await callback.message.answer_photo(
         photo=violation_out.photo_id,
         caption=f"Фотофиксация нарушения:\n{text_mes}",
@@ -191,7 +192,8 @@ async def add_photo_handler(message: Message, state: FSMContext):
     await state.set_state(MoPerformerStates.correct_violation)
 
 
-@router.message(F.text, StateFilter(MoPerformerStates.add_comm))
+@router.message(lambda mes: mes.text and (mes.text.lower() != 'вернуться к выбору проверки'),
+                StateFilter(MoPerformerStates.add_comm))
 async def add_photo_handler(message: Message, state: FSMContext):
     data = await state.get_data()
     violation_id = data["current_vio_id"]
@@ -217,7 +219,8 @@ async def start_check(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-@router.message(F.photo | F.text, StateFilter(MoPerformerStates.continue_check))
+@router.message(lambda c: c.photo or (c.text and c.text.lower() != 'вернуться к выбору проверки'),
+                StateFilter(MoPerformerStates.continue_check))
 async def add_photo_comm_after(message: Message, state: FSMContext):
     data = await state.get_data()
     vio_id = data["current_vio_id"]
@@ -272,7 +275,7 @@ async def correct_vio_process_back(
 @router.message(
     F.text.lower() == "вернуться к выбору проверки",
     StateFilter(
-        MoPerformerStates.mo_performer,
+        ~StateFilter(default_state)
     ),
 )
 async def correct_vio_process_back_to_check(
