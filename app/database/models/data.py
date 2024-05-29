@@ -57,6 +57,8 @@ class ViolationFound(Base):
     violation_id: Mapped[int] = mapped_column(ForeignKey("dicts.violations.id"))
     photo_id: Mapped[str_255] = mapped_column(nullable=True)
     comm: Mapped[str] = mapped_column(nullable=True)
+    photo_id_mo: Mapped[str_255] = mapped_column(nullable=True)
+    comm_mo: Mapped[str] = mapped_column(nullable=True)
     violation_detected: Mapped[datetime_now]
     violation_fixed: Mapped[dt.datetime] = mapped_column(nullable=True)
 
@@ -73,6 +75,7 @@ class Check(Base):
     user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.id"))
     mfc_start: Mapped[datetime_now]
     mfc_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
+    mo_user_id: Mapped[bigint] = mapped_column(nullable=True)
     mo_start: Mapped[dt.datetime] = mapped_column(nullable=True)
     mo_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
 

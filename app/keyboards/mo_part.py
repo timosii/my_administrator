@@ -16,7 +16,6 @@ class MoPerformerKeyboards:
     def correct_violation(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Написать комментарий')
         self.kb.button(text='Загрузить фото')
-        self.kb.button(text='Вернуться к проверке')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
     
@@ -28,8 +27,14 @@ class MoPerformerKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
     
-    def back_to_check(self) -> ReplyKeyboardMarkup:
-        self.kb.button(text='Вернуться к выбору проверки')
+    # def back_to_check(self) -> ReplyKeyboardMarkup:
+    #     self.kb.button(text='Вернуться к выбору проверки')
+    #     self.kb.adjust(1)
+    #     return self.kb.as_markup(resize_keyboard=True)
+    
+    def back_to_violations(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Продолжить проверку')
+        self.kb.button(text='Закончить')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
     

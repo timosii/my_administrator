@@ -133,7 +133,7 @@ async def back_command(message: Message, state: FSMContext):
     else:
         await state.clear()
         await message.answer(
-            text=MfcMessages.start_message()
+            text=MfcMessages.start_message
         )
 
 #######################

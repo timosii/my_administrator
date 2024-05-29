@@ -1,3 +1,4 @@
+import time
 import asyncio
 import json
 from aiogram import Router, F
@@ -75,6 +76,7 @@ async def get_checks(
     if not checks:
         await message.answer(
             text=MoPerformerMessages.form_no_checks_answer(fil_=fil_),
+            reply_markup=message.reply_markup
         )
     else:
         for check in checks:
@@ -96,18 +98,27 @@ async def get_violations(
     violation_obj: ViolationFoundService = ViolationFoundService(),
 ):
     check_id = int(callback.data.split("_")[1])
+    await state.update_data(
+        current_check_id=check_id
+        )
     violations = await violation_obj.get_violations_found_by_check(check_id=check_id)
 
-    for violation in violations:
-        violation_out = await violation_obj.form_violation_out(violation=violation)
-        await state.update_data(
-            {f"vio_{violation_out.id}": violation_out.model_dump_json()}
+    if not violations:
+        await callback.message.answer(
+            text=MoPerformerMessages.no_violations,
         )
-        text_mes = await violation_obj.form_violation_card(violation=violation_out)
-        keyboard = MoPerformerKeyboards().get_under_violation_photo(
-            violation_id=violation.id
-        )
-        await callback.message.answer(text=text_mes, reply_markup=keyboard)
+
+    else:
+        for violation in violations:
+            violation_out = await violation_obj.form_violation_out(violation=violation)
+            await state.update_data(
+                {f"vio_{violation_out.id}": violation_out.model_dump_json()}
+            )
+            text_mes = await violation_obj.form_violation_card(violation=violation_out)
+            keyboard = MoPerformerKeyboards().get_under_violation_photo(
+                violation_id=violation.id
+            )
+            await callback.message.answer(text=text_mes, reply_markup=keyboard)
 
     await callback.answer()
 
@@ -162,7 +173,7 @@ async def process_correct_callback(
 async def correct_vio_process(message: Message, state: FSMContext):
     await message.answer(
         text=MoPerformerMessages.add_comm,
-        reply_markup=MoPerformerKeyboards().back_to_check(),
+        reply_markup=ReplyKeyboardRemove(),
     )
     await state.set_state(MoPerformerStates.add_comm)
 
@@ -171,15 +182,21 @@ async def correct_vio_process(message: Message, state: FSMContext):
     F.text.lower() == "загрузить фото", StateFilter(MoPerformerStates.correct_violation)
 )
 async def correct_vio_process_photo(message: Message, state: FSMContext):
+    
     await message.answer(
         text=MoPerformerMessages.add_photo,
-        reply_markup=MoPerformerKeyboards().back_to_check(),
+        reply_markup=ReplyKeyboardRemove(),
     )
     await state.set_state(MoPerformerStates.add_photo)
 
-
-@router.message(F.photo, StateFilter(MoPerformerStates.add_photo))
+@router.message(
+        StateFilter(MoPerformerStates.add_photo))
 async def add_photo_handler(message: Message, state: FSMContext):
+    if not message.photo:
+        await message.answer(
+            text=MoPerformerMessages.wrong,
+        )
+        return
     data = await state.get_data()
     violation_id = data["current_vio_id"]
     photo_id = message.photo[-1].file_id
@@ -192,8 +209,10 @@ async def add_photo_handler(message: Message, state: FSMContext):
     await state.set_state(MoPerformerStates.correct_violation)
 
 
-@router.message(lambda mes: mes.text and (mes.text.lower() != 'вернуться к выбору проверки'),
-                StateFilter(MoPerformerStates.add_comm))
+@router.message(
+    F.text,
+    StateFilter(MoPerformerStates.add_comm),
+)
 async def add_photo_handler(message: Message, state: FSMContext):
     data = await state.get_data()
     violation_id = data["current_vio_id"]
@@ -215,27 +234,8 @@ async def start_check(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         text=MoPerformerMessages.add_comm,
     )
-    await state.set_state(MoPerformerStates.continue_check)
+    await state.set_state(MoPerformerStates.continue_check_text)
     await callback.answer()
-
-
-@router.message(lambda c: c.photo or (c.text and c.text.lower() != 'вернуться к выбору проверки'),
-                StateFilter(MoPerformerStates.continue_check))
-async def add_photo_comm_after(message: Message, state: FSMContext):
-    data = await state.get_data()
-    vio_id = data["current_vio_id"]
-    if message.photo:
-        photo_id = message.photo[-1].file_id
-        await state.update_data(photo_id=photo_id)
-    else:
-        comm = message.text
-        await state.update_data(comm=comm)
-
-    await message.answer(
-        text=MoPerformerMessages.photo_comm_added(vio_id=vio_id),
-        reply_markup=MoPerformerKeyboards().back_to_check(),
-    )
-    await state.set_state(MoPerformerStates.mo_performer)
 
 
 @router.callback_query(
@@ -246,46 +246,119 @@ async def start_check(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         text=MoPerformerMessages.add_photo,
     )
-    await state.set_state(MoPerformerStates.continue_check)
+    await state.set_state(MoPerformerStates.continue_check_photo)
     await callback.answer()
 
 
 @router.message(
-    F.text.lower() == "выбрать другое нарушение",
-    StateFilter(
-        MoPerformerStates.correct_violation,
-        MoPerformerStates.add_comm,
-        MoPerformerStates.add_photo,
-        MoPerformerStates.mo_performer,
-    ),
+        F.text | F.photo,
+        StateFilter(MoPerformerStates.continue_check_text,
+                    MoPerformerStates.continue_check_photo),
 )
-async def correct_vio_process_back(
-    message: Message,
-    state: FSMContext,
-):
-    await state.update_data(current_vio_id=None, photo_id=None, comm=None)
-    await state.set_state(MoPerformerStates.mo_performer)
+async def add_photo_comm_after(message: Message, state: FSMContext):
+    data = await state.get_data()
+    vio_id = data["current_vio_id"]
+    current_state = await state.get_state()
+    if message.photo and (current_state == MoPerformerStates.continue_check_photo):
+        photo_id = message.photo[-1].file_id
+        await state.update_data(photo_id=photo_id)
+    elif message.text and (current_state == MoPerformerStates.continue_check_text):
+        comm = message.text
+        await state.update_data(comm=comm)
+    else:
+        await message.answer(
+            text=MoPerformerMessages.wrong,
+        )
+        return
+    
+    ####################################
+    # Здесь сохраняем инфу о нарушении #
+    ####################################
 
     await message.answer(
-        text=MoPerformerMessages.choose_another,
-        reply_markup=MoPerformerKeyboards.get_under_check(),
+        text=MoPerformerMessages.photo_comm_added(vio_id=vio_id),
+        reply_markup=MoPerformerKeyboards().back_to_violations(),
     )
+    await state.update_data({
+        'current_vio_id': None,
+        'photo': None,
+        'comm': None
+    })
+    await state.set_state(MoPerformerStates.mo_performer)
 
 
 @router.message(
-    F.text.lower() == "вернуться к выбору проверки",
-    StateFilter(
-        ~StateFilter(default_state)
-    ),
+    F.text.lower() == "продолжить проверку",
+    StateFilter(MoPerformerStates.mo_performer),
 )
-async def correct_vio_process_back_to_check(
+async def correct_vio_process_continue(
+    message: Message, state: FSMContext, violation_obj: ViolationFoundService = ViolationFoundService()
+):
+    data = await state.get_data()
+    check_id = data['current_check_id']
+    violations = await violation_obj.get_violations_found_by_check(check_id=check_id)
+    await message.answer(text=MoPerformerMessages.continue_check)
+    time.sleep(2)
+
+    if not violations:
+        await message.answer(
+            text=MoPerformerMessages.no_violations,
+        )
+
+    else:
+        for violation in violations:
+            violation_out = await violation_obj.form_violation_out(violation=violation)
+            await state.update_data(
+                {f"vio_{violation_out.id}": violation_out.model_dump_json()}
+            )
+            text_mes = await violation_obj.form_violation_card(violation=violation_out)
+            keyboard = MoPerformerKeyboards().get_under_violation_photo(
+                violation_id=violation.id
+            )
+            await message.answer(text=text_mes, reply_markup=keyboard)
+
+
+@router.message(
+    F.text.lower() == "закончить",
+    StateFilter(MoPerformerStates.mo_performer),
+)
+async def correct_vio_process_finish(
     message: Message, state: FSMContext, check_obj: CheckService = CheckService()
 ):
     data = await state.get_data()
-    checks = [
-        CheckOut(**json.loads(v)) for k, v in data.items() if k.startswith("check_")
-    ]
-    for check in checks:
-        text_mes = await check_obj.form_check_card(check=check)
-        keyboard = MoPerformerKeyboards().get_under_check(check_id=check.id)
-        await message.answer(text=text_mes, reply_markup=keyboard)
+    #############################
+    # Cохранить данные проверки #
+    #############################
+    fil_ = data['fil_']
+    checks = await check_obj.get_all_active_checks_by_fil(fil_=fil_)
+    await message.answer(text=MoPerformerMessages.back_to_checks)
+    if not checks:
+        await message.answer(
+            text=MoPerformerMessages.form_no_checks_answer(fil_=fil_),
+        )
+    else:
+        for check in checks:
+            check_out = await check_obj.form_check_out(check=check)
+            await state.update_data(
+                {f"check_{check_out.id}": check_out.model_dump_json()}
+            )
+            text_mes = await check_obj.form_check_card(check=check_out)
+            keyboard = MoPerformerKeyboards().get_under_check(check_id=check.id)
+            await message.answer(text=text_mes, reply_markup=keyboard)
+
+
+@router.message(Command(commands=('finish', 'start')))
+async def finish_process(
+    message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(
+        text=DefaultMessages.start_message,
+        reply_markup=DefaultKeyboards().get_authorization(),
+    )
+
+@router.message()
+async def something_wrong(
+    message: Message, state: FSMContext):
+    await message.answer(
+        text=DefaultMessages.something_wrong
+    )

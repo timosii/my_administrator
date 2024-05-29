@@ -17,7 +17,7 @@ from app.database.schemas.violation_found_schema import ViolationFoundCreate
 async def insert_data_user(user: UserService = UserService()):
     user_test_1 = UserCreate(
         id=6164463753,
-        mo_='ГП 175',
+        mo_='ГП 107',
         is_mfc=True,
         last_name='Тестов',
         first_name='Тест',
@@ -27,7 +27,7 @@ async def insert_data_user(user: UserService = UserService()):
     user_test_2 = UserCreate(
         id=581145287,
         mo_='ГП 107',
-        is_mfc=True,
+        is_mo_performer=True,
         last_name='Тестов',
         first_name='Тест',
         patronymic='Тестович',

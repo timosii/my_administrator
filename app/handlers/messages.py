@@ -9,6 +9,7 @@ class AdminMessages:
 
 class DefaultMessages:
     start_message = 'Добрый день! Нажмите кнопку, чтобы я узнал вас!'
+    something_wrong = 'Что-то пошло не так. Попробуйте ещё раз или начните сначала /start '
 
 
 class MfcMessages:
@@ -23,6 +24,7 @@ class MfcMessages:
     continue_check = 'Вы можете продолжить проверку'
     cancel_check = 'Возвращаемся в начало ...'
     finish_check = 'Проверка закончена! Все данные были сохранены. Спасибо за участие!'
+    wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
     
     @staticmethod
     def choose_violation(zone: str) -> str:
@@ -55,19 +57,23 @@ class MfcLeaderMessages:
 class MoPerformerMessages:
     start_message = 'Добро пожаловать, исполнитель МО!'
     choose_fil = 'Выберите филиал:'
-    add_photo = 'Вы можете приложить и отправить фотографию. Она будет сохранена в качестве фото к нарушению.'
-    add_comm = 'Вы можете написать и отправить текст. Он будет сохранен в качестве комментария к нарушению.'
+    add_photo = 'Отправьте фотографию. Она будет сохранена в качестве фотофиксации исправления нарушения.'
+    add_comm = 'Напишите и отправьте текст. Он будет сохранен в качестве комментария к нарушению.'
     photo_added = 'Фото добавлено!'
     comm_added = 'Комментарий добавлен!'
     choose_another = 'Вы можете выбрать другое нарушение из списка нарушений'
-    
+    no_violations = 'Для этой проверки нарушений нет!'
+    back_to_checks = 'Возвращаемся к списку нарушений...'
+    continue_check = 'Загружаю нарушения...'
+    wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
+
     @staticmethod
     def form_no_checks_answer(fil_: str):
         return f'Проверок для филиала {fil_} не найдено'
     
     @staticmethod
     def photo_comm_added(vio_id: int):
-        return f'Информация для нарушения *INSERT_DATA* добавлена'
+        return f'Информация для нарушения добавлена'
 
     @staticmethod
     def correct_mode(text_mes: str) -> str:

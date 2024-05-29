@@ -22,7 +22,7 @@ from app.database.insert_dicts.insert_dicts import DictsInsert
 # asyncio.run(create_tables())
 DictsInsert().insert_dicts_to_db()
 asyncio.run(insert_data_user())
-asyncio.run(insert_data_check())
-asyncio.run(insert_data_violation())
+# asyncio.run(insert_data_check())
+# asyncio.run(insert_data_violation())
 
 # drop table dicts.mos , dicts.filials , dicts.problems , dicts.violations , dicts.zones, "data"."check" , data."user" , data.violation_found cascade;
