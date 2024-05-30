@@ -68,7 +68,10 @@ class ViolationFoundRepo:
 
     async def get_violations_found_count_by_check(self, check_id: int) -> int:
         query = select(func.count()).select_from(ViolationFound).where(
-            ViolationFound.check_id==check_id,
+            and_(
+                ViolationFound.check_id==check_id,
+                ViolationFound.violation_fixed.is_(None)
+                )
             )
         return (
             await self._get_scalar(query=query)

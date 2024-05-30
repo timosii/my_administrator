@@ -9,13 +9,14 @@ class MoPerformerKeyboards:
 
     def main_menu(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Посмотреть активные проверки')
-        self.kb.button(text='Назад')
+        # self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
     
     def correct_violation(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Написать комментарий')
         self.kb.button(text='Загрузить фото')
+        self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
     
@@ -23,20 +24,21 @@ class MoPerformerKeyboards:
         fils = await get_fils_by_mo(mo=mo)
         buttons = [KeyboardButton(text=fil) for fil in fils]
         self.kb.add(*buttons)
-        self.kb.button(text='Назад')
+        # self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
-    
-    # def back_to_check(self) -> ReplyKeyboardMarkup:
-    #     self.kb.button(text='Вернуться к выбору проверки')
-    #     self.kb.adjust(1)
-    #     return self.kb.as_markup(resize_keyboard=True)
     
     def back_to_violations(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Продолжить проверку')
-        self.kb.button(text='Закончить')
+        self.kb.button(text='Закончить проверку')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
+    
+    def check_finished(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Закончить проверку')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+
     
     @staticmethod
     def get_under_violation_photo(violation_id: int) -> InlineKeyboardMarkup:
@@ -85,6 +87,9 @@ class MoPerformerKeyboards:
             ],
         ])
         return kb
+    
+
+    
     
     
 

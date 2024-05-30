@@ -1,10 +1,11 @@
 from pydantic import BaseModel
 from typing import Optional, List
-from sqlalchemy import select, update, delete, func
+from sqlalchemy import select, update, delete, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_maker
-from app.database.models.data import User
+from app.database.models.data import User, Check
 from app.database.schemas.user_schema import UserCreate, UserUpdate, UserInDB
+from app.database.schemas.check_schema import CheckInDB
 
 class UserRepo:
     def __init__(self):
@@ -47,6 +48,18 @@ class UserRepo:
             result = await session.execute(select(User))
             users = result.scalars().all()
             return [UserInDB.model_validate(user) for user in users]
+
+    async def get_user_active_checks(self, user_id: int) -> List[CheckInDB]:
+        async with self.session_maker() as session:
+            query = select(Check).where(
+                and_(
+                    Check.user_id == user_id,
+                    Check.mfc_finish.is_(None)
+                )
+            )
+            result = await session.execute(query)
+            checks = result.scalars().all()
+            return [CheckInDB.model_validate(check) for check in checks]
 
     async def get_user_count(self) -> int:
         query = select(func.count()).select_from(User)

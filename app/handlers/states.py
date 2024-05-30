@@ -17,8 +17,8 @@ class MoPerformerStates(StatesGroup):
     correct_violation = State()
     add_photo = State()
     add_comm = State()
-    continue_check_text = State()
-    continue_check_photo = State()
+    # continue_check = State()
+
 
 class MoControlerStates(StatesGroup):
     mo_controler = State()

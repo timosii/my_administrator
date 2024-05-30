@@ -1,7 +1,7 @@
 import datetime as dt
 from typing import Optional
 from app.utils.utils import format_timedelta
-from app.database.schemas.check_schema import CheckOut
+from app.database.schemas.check_schema import CheckOut, CheckOutUnfinished
 from app.database.schemas.violation_found_schema import ViolationFoundOut
 
 
@@ -35,6 +35,18 @@ class FormCards:
 {check.mfc_finish.strftime('%d.%m.%Y %H:%M')}
 <b>Проверка заняла: {format_timedelta(check.mfc_finish - check.mfc_start)} </b>
 <b>Количество нарушений:</b>
+{check.violations_count}
+        """
+        return result
+    
+    @staticmethod
+    def check_card_unfinished(check: CheckOutUnfinished) -> str:
+        result = f"""
+<b>Филиал:</b>
+{check.fil_}
+<b>Дата начала проверки:</b>
+{check.mfc_start.strftime('%d.%m.%Y %H:%M')}
+<b>Количество выявленных нарушений:</b>
 {check.violations_count}
         """
         return result

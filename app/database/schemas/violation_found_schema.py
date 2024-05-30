@@ -7,17 +7,14 @@ class ViolationFoundBase(BaseModel):
     check_id: int
     violation_id: int
 
-
 class ViolationFoundCreate(ViolationFoundBase):
     photo_id: Optional[str] = None
     comm: Optional[str] = None
 
-
 class ViolationFoundUpdate(BaseModel):
-    photo_id: Optional[str] = None
-    comm: Optional[str] = None
+    photo_id_mo: Optional[str] = None
+    comm_mo: Optional[str] = None
     violation_fixed: Optional[dt.datetime] = None
-
 
 class ViolationFoundInDB(ViolationFoundBase):
     id: int

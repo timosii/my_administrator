@@ -21,6 +21,7 @@ class MfcKeyboards:
 
     def main_menu(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Начать проверку')
+        self.kb.button(text='Продолжить проверку')
         self.kb.button(text='Добавить уведомление о нарушении')
         self.kb.button(text='Назад')
         self.kb.adjust(1)
@@ -54,7 +55,7 @@ class MfcKeyboards:
     def choose_photo_comm(self) -> ReplyKeyboardMarkup:
         buttons = [KeyboardButton(text=s) for s in ['Загрузить фото', 'Написать комментарий']]
         self.kb.add(*buttons)
-        self.kb.button(text='Назад')
+        self.kb.button(text='Отменить')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
@@ -68,6 +69,17 @@ class MfcKeyboards:
             [
                 InlineKeyboardButton(text='Добавить комментарий', callback_data='add_comm_'),
             ]
+        ])
+        return self.kb
+    
+    def unfinished_check(self) -> InlineKeyboardMarkup:
+        self.kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text='Удалить проверку', callback_data='continue_unfinished_check'),
+            ],
+            [
+                InlineKeyboardButton(text='Закончить проверку', callback_data='finish_unfinished_check'),
+            ],
         ])
         return self.kb
     

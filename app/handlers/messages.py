@@ -10,6 +10,7 @@ class AdminMessages:
 class DefaultMessages:
     start_message = 'Добрый день! Нажмите кнопку, чтобы я узнал вас!'
     something_wrong = 'Что-то пошло не так. Попробуйте ещё раз или начните сначала /start '
+    finish = 'Спасибо, сеанс окончен!'
 
 
 class MfcMessages:
@@ -21,7 +22,7 @@ class MfcMessages:
     add_comm = 'Напишите и отправьте комментарий'
     photo_added = 'Фото добавлено!'
     comm_added = 'Комментарий добавлен!'
-    continue_check = 'Вы можете продолжить проверку'
+    continue_check = 'Вы можете продолжить проверку, либо закончить её, нажав "Закончить проверку"'
     cancel_check = 'Возвращаемся в начало ...'
     finish_check = 'Проверка закончена! Все данные были сохранены. Спасибо за участие!'
     wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
@@ -63,13 +64,14 @@ class MoPerformerMessages:
     comm_added = 'Комментарий добавлен!'
     choose_another = 'Вы можете выбрать другое нарушение из списка нарушений'
     no_violations = 'Для этой проверки нарушений нет!'
-    back_to_checks = 'Возвращаемся к списку нарушений...'
+    back_to_checks = 'Возвращаемся к списку проверок...'
     continue_check = 'Загружаю нарушения...'
     wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
+    choose_vio = 'Вы вышли из режима исправления. Выберите нарушение:'
 
     @staticmethod
     def form_no_checks_answer(fil_: str):
-        return f'Проверок для филиала {fil_} не найдено'
+        return f'Активных проверок для филиала {fil_} не найдено'
     
     @staticmethod
     def photo_comm_added(vio_id: int):

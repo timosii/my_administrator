@@ -10,6 +10,7 @@ class CheckCreate(CheckBase):
     pass
 
 class CheckUpdate(BaseModel):
+    mo_user_id: Optional[int] = None
     mfc_finish: Optional[dt.datetime] = None
     mo_start: Optional[dt.datetime] = None
     mo_finish: Optional[dt.datetime] = None
@@ -29,6 +30,14 @@ class CheckOut(BaseModel):
     fil_: str
     mfc_start: dt.datetime
     mfc_finish: dt.datetime
+    violations_count: int
+
+    class Config:
+        from_attributes = True
+
+class CheckOutUnfinished(BaseModel):
+    fil_: str
+    mfc_start: dt.datetime
     violations_count: int
 
     class Config:

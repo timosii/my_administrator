@@ -10,6 +10,7 @@ from app.database.schemas.check_schema import (
     CheckUpdate,
     CheckInDB,
     CheckOut,
+    CheckOutUnfinished
 )
 from app.database.services.violations_found import ViolationFoundService
 from app.view.cards import FormCards
@@ -74,10 +75,30 @@ class CheckService:
             ),
         )
         return check_out
+    
+    async def form_check_out_unfinished(self,
+                             check: CheckInDB,
+                             violation_obj: ViolationFoundService = ViolationFoundService()
+                             ) -> CheckOutUnfinished:
+        check_out = CheckOutUnfinished(
+            fil_=check.fil_,
+            mfc_start=check.mfc_start,
+            violations_count=await violation_obj.get_violations_found_count_by_check(
+                check_id=check.id
+            ),
+        )
+        return check_out
 
     async def form_check_card(
         self,
         check: CheckOut,
     ) -> str:
         text_mes = FormCards().check_card(check=check)
+        return text_mes
+    
+    async def form_check_card_unfinished(
+        self,
+        check: CheckOutUnfinished,
+    ) -> str:
+        text_mes = FormCards().check_card_unfinished(check=check)
         return text_mes

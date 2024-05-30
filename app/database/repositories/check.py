@@ -55,6 +55,7 @@ class CheckRepo:
                 and_(
                     Check.fil_ == fil_,
                     Check.mfc_finish.is_not(None),
+                    Check.mo_finish.is_(None)
                     )
             )
             result = await session.execute(query)

@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_maker
 from app.database.models.data import User
 from app.database.schemas.user_schema import UserCreate, UserUpdate, UserInDB
+from app.database.schemas.check_schema import CheckInDB
 from app.database.repositories.users import UserRepo
 
 class UserService:
@@ -63,4 +64,8 @@ class UserService:
     async def is_mo_controler(self, user_id: int) -> bool:
         result = await self.db_repository.is_mo_controler(user_id=user_id)
         return result  
+
+    async def get_user_active_checks(self, user_id: int) -> List[CheckInDB]:
+        result = await self.db_repository.get_user_active_checks(user_id=user_id)
+        return result
 
