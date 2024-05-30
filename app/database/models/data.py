@@ -9,7 +9,8 @@ from sqlalchemy import (
     MetaData,
     ForeignKey,
     func,
-    Enum
+    Enum,
+    CheckConstraint
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.database import (
@@ -26,7 +27,10 @@ from app.database.database import (
 
 class User(Base):
     __tablename__ = 'user'
-    __table_args__ = {'schema': 'data'}
+    __table_args__ = (
+        CheckConstraint('is_admin OR is_mfc OR is_mfc_leader OR is_mo_performer OR is_mo_controler', name='check_role_logic'),
+        {'schema': 'data'},
+    )
 
     id: Mapped[bigint_pk_tg]
 
@@ -66,9 +70,17 @@ class ViolationFound(Base):
         back_populates="violations"
     )
 
+    violation_describe: Mapped['Violations'] = relationship(
+        'Violations',
+        back_populates='violation_found'
+    )
+
 class Check(Base):
     __tablename__ = 'check'
-    __table_args__ = {'schema': 'data'}
+    __table_args__ = (
+        CheckConstraint('mo_start > mfc_finish', name='check_time_mo_check'),
+        {'schema': 'data'},
+    )
 
     id: Mapped[bigint_pk]
     fil_: Mapped[str_255] = mapped_column(ForeignKey("dicts.filials.fil_"))
@@ -86,4 +98,3 @@ class Check(Base):
     violations: Mapped[list['ViolationFound']] = relationship(
         back_populates="check"
     )
-    # Добавить валидацию, что время финиша больше времени старта проверки

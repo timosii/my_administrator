@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func, and_
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_maker
 from app.database.models.data import ViolationFound, Check
@@ -8,6 +9,7 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundCreate,
     ViolationFoundUpdate,
     ViolationFoundInDB,
+    ViolationFoundInDBDescribe
 )
 
 
@@ -108,6 +110,17 @@ class ViolationFoundRepo:
             return [
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
+    
+    async def get_violation_with_describe(self) -> List[ViolationFoundInDBDescribe]:
+        async with self.session_maker() as session:
+            results = await session.execute(select(ViolationFound).options(joinedload(ViolationFound.violation_describe)))
+            for violation_found in results:
+                # print(f"ViolationFound ID: {violation_found.id}")
+                # print(f"Violation ID: {violation_found.violation_id}")
+                print(f"Violation Description: {violation_found.violation_describe.zone}")
+            # return [
+            #     ViolationFoundInDBDescribe.model_validate(violation) for violation in violations
+            # ]
 
     async def _get_scalar(self, query) -> any:
         async with self.session_maker() as session:
