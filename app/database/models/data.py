@@ -11,6 +11,8 @@ from sqlalchemy import (
     func,
     Enum,
     CheckConstraint
+    Enum,
+    CheckConstraint
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.database import (
@@ -27,6 +29,10 @@ from app.database.database import (
 
 class User(Base):
     __tablename__ = 'user'
+    __table_args__ = (
+        CheckConstraint('is_admin OR is_mfc OR is_mfc_leader OR is_mo_performer OR is_mo_controler', name='check_role_logic'),
+        {'schema': 'data'},
+    )
     __table_args__ = (
         CheckConstraint('is_admin OR is_mfc OR is_mfc_leader OR is_mo_performer OR is_mo_controler', name='check_role_logic'),
         {'schema': 'data'},
@@ -73,6 +79,10 @@ class ViolationFound(Base):
 
 class Check(Base):
     __tablename__ = 'check'
+    __table_args__ = (
+        CheckConstraint('mo_start > mfc_finish', name='check_time_mo_check'),
+        {'schema': 'data'},
+    )
     __table_args__ = (
         CheckConstraint('mo_start > mfc_finish', name='check_time_mo_check'),
         {'schema': 'data'},
