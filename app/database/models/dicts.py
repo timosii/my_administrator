@@ -69,3 +69,10 @@ class Violations(Base):
     is_comment_mo: Mapped[bool]
     is_no_data_button: Mapped[bool]
     time_to_correct: Mapped[dt.timedelta] = mapped_column(Interval)
+
+    violation_found: Mapped[list['ViolationFound']] = relationship(
+        "ViolationFound",
+        back_populates="violation_describe"
+    )
+
+
