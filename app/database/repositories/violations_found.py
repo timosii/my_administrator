@@ -113,14 +113,7 @@ class ViolationFoundRepo:
     
     async def get_violation_with_describe(self) -> List[ViolationFoundInDBDescribe]:
         async with self.session_maker() as session:
-            results = await session.execute(select(ViolationFound).options(joinedload(ViolationFound.violation_describe)))
-            for violation_found in results:
-                # print(f"ViolationFound ID: {violation_found.id}")
-                # print(f"Violation ID: {violation_found.violation_id}")
-                print(f"Violation Description: {violation_found.violation_describe.zone}")
-            # return [
-            #     ViolationFoundInDBDescribe.model_validate(violation) for violation in violations
-            # ]
+            pass
 
     async def _get_scalar(self, query) -> any:
         async with self.session_maker() as session:

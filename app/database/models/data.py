@@ -70,10 +70,6 @@ class ViolationFound(Base):
         back_populates="violations"
     )
 
-    violation_describe: Mapped['Violations'] = relationship(
-        'Violations',
-        back_populates='violation_found'
-    )
 
 class Check(Base):
     __tablename__ = 'check'
