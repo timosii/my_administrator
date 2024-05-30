@@ -1,17 +1,13 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func, and_
-from sqlalchemy.orm import joinedload
-from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_maker
 from app.database.models.data import ViolationFound, Check
 from app.database.schemas.violation_found_schema import (
     ViolationFoundCreate,
     ViolationFoundUpdate,
-    ViolationFoundInDB,
-    ViolationFoundInDBDescribe
-    ViolationFoundInDBDescribe
+    ViolationFoundInDB
 )
 
 
@@ -113,7 +109,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
     
-    async def get_violation_with_describe(self) -> List[ViolationFoundInDBDescribe]:
+    async def get_violation_with_describe(self) -> List[ViolationFoundInDB]:
         async with self.session_maker() as session:
             pass
 

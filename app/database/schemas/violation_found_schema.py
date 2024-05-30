@@ -37,12 +37,3 @@ class ViolationFoundOut(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-class ViolationFoundInDBDescribe(ViolationFoundInDB):
-    zone: str
-    violation_name: str
-    time_to_correct: dt.timedelta
-
-    class Config:
-        from_attributes = True
