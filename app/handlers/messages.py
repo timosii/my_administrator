@@ -6,12 +6,10 @@ from app.view.cards import FormCards
 class AdminMessages:
     start_message = 'Привет, админ! Что делать будем'
 
-
 class DefaultMessages:
     start_message = 'Добрый день! Нажмите кнопку, чтобы я узнал вас!'
     something_wrong = 'Что-то пошло не так. Попробуйте ещё раз или начните сначала /start '
     finish = 'Спасибо, сеанс окончен!'
-
 
 class MfcMessages:
     start_message = 'Для начала нажмите /start'
@@ -26,6 +24,8 @@ class MfcMessages:
     cancel_check = 'Возвращаемся в начало ...'
     finish_check = 'Проверка закончена! Все данные были сохранены. Спасибо за участие!'
     wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
+    check_deleted = 'Проверка успешно удалена!'
+    no_unfinished = 'Нет незавершенных проверок'
     
     @staticmethod
     def choose_violation(zone: str) -> str:
@@ -50,10 +50,8 @@ class MfcMessages:
         message = f'Вы можете добавить фото и комментарии для проблемы <b>"{violation}"</b>.'
         return message    
     
-
 class MfcLeaderMessages:
     start_message = "Добро пожаловать, администратор МФЦ!"
-
 
 class MoPerformerMessages:
     start_message = 'Добро пожаловать, исполнитель МО!'

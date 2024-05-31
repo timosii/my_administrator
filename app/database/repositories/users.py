@@ -49,7 +49,7 @@ class UserRepo:
             users = result.scalars().all()
             return [UserInDB.model_validate(user) for user in users]
 
-    async def get_user_active_checks(self, user_id: int) -> List[CheckInDB]:
+    async def get_user_active_checks(self, user_id: int) -> Optional[List[CheckInDB]]:
         async with self.session_maker() as session:
             query = select(Check).where(
                 and_(
@@ -59,7 +59,7 @@ class UserRepo:
             )
             result = await session.execute(query)
             checks = result.scalars().all()
-            return [CheckInDB.model_validate(check) for check in checks]
+            return [CheckInDB.model_validate(check) for check in checks] if checks else None
 
     async def get_user_count(self) -> int:
         query = select(func.count()).select_from(User)

@@ -57,7 +57,7 @@ class ViolationFound(Base):
 
     id: Mapped[bigint_pk]
 
-    check_id: Mapped[bigint] = mapped_column(ForeignKey("data.check.id"))
+    check_id: Mapped[bigint] = mapped_column(ForeignKey("data.check.id", ondelete='CASCADE'))
     violation_id: Mapped[int] = mapped_column(ForeignKey("dicts.violations.id"))
     photo_id: Mapped[str_255] = mapped_column(nullable=True)
     comm: Mapped[str] = mapped_column(nullable=True)

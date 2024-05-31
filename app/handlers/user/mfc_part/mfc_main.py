@@ -57,7 +57,7 @@ async def choose_fil_handler(message: Message,
     )
     await state.set_state(MfcStates.choose_fil)
 
-@router.message(F.text.lower() == 'продолжить проверку',
+@router.message(F.text.lower() == 'проверить незавершенные проверки',
                 StateFilter(MfcStates.start_checking))
 async def choose_fil_handler(message: Message,
                              state: FSMContext,
@@ -69,30 +69,43 @@ async def choose_fil_handler(message: Message,
         user_id=user_id,
         mo=mo
     )
+
     checks = await user.get_user_active_checks(user_id=user_id)
-    for check in checks:
-        check_out = await check_obj.form_check_out_unfinished(check=check)
-        text_mes = await check_obj.form_check_card_unfinished(check=check_out)
+    if not checks:
         await message.answer(
-            text=text_mes,
-            reply_markup=MfcKeyboards().unfinished_check()
+            text=MfcMessages.no_unfinished,
+            reply_markup=message.reply_markup
         )
+    else:
+        for check in checks:
+            check_out = await check_obj.form_check_out_unfinished(check=check)
+            text_mes = await check_obj.form_check_card_unfinished(check=check_out)
+            await message.answer(
+                text=text_mes,
+                reply_markup=MfcKeyboards().unfinished_check(check_id=check.id)
+            )
         
-@router.callback_query(F.data == 'continue_unfinished_check')
+@router.callback_query(F.data.startswith('delete_unfinished_check_'),
+                       MfcStates.start_checking)
 async def continue_unfinished(
-    message: Message,
-    state: FSMContext
+    callback: CallbackQuery,
+    state: FSMContext,
+    check_obj: CheckService=CheckService()
 ):
-    await message.answer(
-        text='Вижу',
+    check_id = int(callback.data.split("_")[-1])
+    await check_obj.delete_check(check_id=check_id)
+    await callback.message.answer(
+        text=MfcMessages.check_deleted,
         )
+    await callback.message.delete()
     
-@router.callback_query(F.data == 'finish_unfinished_check')
-async def continue_unfinished(
-    message: Message,
+@router.callback_query(F.data.startswith('finish_unfinished_check'),
+                       MfcStates.start_checking)
+async def finish_unfinished(
+    callback: CallbackQuery,
     state: FSMContext
 ):
-    await message.answer(
+    await callback.message.answer(
         text='Вижуууууу',
         )
 
@@ -150,7 +163,10 @@ async def back_command(message: Message, state: FSMContext):
         await state.set_state(MfcStates.choose_violation)
         data = await state.get_data()
         zone = data['zone']
-        await state.update_data(violation_name=None)
+        await state.update_data(
+            violation_name=None,
+            vio_id=None
+            )
         await message.answer(
             text=MfcMessages.choose_violation(zone=zone),
             reply_markup=await MfcKeyboards().choose_violation(zone=zone)

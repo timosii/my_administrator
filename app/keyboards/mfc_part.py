@@ -21,7 +21,7 @@ class MfcKeyboards:
 
     def main_menu(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Начать проверку')
-        self.kb.button(text='Продолжить проверку')
+        self.kb.button(text='Проверить незавершенные проверки')
         self.kb.button(text='Добавить уведомление о нарушении')
         self.kb.button(text='Назад')
         self.kb.adjust(1)
@@ -72,13 +72,13 @@ class MfcKeyboards:
         ])
         return self.kb
     
-    def unfinished_check(self) -> InlineKeyboardMarkup:
+    def unfinished_check(self, check_id) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text='Удалить проверку', callback_data='continue_unfinished_check'),
+                InlineKeyboardButton(text='Удалить проверку', callback_data=f'delete_unfinished_check_{check_id}'),
             ],
             [
-                InlineKeyboardButton(text='Закончить проверку', callback_data='finish_unfinished_check'),
+                InlineKeyboardButton(text='Закончить проверку', callback_data=f'finish_unfinished_check_{check_id}'),
             ],
         ])
         return self.kb
@@ -99,10 +99,9 @@ class MfcKeyboards:
             [
                 InlineKeyboardButton(text='Назад', callback_data='cancel'),
             ]
-
         ])
         return self.kb
-    
+
 
 class MfcLeaderKeyboards:
     def __init__(self) -> None:

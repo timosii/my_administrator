@@ -1,4 +1,3 @@
-import time
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
@@ -30,7 +29,6 @@ async def cmd_dev(message: Message, state: FSMContext):
 async def hard_reset(callback: CallbackQuery, state: FSMContext):
     state_before = await state.get_state()
     await state.clear()
-    time.sleep(1)
     state_after = await state.get_state()
     await callback.message.answer(
         text=f'Состояние сброшено с {state_before} на {state_after}\nВы можете авторизоваться',
@@ -44,7 +42,6 @@ async def сheck_state(callback: CallbackQuery, state: FSMContext):
     current_state = await state.get_state()
     await callback.message.answer(f"Вы находитесь в состоянии: {current_state}")
     res = await ViolationFoundRepo().get_violation_with_describe()
-    print(res)
     await callback.answer()
 
 @router.callback_query(F.data == "data_fsm",
