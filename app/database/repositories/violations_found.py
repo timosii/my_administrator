@@ -15,7 +15,6 @@ class ViolationFoundRepo:
     def __init__(self):
         self.session_maker = session_maker
 
-
     async def add_violation_found(
         self, violation_create: ViolationFoundCreate
     ) -> ViolationFoundInDB:
@@ -109,10 +108,16 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
     
-    async def get_violation_with_describe(self) -> List[ViolationFoundInDB]:
-        async with self.session_maker() as session:
-            pass
-
+    async def is_vio_already_in_check(self, violation_dict_id: int, check_id: int) -> bool:
+        query = select(ViolationFound).where(
+            and_(
+                ViolationFound.violation_id == violation_dict_id,
+                ViolationFound.check_id == check_id
+            )
+        )
+        result = await self._get_scalar(query=query)
+        return bool(result)
+                      
     async def _get_scalar(self, query) -> any:
         async with self.session_maker() as session:
             result = await session.execute(query)

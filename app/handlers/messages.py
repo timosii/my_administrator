@@ -26,6 +26,7 @@ class MfcMessages:
     wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
     check_deleted = 'Проверка успешно удалена!'
     no_unfinished = 'Нет незавершенных проверок'
+    violation_already_exist = 'Вы уже зарегистрировали это нарушение. Пожалуйста, выберите другое'
     
     @staticmethod
     def choose_violation(zone: str) -> str:
@@ -66,6 +67,7 @@ class MoPerformerMessages:
     continue_check = 'Загружаю нарушения...'
     wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
     choose_vio = 'Вы вышли из режима исправления. Выберите нарушение:'
+    cant_finish = 'Вы не можете закончить проверку, остались неисправленные нарушения!'
 
     @staticmethod
     def form_no_checks_answer(fil_: str):

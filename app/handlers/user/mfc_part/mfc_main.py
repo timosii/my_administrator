@@ -242,19 +242,36 @@ async def choose_zone_handler(message: Message,
                 StateFilter(MfcStates.choose_violation))
 async def choose_violation_handler(message: Message,
                                    state: FSMContext,
-                                   violation: ViolationFoundService = ViolationFoundService()):
+                                   violation_obj: ViolationFoundService = ViolationFoundService()):
     violation_name = message.text
+
     data = await state.get_data()
     zone = data['zone']
+    await state.update_data(
+        violation_name=violation_name,
+        vio_id=await violation_obj.get_id_by_name(zone=zone,
+                                              violation_name=violation_name)
+        )
+    check_id = data['check_id']
+    data_ = await state.get_data()
+    violation_dict_id = data_['vio_id']
+    
+    is_vio_already_in_check = await violation_obj.is_vio_already_in_check(
+        violation_dict_id=violation_dict_id,
+        check_id=check_id,
+        )
+    if is_vio_already_in_check:
+        await message.answer(
+            text=MfcMessages.violation_already_exist,
+            reply_markup=message.reply_markup
+        )
+        return
+    
     await message.answer(
         text=MfcMessages.add_photo_comm(violation=violation_name),
         reply_markup=MfcKeyboards().choose_photo_comm()
     )
-    await state.update_data(
-        violation_name=violation_name,
-        vio_id=await violation.get_id_by_name(zone=zone,
-                                              violation_name=violation_name)
-        )
+
 
     await state.set_state(MfcStates.choose_photo_comm)
 

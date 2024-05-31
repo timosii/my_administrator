@@ -344,15 +344,27 @@ async def correct_vio_process_continue(
     StateFilter(MoPerformerStates.mo_performer),
 )
 async def correct_vio_process_finish(
-    message: Message, state: FSMContext, check_obj: CheckService = CheckService()
+    message: Message, state: FSMContext,
+    check_obj: CheckService=CheckService(),
+    violation_found_obj: ViolationFoundService=ViolationFoundService()
 ):
     data = await state.get_data()
     check_id = data['current_check_id']
+    violations_check_count = await violation_found_obj.get_violations_found_count_by_check(check_id=check_id)
+    if violations_check_count != 0:
+        await message.answer(
+            text=MoPerformerMessages.cant_finish,
+            reply_markup=message.reply_markup
+        )
+        return
+
     check_upd = CheckUpdate(
         mo_user_id=data['mo_user_id'],
         mo_start=dt.datetime.fromisoformat(data['mo_start']),
         mo_finish=dt.datetime.now()
     )
+
+    
     await check_obj.update_check(check_id=check_id,
                                  check_update=check_upd)
     await state.update_data(
@@ -402,7 +414,6 @@ async def finish_process(message: Message, state: FSMContext):
 ##############
 # back_logic #
 ##############
-
         
 @router.message(F.text.lower() == 'назад')
 async def back_command(message: Message, state: FSMContext,

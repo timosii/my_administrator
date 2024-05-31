@@ -94,6 +94,13 @@ class ViolationFoundService:
     async def get_violation_by_id(self, violation_id: int) -> Optional[ViolationInDB]:
         result = await ViolationsRepo().get_violation_by_id(violation_id=violation_id)
         return result
+    
+    async def is_vio_already_in_check(self, violation_dict_id: int, check_id: int) -> bool:
+        result = await ViolationFoundRepo().is_vio_already_in_check(
+            violation_dict_id=violation_dict_id,
+            check_id=check_id
+            )
+        return result
 
     async def form_violation_out(
         self,
