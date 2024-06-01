@@ -24,8 +24,6 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundUpdate,
 )
 
-from aiogram import Bot
-
 router = Router()
 router.message.filter(MoPerformerFilter())
 
@@ -147,12 +145,13 @@ async def process_photo_callback(
     data = await state.get_data()
     violation_out = ViolationFoundOut(**json.loads(data[f"vio_{vio_id}"]))
     text_mes = await violation_obj.form_violation_card(violation=violation_out)
-
+    
     await callback.message.answer_photo(
         photo=violation_out.photo_id,
         caption=f"Фотофиксация нарушения:\n{text_mes}",
         reply_markup=MoPerformerKeyboards.vio_correct_with_photo(violation_id=vio_id),
     )
+    await callback.message.delete()
     await callback.answer()
 
 
@@ -228,8 +227,12 @@ async def add_photo_handler(
             violation_id=violation_id, violation_update=vio_upd
         )
 
-        await state.update_data(
-            {"current_vio_id": None, "photo_id": None, "comm": None}
+        await state.update_data({
+            "current_vio_id": None,
+            "photo_id": None,
+            "comm": None,
+            f"vio_{violation_id}": None
+            }
         )
         await state.set_state(MoPerformerStates.mo_performer)
 
@@ -266,8 +269,12 @@ async def add_photo_handler(
             violation_id=violation_id, violation_update=vio_upd
         )
 
-        await state.update_data(
-            {"current_vio_id": None, "photo_id": None, "comm": None}
+        await state.update_data({
+            "current_vio_id": None,
+            "photo_id": None,
+            "comm": None,
+            f"vio_{violation_id}": None
+            }
         )
         await state.set_state(MoPerformerStates.mo_performer)
 
@@ -295,7 +302,7 @@ async def start_check(callback: CallbackQuery, state: FSMContext):
     F.data.startswith("photo_after_comm_"),
     StateFilter(MoPerformerStates.correct_violation),
 )
-async def start_check(callback: CallbackQuery, state: FSMContext):
+async def photo_after_comm(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         text=MoPerformerMessages.add_photo,
     )
@@ -433,7 +440,7 @@ async def back_command(message: Message, state: FSMContext,
         )
         await state.set_state(MoPerformerStates.mo_performer)
         data = await state.get_data()
-        violations = [ViolationFoundOut(**json.loads(v)) for k,v in data.items() if k.startswith('vio_')]     
+        violations = [ViolationFoundOut(**json.loads(v)) for k,v in data.items() if (k.startswith('vio_') and v)]     
 
         for violation in violations:
             text_mes = await violation_obj.form_violation_card(violation=violation)
@@ -447,7 +454,6 @@ async def back_command(message: Message, state: FSMContext,
         await message.answer(
             text=MoPerformerStates.mo_performer
         )
-
 
 @router.message()
 async def something_wrong(message: Message, state: FSMContext):
