@@ -83,7 +83,7 @@ class MfcKeyboards:
                 InlineKeyboardButton(text='Удалить проверку', callback_data=f'delete_unfinished_check_{check_id}'),
             ],
             [
-                InlineKeyboardButton(text='Закончить проверку', callback_data=f'finish_unfinished_check_{check_id}'),
+                InlineKeyboardButton(text='Продолжить проверку', callback_data=f'finish_unfinished_check_{check_id}'),
             ],
         ])
         return self.kb

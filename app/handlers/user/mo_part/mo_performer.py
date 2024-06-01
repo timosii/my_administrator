@@ -103,7 +103,7 @@ async def get_violations(
             text=MoPerformerMessages.no_violations,
             reply_markup=MoPerformerKeyboards().check_finished(),
         )
-
+        await callback.answer()
     else:
         for violation in violations:
             violation_out = await violation_obj.form_violation_out(violation=violation)

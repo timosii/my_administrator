@@ -1,4 +1,4 @@
-import asyncio
+import json
 import datetime as dt
 from aiogram import Router, F
 from aiogram.filters import Command
@@ -74,6 +74,9 @@ async def choose_fil_handler(
         for check in checks:
             check_out = await check_obj.form_check_out_unfinished(check=check)
             text_mes = await check_obj.form_check_card_unfinished(check=check_out)
+            await state.update_data({
+                f'check_unfinished_{check.id}': check.model_dump_json(),
+            })
             await message.answer(
                 text=text_mes,
                 reply_markup=MfcKeyboards().unfinished_check(check_id=check.id),
@@ -95,12 +98,27 @@ async def continue_unfinished(
 
 
 @router.callback_query(
-    F.data.startswith("finish_unfinished_check"), MfcStates.start_checking
+    F.data.startswith("finish_unfinished_check_"), MfcStates.start_checking
 )
-async def finish_unfinished(callback: CallbackQuery, state: FSMContext):
+async def finish_unfinished(callback: CallbackQuery,
+                            state: FSMContext,
+                            ):
+    check_id = int(callback.data.split("_")[-1])
+    data = await state.get_data()
+    check_obj = CheckInDB(**json.loads(data[f"check_unfinished_{check_id}"]))
+    
+    await state.update_data(
+        fil_=check_obj.fil_,
+        check_id=check_id,
+        )
+    await state.update_data({
+        f"check_unfinished_{check_id}": None
+    })
     await callback.message.answer(
-        text="Вижуууууу",
+        text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
     )
+    await state.set_state(MfcStates.choose_zone)
+    await callback.answer(text='Продолжаем проверку')
 
 
 @router.message(
@@ -417,21 +435,6 @@ async def save_violation(
     await state.set_state(MfcStates.choose_zone)
 
 
-# @router.callback_query(F.data == "cancel", StateFilter(MfcStates.continue_state))
-# async def cancel_check(callback: CallbackQuery, state: FSMContext):
-#     await state.set_state(MfcStates.choose_photo_comm)
-#     data = await state.get_data()
-#     violation_name = data["violation_name"]
-#     await callback.message.edit_text(
-#         text=MfcMessages.cancel_violation(violation=violation_name), reply_markup=None
-#     )
-#     await callback.message.answer(
-#         text=MfcMessages.add_photo_comm(violation=violation_name),
-#         reply_markup=MfcKeyboards().choose_photo_comm(),
-#     )
-#     await callback.answer()
-
-
 @router.message(
     F.text.lower() == "закончить проверку", StateFilter(MfcStates.choose_zone)
 )
@@ -464,6 +467,8 @@ async def finish_process(message: Message, state: FSMContext):
         text=DefaultMessages.finish,
         reply_markup=ReplyKeyboardRemove(),
     )
+
+
 
 
 @router.message()
