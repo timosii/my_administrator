@@ -109,6 +109,7 @@ class ViolationFoundService:
         vio = await self.get_violation_by_id(violation_id=violation.violation_id)
         vio_found = ViolationFoundOut(
             id=violation.id,
+            violation_id=violation.violation_id,
             zone=vio.zone,
             violation_name=vio.violation_name,
             time_to_correct=vio.time_to_correct,
@@ -124,3 +125,5 @@ class ViolationFoundService:
     ) -> str:
         text_mes = FormCards().violation_card(violation=violation)
         return text_mes
+    
+

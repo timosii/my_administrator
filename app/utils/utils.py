@@ -45,6 +45,13 @@ def format_timedelta(td):
         return f"{hours} {end_hour_definition(hours)} {minutes} {end_min_definition(minutes)}"
     else:
         return f"{minutes} {end_min_definition(minutes)}"
+    
+
+def get_index_by_violation_id(objects: list[object], violation_id: int):
+    for index, obj in enumerate(objects):
+        if obj.id == violation_id:
+            return index
+    return None
 
 
 if __name__ == '__main__':

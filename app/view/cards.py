@@ -1,8 +1,18 @@
 import datetime as dt
+from dataclasses import dataclass
 from typing import Optional
 from app.utils.utils import format_timedelta
 from app.database.schemas.check_schema import CheckOut, CheckOutUnfinished
 from app.database.schemas.violation_found_schema import ViolationFoundOut
+from app.keyboards.mo_part import MoPerformerKeyboards
+from aiogram.types import InlineKeyboardMarkup
+
+
+@dataclass
+class Reply:
+    photo_id: str
+    text_mes: str
+    keyboard: InlineKeyboardMarkup
 
 
 class FormCards:
@@ -38,7 +48,7 @@ class FormCards:
 {check.violations_count}
         """
         return result
-    
+
     @staticmethod
     def check_card_unfinished(check: CheckOutUnfinished) -> str:
         result = f"""
@@ -50,4 +60,22 @@ class FormCards:
 {check.violations_count}
         """
         return result
-    
+
+    def form_reply(self, violations_out: list[ViolationFoundOut], order: int):
+        try:
+            photo_id = violations_out[order].photo_id
+        except TypeError:
+            return None
+                    
+        text_mes = self.violation_card(violation=violations_out[order])
+        keyboard = MoPerformerKeyboards().get_violation_menu(
+            prev_violation_id=violations_out[order - 1].id,
+            violation_id=violations_out[order].id,
+            next_violation_id=(
+                violations_out[order + 1].id
+                if order != (len(violations_out) - 1)
+                else violations_out[0].id
+            ),
+        )
+
+        return Reply(photo_id=photo_id, text_mes=text_mes, keyboard=keyboard)

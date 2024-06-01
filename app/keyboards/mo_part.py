@@ -53,6 +53,25 @@ class MoPerformerKeyboards:
         return kb
     
     @staticmethod
+    def get_violation_menu(
+        violation_id: int,
+        prev_violation_id: int,
+        next_violation_id: int
+        ) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Следующее нарушение", callback_data=f"next_{next_violation_id}")
+            ], 
+            [
+                InlineKeyboardButton(text='Исправить нарушение', callback_data=f"correct_{violation_id}")
+            ],
+                        [
+                InlineKeyboardButton(text="Предыдущее нарушение", callback_data=f"prev_{prev_violation_id}")
+            ], 
+        ])
+        return kb
+    
+    @staticmethod
     def add_photo(violation_id) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [

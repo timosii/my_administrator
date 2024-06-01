@@ -28,6 +28,7 @@ class ViolationFoundInDB(ViolationFoundBase):
 
 class ViolationFoundOut(BaseModel):
     id: int
+    violation_id: int
     zone: str
     violation_name: str
     time_to_correct: dt.timedelta

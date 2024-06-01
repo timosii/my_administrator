@@ -5,7 +5,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from app.config import settings
 from app.handlers import default, dev
 from app.handlers.admin import admin
-from app.handlers.user.mo_part import mo_controler, mo_performer_
+from app.handlers.user.mo_part import mo_controler, mo_performer
 from app.handlers.user.mfc_part import mfc_main, mfc_leader
 
 
@@ -44,7 +44,7 @@ async def start_bot() -> None:
         dev.router,
         mfc_leader.router,
         mfc_main.router,
-        mo_performer_.router,
+        mo_performer.router,
         mo_controler.router
 
     )
