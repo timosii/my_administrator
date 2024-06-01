@@ -41,7 +41,6 @@ async def hard_reset(callback: CallbackQuery, state: FSMContext):
 async def сheck_state(callback: CallbackQuery, state: FSMContext):
     current_state = await state.get_state()
     await callback.message.answer(f"Вы находитесь в состоянии: {current_state}")
-    res = await ViolationFoundRepo().get_violation_with_describe()
     await callback.answer()
 
 @router.callback_query(F.data == "data_fsm",

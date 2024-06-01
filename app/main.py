@@ -7,6 +7,7 @@ from app.handlers import default, dev
 from app.handlers.admin import admin
 from app.handlers.user.mo_part import mo_controler, mo_performer
 from app.handlers.user.mfc_part import mfc_main, mfc_leader
+from aiogram.types import BotCommand
 
 
 # async def __on_start_up(dp: Dispatcher) -> None:
@@ -32,6 +33,13 @@ from app.handlers.user.mfc_part import mfc_main, mfc_leader
 
     # logger.info(f"Было совершено {count} рассылок")
 
+async def set_main_menu(bot: Bot):
+    main_menu_commands = [
+        BotCommand(command='/start',
+                   description='Начать взаимодействие'),
+    ]
+    await bot.set_my_commands(main_menu_commands)
+
 
 async def start_bot() -> None:
     bot = Bot(token=settings.BOT_TOKEN, parse_mode='HTML')
@@ -49,5 +57,6 @@ async def start_bot() -> None:
 
     )
     await bot.delete_webhook(drop_pending_updates=True)
+    dp.startup.register(set_main_menu)
     await dp.start_polling(bot)
 

@@ -1,5 +1,5 @@
 import datetime as dt
-from app.utils.utils import time_determiner
+from app.utils.utils import time_determiner, form_greeting
 from app.view.cards import FormCards
 
 
@@ -7,7 +7,7 @@ class AdminMessages:
     start_message = 'Привет, админ! Что делать будем'
 
 class DefaultMessages:
-    start_message = 'Добрый день! Нажмите кнопку, чтобы я узнал вас!'
+    start_message = f'{form_greeting()}! Нажмите кнопку, чтобы я узнал вас!'
     something_wrong = 'Что-то пошло не так. Попробуйте ещё раз или начните сначала /start '
     finish = 'Спасибо, сеанс окончен!'
 
@@ -52,10 +52,10 @@ class MfcMessages:
         return message    
     
 class MfcLeaderMessages:
-    start_message = "Добро пожаловать, администратор МФЦ!"
+    start_message = f"{form_greeting()}, администратор МФЦ!"
 
 class MoPerformerMessages:
-    start_message = 'Добро пожаловать, исполнитель МО!'
+    start_message = f"{form_greeting()}, исполнитель МО!"
     choose_fil = 'Выберите филиал:'
     add_photo = 'Отправьте фотографию. Она будет сохранена в качестве фотофиксации исправления нарушения.'
     add_comm = 'Напишите и отправьте текст. Он будет сохранен в качестве комментария к нарушению.'
@@ -79,8 +79,8 @@ class MoPerformerMessages:
 
     @staticmethod
     def correct_mode(text_mes: str) -> str:
-        res = f"Вы в режиме исправления нарушения:\n{text_mes}\nВы можете добавить информацию (написать комментарий и приложить фото)"
+        res = f"Вы <b>в режиме исправления нарушения</b>:\n{text_mes}\nВы можете добавить информацию (написать комментарий и приложить фото)"
         return res
 
 class MoControlerMessages:
-    start_message = 'Добро пожаловать, куратор МО!'
+    start_message = f'{form_greeting}, куратор МО!'

@@ -62,17 +62,15 @@ class FormCards:
         return result
 
     def form_reply(self, violations_out: list[ViolationFoundOut], order: int):
-        try:
-            photo_id = violations_out[order].photo_id
-        except TypeError:
-            return None
-                    
+        photo_id = violations_out[order].photo_id                 
         text_mes = self.violation_card(violation=violations_out[order])
+        prev_order = order - 1
+        next_order = order + 1
         keyboard = MoPerformerKeyboards().get_violation_menu(
-            prev_violation_id=violations_out[order - 1].id,
+            prev_violation_id=violations_out[prev_order].id,
             violation_id=violations_out[order].id,
             next_violation_id=(
-                violations_out[order + 1].id
+                violations_out[next_order].id
                 if order != (len(violations_out) - 1)
                 else violations_out[0].id
             ),

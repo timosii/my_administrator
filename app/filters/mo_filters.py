@@ -11,7 +11,6 @@ class MoPerformerFilter(BaseFilter):
         
         user_id = message.from_user.id
         return await UserService().is_mo_performer(user_id=user_id)
-    
 
 class MoControlerFilter(BaseFilter):
     async def __call__(self, message: Message)-> bool:

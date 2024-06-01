@@ -63,6 +63,11 @@ class MfcKeyboards:
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
+    
+    def just_cancel(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Отменить')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
 
     def photo_added(self) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -95,9 +100,6 @@ class MfcKeyboards:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text='Сохранить', callback_data='save_and_go'),
-            ],
-            [
-                InlineKeyboardButton(text='Назад', callback_data='cancel'),
             ]
         ])
         return self.kb

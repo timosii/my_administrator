@@ -38,6 +38,11 @@ class MoPerformerKeyboards:
         self.kb.button(text='Закончить проверку')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
+    
+    def just_back(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Назад')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
 
     
     @staticmethod

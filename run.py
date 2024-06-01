@@ -9,6 +9,7 @@ from app.main import start_bot
 def main():
     # log_path = PathManager.get('logs/debug.log')
     # logger.add(log_path, format="{time} {level} {message}", level="DEBUG", rotation="10:00", compression="zip")
+    
     asyncio.run(start_bot())
 
 

@@ -1,5 +1,4 @@
 import time
-import asyncio
 import json
 import datetime as dt
 from aiogram import Router, F
@@ -13,6 +12,7 @@ from app.keyboards.default import DefaultKeyboards
 from app.handlers.messages import MoPerformerMessages, DefaultMessages
 from app.handlers.states import MoPerformerStates
 from app.filters.mo_filters import MoPerformerFilter
+from app.filters.default import not_back_filter
 from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
 from app.database.services.check import CheckService
 from app.database.services.violations_found import ViolationFoundService
@@ -36,15 +36,6 @@ async def cmd_start(message: Message, state: FSMContext):
         reply_markup=MoPerformerKeyboards().main_menu(),
     )
     await state.set_state(MoPerformerStates.mo_performer)
-
-
-@router.message(F.text.lower() == "назад", StateFilter(MoPerformerStates.mo_performer))
-async def back_command(message: Message, state: FSMContext):
-    await state.clear()
-    await message.answer(
-        text=DefaultMessages.start_message,
-        reply_markup=DefaultKeyboards().get_authorization(),
-    )
 
 
 @router.message(
@@ -114,18 +105,18 @@ async def get_violations(
         )
 
     else:
-        await state.update_data(violations_out=None)
-        violations_out = dict()
         for violation in violations:
             violation_out = await violation_obj.form_violation_out(violation=violation)
-            violations_out[f"vio_{violation_out.id}"] = violation_out.model_dump_json()
-        await state.update_data(violations_out=violations_out)
-        violations_out.clear()
+            await state.update_data(
+                {f"vio_{violation_out.id}": violation_out.model_dump_json()}
+            )
+
         data = await state.get_data()
         violation_out_objects = sorted(
             [
                 ViolationFoundOut(**json.loads(v))
-                for _, v in data["violations_out"].items()
+                for k, v in data.items()
+                if (k.startswith("vio_") and v)
             ],
             key=lambda x: x.violation_id,
         )
@@ -153,9 +144,16 @@ async def get_violations(
     violation_id = int(callback.data.split("_")[1])
     data = await state.get_data()
     violation_out_objects = sorted(
-        [ViolationFoundOut(**json.loads(v)) for _, v in data["violations_out"].items()],
+        [
+            ViolationFoundOut(**json.loads(v))
+            for k, v in data.items()
+            if (k.startswith("vio_") and v)
+        ],
         key=lambda x: x.violation_id,
     )
+    if len(violation_out_objects) == 1:
+        await callback.answer(text=MoPerformerMessages.no_violations)
+        return
 
     order = get_index_by_violation_id(
         objects=violation_out_objects, violation_id=violation_id
@@ -164,9 +162,6 @@ async def get_violations(
     reply_obj = FormCards().form_reply(
         violations_out=violation_out_objects, order=order
     )
-    if not reply_obj:
-        await callback.answer(text=MoPerformerMessages.no_violations)
-        return
     photo_id = reply_obj.photo_id
     text_mes = reply_obj.text_mes
     keyboard = reply_obj.keyboard
@@ -188,9 +183,7 @@ async def process_correct_callback(
     vio_id = int(callback.data.split("_")[1])
     await state.update_data(current_vio_id=vio_id)
     data = await state.get_data()
-    violation_out = ViolationFoundOut(
-        **json.loads(data["violations_out"][f"vio_{vio_id}"])
-    )
+    violation_out = ViolationFoundOut(**json.loads(data[f"vio_{vio_id}"]))
     text_mes = await violation_obj.form_violation_card(violation=violation_out)
     await callback.message.answer(
         text=MoPerformerMessages.correct_mode(text_mes=text_mes),
@@ -199,6 +192,7 @@ async def process_correct_callback(
     await callback.answer()
     await state.set_state(MoPerformerStates.correct_violation)
 
+
 @router.message(
     F.text.lower() == "написать комментарий",
     StateFilter(MoPerformerStates.correct_violation),
@@ -206,7 +200,7 @@ async def process_correct_callback(
 async def correct_vio_process(message: Message, state: FSMContext):
     await message.answer(
         text=MoPerformerMessages.add_comm,
-        reply_markup=ReplyKeyboardRemove(),
+        reply_markup=MoPerformerKeyboards().just_back(),
     )
     await state.set_state(MoPerformerStates.add_comm)
 
@@ -217,7 +211,7 @@ async def correct_vio_process(message: Message, state: FSMContext):
 async def correct_vio_process_photo(message: Message, state: FSMContext):
     await message.answer(
         text=MoPerformerMessages.add_photo,
-        reply_markup=ReplyKeyboardRemove(),
+        reply_markup=MoPerformerKeyboards().just_back(),
     )
     await state.set_state(MoPerformerStates.add_photo)
 
@@ -264,7 +258,7 @@ async def add_photo_handler(
         await state.set_state(MoPerformerStates.correct_violation)
 
 
-@router.message(F.text, StateFilter(MoPerformerStates.add_comm))
+@router.message(F.text, not_back_filter, StateFilter(MoPerformerStates.add_comm))
 async def add_photo_handler(
     message: Message,
     state: FSMContext,
@@ -313,6 +307,7 @@ async def add_photo_handler(
 async def start_check(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         text=MoPerformerMessages.add_comm,
+        reply_markup=MoPerformerKeyboards().just_back(),
     )
     await state.set_state(MoPerformerStates.add_comm)
     await callback.answer()
@@ -325,6 +320,7 @@ async def start_check(callback: CallbackQuery, state: FSMContext):
 async def photo_after_comm(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         text=MoPerformerMessages.add_photo,
+        reply_markup=MoPerformerKeyboards().just_back(),
     )
     await state.set_state(MoPerformerStates.add_photo)
     await callback.answer()
@@ -337,33 +333,38 @@ async def photo_after_comm(callback: CallbackQuery, state: FSMContext):
 async def correct_vio_process_continue(
     message: Message,
     state: FSMContext,
-    violation_obj: ViolationFoundService = ViolationFoundService(),
 ):
     data = await state.get_data()
-    check_id = data["current_check_id"]
-    violations = await violation_obj.get_violations_found_by_check(check_id=check_id)
     await message.answer(
         text=MoPerformerMessages.continue_check, reply_markup=ReplyKeyboardRemove()
     )
     time.sleep(2)
+    violation_out_objects = sorted(
+        [
+            ViolationFoundOut(**json.loads(v))
+            for k, v in data.items()
+            if (k.startswith("vio_") and v)
+        ],
+        key=lambda x: x.violation_id,
+    )
 
-    if not violations:
+    if not violation_out_objects:
         await message.answer(
             text=MoPerformerMessages.no_violations,
             reply_markup=MoPerformerKeyboards().check_finished(),
         )
 
     else:
-        for violation in violations:
-            violation_out = await violation_obj.form_violation_out(violation=violation)
-            await state.update_data(
-                {f"vio_{violation_out.id}": violation_out.model_dump_json()}
-            )
-            text_mes = await violation_obj.form_violation_card(violation=violation_out)
-            keyboard = MoPerformerKeyboards().get_under_violation_photo(
-                violation_id=violation.id
-            )
-            await message.answer(text=text_mes, reply_markup=keyboard)
+        data = await state.get_data()
+        reply_obj = FormCards().form_reply(
+            violations_out=violation_out_objects, order=0
+        )
+        photo_id = reply_obj.photo_id
+        text_mes = reply_obj.text_mes
+        keyboard = reply_obj.keyboard
+        await message.answer_photo(
+            photo=photo_id, caption=text_mes, reply_markup=keyboard
+        )
 
 
 @router.message(
@@ -374,14 +375,18 @@ async def correct_vio_process_finish(
     message: Message,
     state: FSMContext,
     check_obj: CheckService = CheckService(),
-    violation_found_obj: ViolationFoundService = ViolationFoundService(),
 ):
     data = await state.get_data()
     check_id = data["current_check_id"]
-    violations_check_count = (
-        await violation_found_obj.get_violations_found_count_by_check(check_id=check_id)
+    violation_out_objects = sorted(
+        [
+            ViolationFoundOut(**json.loads(v))
+            for k, v in data.items()
+            if (k.startswith("vio_") and v)
+        ],
+        key=lambda x: x.violation_id,
     )
-    if violations_check_count != 0:
+    if violation_out_objects:
         await message.answer(
             text=MoPerformerMessages.cant_finish, reply_markup=message.reply_markup
         )
@@ -446,7 +451,6 @@ async def finish_process(message: Message, state: FSMContext):
 async def back_command(
     message: Message,
     state: FSMContext,
-    violation_obj: ViolationFoundService = ViolationFoundService(),
 ):
     current_state = await state.get_state()
     if current_state == MoPerformerStates.mo_performer:
@@ -456,24 +460,38 @@ async def back_command(
             reply_markup=MoPerformerKeyboards().main_menu(),
         )
 
-    elif current_state == MoPerformerStates.correct_violation:
+    elif current_state in (
+        MoPerformerStates.correct_violation,
+        MoPerformerStates.add_comm,
+        MoPerformerStates.add_photo,
+    ):
         await message.answer(
             text=MoPerformerMessages.choose_vio, reply_markup=ReplyKeyboardRemove()
         )
         await state.set_state(MoPerformerStates.mo_performer)
         data = await state.get_data()
-        violations = [
-            ViolationFoundOut(**json.loads(v))
-            for k, v in data.items()
-            if (k.startswith("vio_") and v)
-        ]
+        violation_out_objects = sorted(
+            [
+                ViolationFoundOut(**json.loads(v))
+                for k, v in data.items()
+                if (k.startswith("vio_") and v)
+            ],
+            key=lambda x: x.violation_id,
+        )
 
-        for violation in violations:
-            text_mes = await violation_obj.form_violation_card(violation=violation)
-            keyboard = MoPerformerKeyboards().get_under_violation_photo(
-                violation_id=violation.id
-            )
-            await message.answer(text=text_mes, reply_markup=keyboard)
+        order_back = get_index_by_violation_id(
+            violation_out_objects, data["current_vio_id"]
+        )
+        reply_obj = FormCards().form_reply(
+            violations_out=violation_out_objects, order=order_back
+        )
+        await state.update_data(current_vio_id=None, photo_id=None, comm=None)
+        photo_id = reply_obj.photo_id
+        text_mes = reply_obj.text_mes
+        keyboard = reply_obj.keyboard
+        await message.answer_photo(
+            photo=photo_id, caption=text_mes, reply_markup=keyboard
+        )
 
     else:
         await state.clear()
