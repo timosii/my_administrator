@@ -1,3 +1,4 @@
+from aiocache import cached, Cache
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 from sqlalchemy import select, update, delete, func
@@ -13,7 +14,8 @@ from loguru import logger
 class ViolationsRepo:
     def __init__(self):
         self.session_maker = session_maker
-        
+
+    @cached(ttl=3600, cache=Cache.MEMORY)        
     async def get_id_by_name(
         self,
         violation_name: str,
@@ -28,6 +30,7 @@ class ViolationsRepo:
             logger.info('get dict vio id by name and zone')
             return violation_id if violation_id else None       
 
+    @cached(ttl=3600, cache=Cache.MEMORY)
     async def get_violation_by_id(
         self,
         violation_id: int

@@ -9,7 +9,6 @@ class MoPerformerKeyboards:
 
     def main_menu(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Посмотреть активные проверки')
-        # self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
     
@@ -24,7 +23,6 @@ class MoPerformerKeyboards:
         fils = await get_fils_by_mo(mo=mo)
         buttons = [KeyboardButton(text=fil) for fil in fils]
         self.kb.add(*buttons)
-        # self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
     
@@ -108,6 +106,15 @@ class MoPerformerKeyboards:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text="Посмотреть нарушения", callback_data=f"violations_{check_id}"),
+            ],
+        ])
+        return kb
+    
+    @staticmethod
+    def save_violation_found(violation_id: int) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Сохранить", callback_data=f"save_{violation_id}"),
             ],
         ])
         return kb

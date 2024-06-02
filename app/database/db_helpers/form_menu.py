@@ -8,7 +8,9 @@ from app.database.models.dicts import (
     Filials
 )
 from loguru import logger
+from aiocache import cached, Cache
 
+@cached(ttl=3600, cache=Cache.MEMORY)
 async def get_all_zones():
     async with session_maker() as session:
         query = select(Zones.zone_name)
@@ -17,6 +19,7 @@ async def get_all_zones():
         logger.info('get all zones')
         return list(zones)
 
+@cached(ttl=3600, cache=Cache.MEMORY)
 async def get_zone_violations(zone: str):
     async with session_maker() as session:
         query = select(Violations.violation_name).filter_by(zone=zone)
@@ -24,7 +27,8 @@ async def get_zone_violations(zone: str):
         violations = result.scalars()
         logger.info('get zone violations')
         return list(violations)
-    
+
+@cached(ttl=3600, cache=Cache.MEMORY)
 async def get_all_violations():
     async with session_maker() as session:
         query = select(Violations.violation_name)
@@ -32,7 +36,8 @@ async def get_all_violations():
         violations = result.scalars().all()
         logger.info('get all violations')
         return violations
-    
+
+@cached(ttl=3600, cache=Cache.MEMORY)
 async def get_all_filials():
     async with session_maker() as session:
         query = select(Filials.fil_)
@@ -40,7 +45,8 @@ async def get_all_filials():
         filials = result.scalars().all()
         logger.info('get all filials')
         return filials
-    
+
+@cached(ttl=3600, cache=Cache.MEMORY)
 async def get_fils_by_mo(mo: str):
     async with session_maker() as session:
         query = select(Filials.fil_).filter_by(mo_=mo)

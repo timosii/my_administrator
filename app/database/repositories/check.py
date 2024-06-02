@@ -1,3 +1,4 @@
+from aiocache import Cache, cached
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func, not_, and_
@@ -19,12 +20,15 @@ class CheckRepo:
             await session.commit()
             await session.refresh(new_check)
             logger.info('check adding to db')
+            await self.clear_cache()
             return CheckInDB.model_validate(new_check)
-
+    
+    @cached(ttl=3600, cache=Cache.MEMORY)
     async def check_exists(self, check_id: int) -> bool:
         query = select(Check.id).filter_by(id=check_id)
         return await self._get_scalar(query=query)
 
+    @cached(ttl=3600, cache=Cache.MEMORY)
     async def get_check_by_id(self, check_id: int) -> Optional[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check).filter_by(id=check_id))
@@ -37,6 +41,7 @@ class CheckRepo:
             check_id, **check_update.model_dump(exclude_unset=True)
         )
         logger.info('check updated')
+        await self.clear_cache()
 
     async def delete_check(self, check_id: int) -> None:
         async with self.session_maker() as session:
@@ -44,7 +49,9 @@ class CheckRepo:
             await session.execute(stmt)
             await session.commit()
             logger.info('check deleted')
+            await self.clear_cache()
 
+    @cached(ttl=3600, cache=Cache.MEMORY)
     async def get_all_checks(self) -> List[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check))
@@ -72,11 +79,13 @@ class CheckRepo:
                 else None
             )
 
+    @cached(ttl=3600, cache=Cache.MEMORY)
     async def get_checks_count(self) -> int:
         query = select(func.count()).select_from(Check)
         logger.info('get checks count')
         return await self._get_scalar(query=query) or 0
 
+    @cached(ttl=3600, cache=Cache.MEMORY)
     async def get_checks_by_user(self, user_id: int) -> List[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check).filter_by(user_id=user_id))
@@ -94,3 +103,7 @@ class CheckRepo:
             stmt = update(Check).where(Check.id == check_id).values(**kwargs)
             await session.execute(stmt)
             await session.commit()
+
+    async def clear_cache(self):
+        await Cache().clear()
+        logger.info("Cache cleared")

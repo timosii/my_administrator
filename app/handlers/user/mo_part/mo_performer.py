@@ -30,6 +30,7 @@ from app.logger_config import Logger
 router = Router()
 router.message.filter(MoPerformerFilter())
 
+
 @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
 async def cmd_start(message: Message, state: FSMContext):
     logger.info(Logger.passed_authorization(message.from_user))
@@ -154,7 +155,7 @@ async def get_violations(
         key=lambda x: x.violation_id,
     )
     if len(violation_out_objects) == 1:
-        await callback.answer(text=MoPerformerMessages.no_violations)
+        await callback.answer(text=MoPerformerMessages.no_violations_buttons)
         return
 
     order = get_index_by_violation_id(
@@ -171,6 +172,13 @@ async def get_violations(
         photo=photo_id, caption=text_mes, reply_markup=keyboard
     )
     await callback.answer()
+
+@router.callback_query(
+    F.data.startswith("next_") | F.data.startswith("prev_"),
+    ~StateFilter(MoPerformerStates.mo_performer),
+)
+async def wrong_state(callback: CallbackQuery):
+    await callback.answer(text='Вернитесь в режим выбора нарушений')
 
 
 @router.callback_query(
@@ -221,36 +229,21 @@ async def correct_vio_process_photo(message: Message, state: FSMContext):
 async def add_photo_handler(
     message: Message,
     state: FSMContext,
-    violation_obj: ViolationFoundService = ViolationFoundService(),
 ):
     data = await state.get_data()
     violation_id = data["current_vio_id"]
     photo_id = message.photo[-1].file_id
     await state.update_data(photo_id=photo_id)
+    violation_found_out = ViolationFoundOut(**json.loads(data[f"vio_{violation_id}"]))
 
     if data.get("comm"):
         await message.answer(
-            text=MoPerformerMessages.photo_comm_added(vio_id=violation_id),
-            reply_markup=MoPerformerKeyboards().back_to_violations(),
+            text=MoPerformerMessages.finish_mes(violation_found_out.violation_name),
+            reply_markup=MoPerformerKeyboards().save_violation_found(
+                violation_id=violation_id
+            ),
         )
-        comm = data["comm"]
-        vio_upd = ViolationFoundUpdate(
-            photo_id_mo=photo_id, comm_mo=comm, violation_fixed=dt.datetime.now()
-        )
-        await violation_obj.update_violation(
-            violation_id=violation_id, violation_update=vio_upd
-        )
-
-        await state.update_data(
-            {
-                "current_vio_id": None,
-                "photo_id": None,
-                "comm": None,
-                f"vio_{violation_id}": None,
-            }
-        )
-        await state.set_state(MoPerformerStates.mo_performer)
-
+        await state.set_state(MoPerformerStates.save_vio_update)
     else:
         await message.answer(
             text=MoPerformerMessages.photo_added,
@@ -263,42 +256,69 @@ async def add_photo_handler(
 async def add_photo_handler(
     message: Message,
     state: FSMContext,
-    violation_obj: ViolationFoundService = ViolationFoundService(),
 ):
     data = await state.get_data()
     violation_id = data["current_vio_id"]
     comm = message.text
     await state.update_data(comm=comm)
+    violation_found_out = ViolationFoundOut(**json.loads(data[f"vio_{violation_id}"]))
 
     if data.get("photo_id"):
         await message.answer(
-            text=MoPerformerMessages.photo_comm_added(vio_id=violation_id),
-            reply_markup=MoPerformerKeyboards().back_to_violations(),
+            text=MoPerformerMessages.finish_mes(violation_found_out.violation_name),
+            reply_markup=MoPerformerKeyboards().save_violation_found(
+                violation_id=violation_id
+            ),
         )
-        photo_id = data["photo_id"]
-        vio_upd = ViolationFoundUpdate(
-            photo_id_mo=photo_id, comm_mo=comm, violation_fixed=dt.datetime.now()
-        )
-        await violation_obj.update_violation(
-            violation_id=violation_id, violation_update=vio_upd
-        )
-
-        await state.update_data(
-            {
-                "current_vio_id": None,
-                "photo_id": None,
-                "comm": None,
-                f"vio_{violation_id}": None,
-            }
-        )
-        await state.set_state(MoPerformerStates.mo_performer)
-
+        await state.set_state(MoPerformerStates.save_vio_update)
     else:
         await message.answer(
             text=MoPerformerMessages.comm_added,
             reply_markup=MoPerformerKeyboards.add_comm(violation_id=violation_id),
         )
         await state.set_state(MoPerformerStates.correct_violation)
+
+
+@router.callback_query(
+    F.data.startswith("save_"),
+    StateFilter(MoPerformerStates.save_vio_update),
+)
+async def save_violation_found_process(
+    callback: CallbackQuery,
+    state: FSMContext,
+    violation_obj: ViolationFoundService = ViolationFoundService(),
+):
+    data = await state.get_data()
+    violation_id = int(callback.data.split("_")[1])
+    violation_found_out = ViolationFoundOut(**json.loads(data[f"vio_{violation_id}"]))
+
+    await callback.answer(
+        text=MoPerformerMessages.photo_comm_added,
+        show_alert=True
+    )
+    await callback.message.answer(
+        text=MoPerformerMessages.can_continue_or_finish,
+        reply_markup=MoPerformerKeyboards().back_to_violations(),
+    )
+
+    vio_upd = ViolationFoundUpdate(
+        photo_id_mo=violation_found_out.photo_id,
+        comm_mo=violation_found_out.comm,
+        violation_fixed=dt.datetime.now(),
+    )
+    await violation_obj.update_violation(
+        violation_id=violation_id, violation_update=vio_upd
+    )
+
+    await state.update_data(
+        {
+            "current_vio_id": None,
+            "photo_id": None,
+            "comm": None,
+            f"vio_{violation_id}": None,
+        }
+    )
+    await state.set_state(MoPerformerStates.mo_performer)
 
 
 @router.callback_query(

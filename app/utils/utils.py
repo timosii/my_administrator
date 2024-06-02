@@ -62,7 +62,7 @@ def format_timedelta(td):
     else:
         result = f"{minutes_out}"
         
-    return result if result else '1 минуту'
+    return result if result else '1 минута'
 
 def get_index_by_violation_id(objects: list[object], violation_id: int) -> int | None:
     for index, obj in enumerate(objects):

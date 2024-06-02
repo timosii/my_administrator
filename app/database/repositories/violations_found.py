@@ -1,3 +1,4 @@
+from aiocache import Cache, cached
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func, and_
@@ -27,13 +28,13 @@ class ViolationFoundRepo:
             logger.info('add violation found')
             return ViolationFoundInDB.model_validate(new_violation)
 
-
+    @cached(ttl=3600, cache=Cache.MEMORY)
     async def violation_found_exists(self, violation_id: int) -> bool:
         query = select(ViolationFound.id).filter_by(id=violation_id)
         logger.info('is violation found exist')
         return await self._get_scalar(query=query)
 
-
+    @cached(ttl=3600, cache=Cache.MEMORY)
     async def get_violation_found_by_id(
         self, violation_id: int
     ) -> Optional[ViolationFoundInDB]:
@@ -45,7 +46,6 @@ class ViolationFoundRepo:
             logger.info('get violation found by id')
             return ViolationFoundInDB.model_validate(violation) if violation else None    
 
-
     async def update_violation_found(
         self, violation_id: int, violation_update: ViolationFoundUpdate
     ) -> None:
@@ -53,7 +53,7 @@ class ViolationFoundRepo:
             violation_id, **violation_update.model_dump(exclude_unset=True)
         )
         logger.info('updated violation found')
-
+        await self.clear_cache()
 
     async def delete_violation_found(self, violation_id: int) -> None:
         async with self.session_maker() as session:
@@ -61,8 +61,9 @@ class ViolationFoundRepo:
             await session.execute(stmt)
             await session.commit()
             logger.info('deleted violation found')
+            await self.clear_cache()
 
-
+    @cached(ttl=3600, cache=Cache.MEMORY) 
     async def get_all_violations_found(self) -> List[ViolationFoundInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(ViolationFound))
@@ -71,7 +72,8 @@ class ViolationFoundRepo:
             return [
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
-
+        
+    @cached(ttl=3600, cache=Cache.MEMORY)
     async def get_violations_found_count_by_check(self, check_id: int) -> int:
         query = select(func.count()).select_from(ViolationFound).where(
             and_(
@@ -84,7 +86,8 @@ class ViolationFoundRepo:
             await self._get_scalar(query=query)
             or 0
         )
-
+    
+    @cached(ttl=3600, cache=Cache.MEMORY)    
     async def get_violations_found_by_check(self, check_id: int) -> Optional[List[ViolationFoundInDB]]:
         async with self.session_maker() as session:
             query = select(ViolationFound).where(
@@ -99,7 +102,8 @@ class ViolationFoundRepo:
             return [
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ] if violations else None
-        
+
+    @cached(ttl=3600, cache=Cache.MEMORY) 
     async def get_violations_found_by_fil(self, fil_: str) -> Optional[List[ViolationFoundInDB]]:
         async with self.session_maker() as session:
             checks = await session.execute(
@@ -118,6 +122,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
     
+    @cached(ttl=3600, cache=Cache.MEMORY)     
     async def is_violation_already_in_check(self, violation_dict_id: int, check_id: int) -> bool:
         query = select(ViolationFound).where(
             and_(
@@ -143,3 +148,7 @@ class ViolationFoundRepo:
             )
             await session.execute(stmt)
             await session.commit()
+
+    async def clear_cache(self):
+        await Cache().clear()
+        logger.info("Cache cleared")

@@ -63,19 +63,22 @@ class MoPerformerMessages:
     comm_added = 'Комментарий добавлен!'
     choose_another = 'Вы можете выбрать другое нарушение из списка нарушений'
     no_violations = 'Для этой проверки больше нарушений нет!'
+    no_violations_buttons = 'Других нарушений нет'
     back_to_checks = 'Возвращаемся к списку проверок...'
     continue_check = 'Загружаю нарушения...'
     wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
     choose_vio = 'Вы вышли из режима исправления. Выберите нарушение:'
     cant_finish = 'Вы не можете закончить проверку, остались неисправленные нарушения!'
+    can_continue_or_finish = 'Мы всё сохранили. Спасибо!'
+    photo_comm_added = 'Информация для нарушения добавлена'
+
+    @staticmethod
+    def finish_mes(violation_name: str):
+        return f'Вы добавили информацию для нарушения <b>{violation_name}</b>.\nСохранить изменения?'
 
     @staticmethod
     def form_no_checks_answer(fil_: str):
         return f'Активных проверок для филиала {fil_} не найдено'
-    
-    @staticmethod
-    def photo_comm_added(vio_id: int):
-        return f'Информация для нарушения добавлена'
 
     @staticmethod
     def correct_mode(text_mes: str) -> str:
