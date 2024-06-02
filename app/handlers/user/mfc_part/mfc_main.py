@@ -260,11 +260,11 @@ async def choose_violation_handler(
     data_ = await state.get_data()
     violation_dict_id = data_["vio_id"]
 
-    is_vio_already_in_check = await violation_obj.is_vio_already_in_check(
+    is_violation_already_in_check = await violation_obj.is_violation_already_in_check(
         violation_dict_id=violation_dict_id,
         check_id=check_id,
     )
-    if is_vio_already_in_check:
+    if is_violation_already_in_check:
         await message.answer(
             text=MfcMessages.violation_already_exist, reply_markup=message.reply_markup
         )

@@ -9,6 +9,7 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundUpdate,
     ViolationFoundInDB
 )
+from loguru import logger
 
 
 class ViolationFoundRepo:
@@ -23,11 +24,13 @@ class ViolationFoundRepo:
             session.add(new_violation)
             await session.commit()
             await session.refresh(new_violation)
+            logger.info('add violation found')
             return ViolationFoundInDB.model_validate(new_violation)
 
 
     async def violation_found_exists(self, violation_id: int) -> bool:
         query = select(ViolationFound.id).filter_by(id=violation_id)
+        logger.info('is violation found exist')
         return await self._get_scalar(query=query)
 
 
@@ -39,6 +42,7 @@ class ViolationFoundRepo:
                 select(ViolationFound).filter_by(id=violation_id)
             )
             violation = result.scalar_one_or_none()
+            logger.info('get violation found by id')
             return ViolationFoundInDB.model_validate(violation) if violation else None    
 
 
@@ -48,6 +52,7 @@ class ViolationFoundRepo:
         await self._update_field(
             violation_id, **violation_update.model_dump(exclude_unset=True)
         )
+        logger.info('updated violation found')
 
 
     async def delete_violation_found(self, violation_id: int) -> None:
@@ -55,12 +60,14 @@ class ViolationFoundRepo:
             stmt = delete(ViolationFound).where(ViolationFound.id == violation_id)
             await session.execute(stmt)
             await session.commit()
+            logger.info('deleted violation found')
 
 
     async def get_all_violations_found(self) -> List[ViolationFoundInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(ViolationFound))
             violations = result.scalars().all()
+            logger.info('get all violations found')
             return [
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
@@ -72,6 +79,7 @@ class ViolationFoundRepo:
                 ViolationFound.violation_fixed.is_(None)
                 )
             )
+        logger.info('get violations found count by check')
         return (
             await self._get_scalar(query=query)
             or 0
@@ -87,6 +95,7 @@ class ViolationFoundRepo:
                 )
             result = await session.execute(query)
             violations = result.scalars().all()
+            logger.info('get violations found by check')
             return [
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ] if violations else None
@@ -104,11 +113,12 @@ class ViolationFoundRepo:
                 select(ViolationFound).filter(ViolationFound.check_id.in_(check_ids))
             )
             violations = result.scalars().all()
+            logger.info('get violations found by fil')
             return [
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
     
-    async def is_vio_already_in_check(self, violation_dict_id: int, check_id: int) -> bool:
+    async def is_violation_already_in_check(self, violation_dict_id: int, check_id: int) -> bool:
         query = select(ViolationFound).where(
             and_(
                 ViolationFound.violation_id == violation_dict_id,
@@ -116,6 +126,7 @@ class ViolationFoundRepo:
             )
         )
         result = await self._get_scalar(query=query)
+        logger.info('is violation already in check')
         return bool(result)
                       
     async def _get_scalar(self, query) -> any:

@@ -7,6 +7,7 @@ from app.database.models.dicts import Violations
 from app.database.schemas.violation_schema import (
     ViolationInDB
 )
+from loguru import logger
 
 
 class ViolationsRepo:
@@ -24,6 +25,7 @@ class ViolationsRepo:
                                                 zone=zone)
             )
             violation_id = result.scalar_one_or_none()
+            logger.info('get dict vio id by name and zone')
             return violation_id if violation_id else None       
 
     async def get_violation_by_id(
@@ -35,4 +37,5 @@ class ViolationsRepo:
                 select(Violations).filter_by(id=violation_id)
             )
             violation = result.scalar_one_or_none()
+            logger.info('get dict vio obj by id')
             return ViolationInDB.model_validate(violation) if violation else None  

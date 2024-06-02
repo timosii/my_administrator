@@ -11,6 +11,7 @@ from app.database.services.violations_found import ViolationFoundService
 from app.database.schemas.user_schema import UserCreate
 from app.database.schemas.check_schema import CheckCreate
 from app.database.schemas.violation_found_schema import ViolationFoundCreate
+from loguru import logger
 
 
 
@@ -48,34 +49,6 @@ async def insert_data_user(user: UserService = UserService()):
     await user.add_user(user_test_1)
     await user.add_user(user_test_2)
     await user.add_user(user_test_3)
+    logger.info('users added to db')
 
-async def insert_data_check(check: CheckService = CheckService()):
-    check_test_1 = CheckCreate(
-        fil_='ГП 175 филиал 1',
-        user_id = 6164463753,
-    )
-    check_test_2 = CheckCreate(
-        fil_='ГП 107 филиал 2',
-        user_id = 581145287,
-    )
-    await check.add_check(check_test_1)
-    await check.add_check(check_test_2)
-
-
-async def insert_data_violation(violation: ViolationFoundService = ViolationFoundService()):
-    vio_test_1 = ViolationFoundCreate(
-        check_id=1,
-        violation_id=13,
-        photo_id='test',
-        comm='testtest',
-    )
-    vio_test_2 = ViolationFoundCreate(
-        check_id=2,
-        violation_id=34,
-        photo_id='test',
-        comm='testtest',
-    )
-
-    await violation.add_violation(vio_test_1)
-    await violation.add_violation(vio_test_2)
 

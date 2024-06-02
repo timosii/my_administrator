@@ -17,10 +17,5 @@ class ErrorLoggingMiddleware(BaseMiddleware):
             return await handler(event, data)
         except Exception as e:
             logger.error(Logger.log_error(user=user, e=e))
-            # await event.message("An error occurred. Please try again later.")
-            # if isinstance(event, types.Message):
-            #     await event.answer("An error occurred. Please try again later.")
-            # elif isinstance(event, types.CallbackQuery):
-            #     await event.message.answer("An error occurred. Please try again later.")
             raise e
         
