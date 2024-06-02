@@ -24,13 +24,14 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundUpdate,
 )
 from app.utils.utils import get_index_by_violation_id
+from app.logger_config import Logger
 
 router = Router()
 router.message.filter(MoPerformerFilter())
 
-
 @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
 async def cmd_start(message: Message, state: FSMContext):
+    Logger().passed_authorization(message.from_user)
     await message.answer(
         text=MoPerformerMessages.start_message,
         reply_markup=MoPerformerKeyboards().main_menu(),
@@ -164,10 +165,10 @@ async def get_violations(
     photo_id = reply_obj.photo_id
     text_mes = reply_obj.text_mes
     keyboard = reply_obj.keyboard
+    await callback.message.delete()
     await callback.message.answer_photo(
         photo=photo_id, caption=text_mes, reply_markup=keyboard
     )
-    await callback.message.delete()
     await callback.answer()
 
 

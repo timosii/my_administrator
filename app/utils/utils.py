@@ -49,15 +49,20 @@ def format_timedelta(td):
         elif last_digit in (2, 3, 4):
             return 'минуты'
         else:
-            return 'минут'   
+            return 'минут'
+    
+    days_out = f"{days} {end_day_definition(days)}" if days > 0 else ''
+    hours_out = f"{hours} {end_hour_definition(hours)}" if hours > 0 else ''
+    minutes_out = f"{minutes} {end_min_definition(minutes)}" if minutes > 0 else ''
 
     if days > 0:
-        return f"{days} {end_day_definition(days)} {hours} {end_hour_definition(hours)} {minutes} {end_min_definition(minutes)}"
+        result = f"{days_out} {hours_out} {minutes_out}"
     if hours > 0:
-        return f"{hours} {end_hour_definition(hours)} {minutes} {end_min_definition(minutes)}"
+        result = f"{hours_out} {minutes_out}"
     else:
-        return f"{minutes} {end_min_definition(minutes)}"
-    
+        result = f"{minutes_out}"
+        
+    return result if result else '1 минуту'
 
 def get_index_by_violation_id(objects: list[object], violation_id: int) -> int | None:
     for index, obj in enumerate(objects):

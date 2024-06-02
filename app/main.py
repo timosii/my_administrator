@@ -8,6 +8,9 @@ from app.handlers.admin import admin
 from app.handlers.user.mo_part import mo_controler, mo_performer
 from app.handlers.user.mfc_part import mfc_main, mfc_leader
 from aiogram.types import BotCommand
+from app.logger_config import Logger
+from app.middlewares.logging_errors import ErrorLoggingMiddleware
+
 
 
 async def set_main(bot: Bot):
@@ -22,11 +25,11 @@ async def set_main(bot: Bot):
     # logger.info(f"Username - @{bot_info.username}")
     # logger.info(f"ID       - {bot_info.id}")
 
-    logger.info("bot started")
+    Logger().start
 
 
 async def on_shutdown() -> None:
-    logger.info("bot stopped")
+    Logger().stop
 
 
 async def start_bot() -> None:
@@ -44,6 +47,7 @@ async def start_bot() -> None:
         mo_controler.router
     )
     await bot.delete_webhook(drop_pending_updates=True)
+    dp.update.middleware(ErrorLoggingMiddleware(bot=bot))
     dp.startup.register(set_main)
     dp.shutdown.register(on_shutdown)
     await dp.start_polling(bot)
