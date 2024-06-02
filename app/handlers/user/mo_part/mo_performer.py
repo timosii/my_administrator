@@ -158,7 +158,6 @@ async def get_violations(
     order = get_index_by_violation_id(
         objects=violation_out_objects, violation_id=violation_id
     )
-    print(order)
     reply_obj = FormCards().form_reply(
         violations_out=violation_out_objects, order=order
     )

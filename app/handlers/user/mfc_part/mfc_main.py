@@ -128,13 +128,14 @@ async def finish_unfinished(callback: CallbackQuery,
 async def choose_fil_handler(
     message: Message, state: FSMContext, user: UserService = UserService()
 ):
-    user_id = message.from_user.id
-    mo = await user.get_user_mo(user_id=user_id)
-    await state.update_data(user_id=user_id, mo=mo)
-    await message.answer(
-        text=MfcMessages.choose_fil, reply_markup=await MfcKeyboards().choose_fil(mo=mo)
-    )
-    await state.set_state(MfcStates.choose_fil)
+    await message.answer(text='Функция находится в разработке, выберите что-нибудь другое')
+    # user_id = message.from_user.id
+    # mo = await user.get_user_mo(user_id=user_id)
+    # await state.update_data(user_id=user_id, mo=mo)
+    # await message.answer(
+    #     text=MfcMessages.choose_fil, reply_markup=await MfcKeyboards().choose_fil(mo=mo)
+    # )
+    # await state.set_state(MfcStates.choose_fil)
 
 
 ##############
