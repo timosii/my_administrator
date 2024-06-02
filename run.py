@@ -3,7 +3,8 @@ import sys
 import asyncio
 import os
 from app.main import start_bot
-from app.logger_config import Logger, logger
+from app.logger_config import Logger
+from loguru import logger
 
 
 @logger.catch

@@ -25,12 +25,11 @@ async def set_main(bot: Bot):
     # logger.info(f"Username - @{bot_info.username}")
     # logger.info(f"ID       - {bot_info.id}")
 
-    Logger().start
+    logger.info(Logger.start)
 
 
 async def on_shutdown() -> None:
-    Logger().stop
-
+    logger.info(Logger.stop)
 
 async def start_bot() -> None:
     bot = Bot(token=settings.BOT_TOKEN, parse_mode='HTML')
@@ -47,7 +46,7 @@ async def start_bot() -> None:
         mo_controler.router
     )
     await bot.delete_webhook(drop_pending_updates=True)
-    dp.update.middleware(ErrorLoggingMiddleware(bot=bot))
+    dp.update.middleware(ErrorLoggingMiddleware())
     dp.startup.register(set_main)
     dp.shutdown.register(on_shutdown)
     await dp.start_polling(bot)

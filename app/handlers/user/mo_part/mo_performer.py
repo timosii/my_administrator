@@ -1,6 +1,7 @@
 import time
 import json
 import datetime as dt
+from loguru import logger
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery, InputMediaPhoto
@@ -31,7 +32,7 @@ router.message.filter(MoPerformerFilter())
 
 @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
 async def cmd_start(message: Message, state: FSMContext):
-    Logger().passed_authorization(message.from_user)
+    logger.info(Logger.passed_authorization(message.from_user))
     await message.answer(
         text=MoPerformerMessages.start_message,
         reply_markup=MoPerformerKeyboards().main_menu(),

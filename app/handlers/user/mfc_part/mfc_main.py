@@ -23,6 +23,7 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundUpdate,
 )
 from app.logger_config import Logger
+from loguru import logger
 
 
 router = Router()
@@ -31,7 +32,7 @@ router.message.filter(MfcFilter())
 
 @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
 async def cmd_start(message: Message, state: FSMContext):
-    Logger().passed_authorization(message.from_user)
+    logger.info(Logger.passed_authorization(message.from_user))
     await message.answer(
         text=MfcMessages.welcome_message, reply_markup=MfcKeyboards().main_menu()
     )
