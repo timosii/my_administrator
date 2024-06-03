@@ -2,7 +2,6 @@ from aiogram import Dispatcher
 from aiogram.types import TelegramObject, Message, CallbackQuery, User
 from aiogram.dispatcher.middlewares.base import BaseMiddleware
 from loguru import logger
-from app.logger_config import Logger
 from typing import Callable, Dict, Any, Awaitable
 
 class ErrorLoggingMiddleware(BaseMiddleware):
@@ -16,6 +15,6 @@ class ErrorLoggingMiddleware(BaseMiddleware):
         try:
             return await handler(event, data)
         except Exception as e:
-            logger.error(Logger.log_error(user=user, e=e))
+            logger.error('Error occurred for user {0} ({1}): {2}'.format(user.id, user.username, e))
             raise e
         

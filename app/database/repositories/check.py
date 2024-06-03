@@ -1,4 +1,5 @@
-from aiocache import Cache, cached
+from aiocache.serializers import PickleSerializer
+import redis.asyncio as redis
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func, not_, and_
@@ -7,12 +8,13 @@ from app.database.database import session_maker
 from app.database.models.data import Check
 from loguru import logger
 from app.database.schemas.check_schema import CheckCreate, CheckUpdate, CheckInDB
-
+from aiocache import cached, Cache
 
 class CheckRepo:
     def __init__(self):
         self.session_maker = session_maker
-
+        self.cache = Cache(Cache.REDIS, namespace='check', serializer=PickleSerializer())
+    
     async def add_check(self, check_create: CheckCreate) -> CheckInDB:
         async with self.session_maker() as session:
             new_check = Check(**check_create.model_dump())
@@ -23,12 +25,12 @@ class CheckRepo:
             await self.clear_cache()
             return CheckInDB.model_validate(new_check)
     
-    @cached(ttl=3600, cache=Cache.MEMORY)
+    @cached(ttl=300, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
     async def check_exists(self, check_id: int) -> bool:
         query = select(Check.id).filter_by(id=check_id)
         return await self._get_scalar(query=query)
 
-    @cached(ttl=3600, cache=Cache.MEMORY)
+    @cached(ttl=300, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
     async def get_check_by_id(self, check_id: int) -> Optional[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check).filter_by(id=check_id))
@@ -51,7 +53,7 @@ class CheckRepo:
             logger.info('check deleted')
             await self.clear_cache()
 
-    @cached(ttl=3600, cache=Cache.MEMORY)
+    @cached(ttl=300, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
     async def get_all_checks(self) -> List[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check))
@@ -61,7 +63,7 @@ class CheckRepo:
 
     async def get_all_active_checks_by_fil(
         self, fil_: str
-    ) -> Optional[List[CheckInDB]]:
+    ) -> List[CheckInDB] | str:
         async with self.session_maker() as session:
             query = select(Check).where(
                 and_(
@@ -76,16 +78,16 @@ class CheckRepo:
             return (
                 [CheckInDB.model_validate(check) for check in checks]
                 if checks
-                else None
+                else ''
             )
 
-    @cached(ttl=3600, cache=Cache.MEMORY)
+    @cached(ttl=300, cache=Cache.REDIS, namespace='check')
     async def get_checks_count(self) -> int:
         query = select(func.count()).select_from(Check)
         logger.info('get checks count')
         return await self._get_scalar(query=query) or 0
 
-    @cached(ttl=3600, cache=Cache.MEMORY)
+    @cached(ttl=300, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
     async def get_checks_by_user(self, user_id: int) -> List[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check).filter_by(user_id=user_id))
@@ -103,7 +105,11 @@ class CheckRepo:
             stmt = update(Check).where(Check.id == check_id).values(**kwargs)
             await session.execute(stmt)
             await session.commit()
+            
 
     async def clear_cache(self):
-        await Cache().clear()
+        pattern = "check:*"
+        keys = await self.cache.raw("keys", pattern)
+        for key in keys:
+            await self.cache.delete(key)
         logger.info("Cache cleared")

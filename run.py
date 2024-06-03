@@ -3,13 +3,22 @@ import sys
 import asyncio
 import os
 from app.main import start_bot
-from app.logger_config import Logger
 from loguru import logger
 
 
-@logger.catch
+def set_logger_config():
+    log_path = os.path.join(("logs/debug.log"))
+    logger.add(
+        log_path,
+        format="{time} | {level} | {module}:{function}:{line} | {message}",
+        level="DEBUG",
+        rotation="100 KB",
+        compression="zip",
+    )
+
+
 def main():
-    Logger().set_config
+    set_logger_config()
     asyncio.run(start_bot())
 
 

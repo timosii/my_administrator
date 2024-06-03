@@ -25,7 +25,6 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundUpdate,
 )
 from app.utils.utils import get_index_by_violation_id
-from app.logger_config import Logger
 
 router = Router()
 router.message.filter(MoPerformerFilter())
@@ -33,7 +32,8 @@ router.message.filter(MoPerformerFilter())
 
 @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
 async def cmd_start(message: Message, state: FSMContext):
-    logger.info(Logger.passed_authorization(message.from_user))
+    user = message.from_user
+    logger.info('User {0} {1} passed authorization'.format(user.id, user.username))
     await message.answer(
         text=MoPerformerMessages.start_message,
         reply_markup=MoPerformerKeyboards().main_menu(),
@@ -68,7 +68,6 @@ async def get_checks(
 ):
     fil_ = message.text
     checks = await check_obj.get_all_active_checks_by_fil(fil_=fil_)
-
     if not checks:
         await message.answer(
             text=MoPerformerMessages.form_no_checks_answer(fil_=fil_),
@@ -167,9 +166,9 @@ async def get_violations(
     photo_id = reply_obj.photo_id
     text_mes = reply_obj.text_mes
     keyboard = reply_obj.keyboard
-    await callback.message.delete()
-    await callback.message.answer_photo(
-        photo=photo_id, caption=text_mes, reply_markup=keyboard
+    await callback.message.edit_media(
+        media=InputMediaPhoto(media=photo_id, caption=text_mes),
+        reply_markup=keyboard
     )
     await callback.answer()
 

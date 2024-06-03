@@ -1,14 +1,12 @@
 from loguru import logger
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage, Redis
-from aiogram.fsm.storage.memory import MemoryStorage
 from app.config import settings
 from app.handlers import default, dev
 from app.handlers.admin import admin
 from app.handlers.user.mo_part import mo_controler, mo_performer
 from app.handlers.user.mfc_part import mfc_main, mfc_leader
 from aiogram.types import BotCommand
-from app.logger_config import Logger
 from app.middlewares.logging_errors import ErrorLoggingMiddleware
 
 
@@ -25,12 +23,13 @@ async def set_main(bot: Bot):
     # logger.info(f"Username - @{bot_info.username}")
     # logger.info(f"ID       - {bot_info.id}")
 
-    logger.info(Logger.start)
+    logger.info('bot started')
 
 
 async def on_shutdown() -> None:
-    logger.info(Logger.stop)
+    logger.info('bot stopped')
 
+@logger.catch
 async def start_bot() -> None:
     bot = Bot(token=settings.BOT_TOKEN, parse_mode='HTML')
     redis = Redis(host='localhost')

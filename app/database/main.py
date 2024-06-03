@@ -7,13 +7,8 @@ from app.config import settings
 from app.database.models.data import User
 from app.database.schemas.user_schema import UserCreate
 
-from app.database.db_helpers.create_db import (
-    create_tables,
-)
 from app.database.db_helpers.insert_data import (
     insert_data_user,
-    insert_data_check,
-    insert_data_violation
 )
 from app.database.services.users import UserService
 

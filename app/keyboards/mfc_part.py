@@ -77,6 +77,14 @@ class MfcKeyboards:
         ])
         return self.kb
     
+    def get_description(self, violation_id: int) -> InlineKeyboardMarkup:
+        self.kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text='Посмотреть описание нарушения', callback_data=f'description_{violation_id}'),
+            ]
+        ])
+        return self.kb
+    
     def unfinished_check(self, check_id) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
             [

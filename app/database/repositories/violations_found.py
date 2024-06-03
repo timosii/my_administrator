@@ -1,4 +1,4 @@
-from aiocache import Cache, cached
+from aiocache.serializers import PickleSerializer
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func, and_
@@ -11,11 +11,13 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundInDB
 )
 from loguru import logger
+from aiocache import cached, Cache
 
 
 class ViolationFoundRepo:
     def __init__(self):
         self.session_maker = session_maker
+        self.cache = Cache(Cache.REDIS, namespace='violation_found', serializer=PickleSerializer())
 
     async def add_violation_found(
         self, violation_create: ViolationFoundCreate
@@ -26,15 +28,16 @@ class ViolationFoundRepo:
             await session.commit()
             await session.refresh(new_violation)
             logger.info('add violation found')
+            await self.clear_cache()
             return ViolationFoundInDB.model_validate(new_violation)
 
-    @cached(ttl=3600, cache=Cache.MEMORY)
+    @cached(ttl=300, cache=Cache.REDIS, namespace='violation_found')
     async def violation_found_exists(self, violation_id: int) -> bool:
         query = select(ViolationFound.id).filter_by(id=violation_id)
         logger.info('is violation found exist')
         return await self._get_scalar(query=query)
 
-    @cached(ttl=3600, cache=Cache.MEMORY)
+    @cached(ttl=300, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer())
     async def get_violation_found_by_id(
         self, violation_id: int
     ) -> Optional[ViolationFoundInDB]:
@@ -63,7 +66,7 @@ class ViolationFoundRepo:
             logger.info('deleted violation found')
             await self.clear_cache()
 
-    @cached(ttl=3600, cache=Cache.MEMORY) 
+    @cached(ttl=300, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer())
     async def get_all_violations_found(self) -> List[ViolationFoundInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(ViolationFound))
@@ -73,7 +76,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
         
-    @cached(ttl=3600, cache=Cache.MEMORY)
+    @cached(ttl=300, cache=Cache.REDIS, namespace='violation_found')
     async def get_violations_found_count_by_check(self, check_id: int) -> int:
         query = select(func.count()).select_from(ViolationFound).where(
             and_(
@@ -87,7 +90,7 @@ class ViolationFoundRepo:
             or 0
         )
     
-    @cached(ttl=3600, cache=Cache.MEMORY)    
+    @cached(ttl=300, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer())
     async def get_violations_found_by_check(self, check_id: int) -> Optional[List[ViolationFoundInDB]]:
         async with self.session_maker() as session:
             query = select(ViolationFound).where(
@@ -103,7 +106,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ] if violations else None
 
-    @cached(ttl=3600, cache=Cache.MEMORY) 
+    @cached(ttl=300, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer())
     async def get_violations_found_by_fil(self, fil_: str) -> Optional[List[ViolationFoundInDB]]:
         async with self.session_maker() as session:
             checks = await session.execute(
@@ -122,7 +125,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
     
-    @cached(ttl=3600, cache=Cache.MEMORY)     
+    @cached(ttl=300, cache=Cache.REDIS, namespace='violation_found')
     async def is_violation_already_in_check(self, violation_dict_id: int, check_id: int) -> bool:
         query = select(ViolationFound).where(
             and_(
@@ -150,5 +153,8 @@ class ViolationFoundRepo:
             await session.commit()
 
     async def clear_cache(self):
-        await Cache().clear()
+        pattern = "violation_found:*"
+        keys = await self.cache.raw("keys", pattern)
+        for key in keys:
+            await self.cache.delete(key)
         logger.info("Cache cleared")

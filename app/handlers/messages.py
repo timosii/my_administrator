@@ -27,10 +27,16 @@ class MfcMessages:
     check_deleted = 'Проверка успешно удалена!'
     no_unfinished = 'Нет незавершенных проверок'
     violation_already_exist = 'Вы уже зарегистрировали это нарушение. Пожалуйста, выберите другое'
+    wrong_state = 'Описание доступно только после выбора нарушения'
+    no_description = 'Нет описания'
     
     @staticmethod
     def choose_violation(zone: str) -> str:
         return f'Выберите нарушение в зоне <b>"{zone}"</b>'
+    
+    @staticmethod
+    def your_choice(violation: str) -> str:
+        return f'Вы выбрали проблему <b>"{violation}"</b>'
     
     @staticmethod
     def add_photo_comm(violation: str) -> str:
@@ -62,7 +68,7 @@ class MoPerformerMessages:
     photo_added = 'Фото добавлено!'
     comm_added = 'Комментарий добавлен!'
     choose_another = 'Вы можете выбрать другое нарушение из списка нарушений'
-    no_violations = 'Для этой проверки больше нарушений нет!'
+    no_violations = 'Для этой проверки нарушений нет!'
     no_violations_buttons = 'Других нарушений нет'
     back_to_checks = 'Возвращаемся к списку проверок...'
     continue_check = 'Загружаю нарушения...'

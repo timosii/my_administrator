@@ -24,7 +24,7 @@ class MoPerformerKeyboards:
         buttons = [KeyboardButton(text=fil) for fil in fils]
         self.kb.add(*buttons)
         self.kb.adjust(1)
-        return self.kb.as_markup(resize_keyboard=True)
+        return self.kb.as_markup(resize_keyboard=True, one_time_keyboard=True)
     
     def back_to_violations(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Продолжить проверку')
@@ -63,15 +63,11 @@ class MoPerformerKeyboards:
         ) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text="Следующее нарушение", callback_data=f"next_{next_violation_id}")
+                InlineKeyboardButton(text="⬅️", callback_data=f"prev_{prev_violation_id}"),
+                InlineKeyboardButton(text='Исправить', callback_data=f"correct_{violation_id}"),
+                InlineKeyboardButton(text="➡️", callback_data=f"next_{next_violation_id}")
             ], 
-            [
-                InlineKeyboardButton(text='Исправить нарушение', callback_data=f"correct_{violation_id}")
-            ],
-                        [
-                InlineKeyboardButton(text="Предыдущее нарушение", callback_data=f"prev_{prev_violation_id}")
-            ], 
-        ])
+        ], row_width=3)
         return kb
     
     @staticmethod

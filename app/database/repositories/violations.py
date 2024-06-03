@@ -1,21 +1,19 @@
-from aiocache import cached, Cache
-from pydantic import BaseModel
+from aiocache.serializers import PickleSerializer
 from typing import Optional, List, Dict
 from sqlalchemy import select, update, delete, func
-from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_maker
 from app.database.models.dicts import Violations
 from app.database.schemas.violation_schema import (
     ViolationInDB
 )
 from loguru import logger
+from aiocache import cached, Cache
 
 
 class ViolationsRepo:
     def __init__(self):
         self.session_maker = session_maker
 
-    @cached(ttl=3600, cache=Cache.MEMORY)        
     async def get_id_by_name(
         self,
         violation_name: str,
@@ -30,15 +28,16 @@ class ViolationsRepo:
             logger.info('get dict vio id by name and zone')
             return violation_id if violation_id else None       
 
-    @cached(ttl=3600, cache=Cache.MEMORY)
     async def get_violation_by_id(
         self,
         violation_id: int
-    ) -> Optional[ViolationInDB]:
+    ) -> ViolationInDB:
         async with self.session_maker() as session:
             result = await session.execute(
                 select(Violations).filter_by(id=violation_id)
             )
             violation = result.scalar_one_or_none()
             logger.info('get dict vio obj by id')
-            return ViolationInDB.model_validate(violation) if violation else None  
+            return ViolationInDB.model_validate(violation)
+        
+    

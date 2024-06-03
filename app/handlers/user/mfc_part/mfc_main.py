@@ -22,8 +22,8 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundInDB,
     ViolationFoundUpdate,
 )
-from app.logger_config import Logger
 from loguru import logger
+from aiogram.exceptions import TelegramBadRequest
 
 
 router = Router()
@@ -32,7 +32,8 @@ router.message.filter(MfcFilter())
 
 @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
 async def cmd_start(message: Message, state: FSMContext):
-    logger.info(Logger.passed_authorization(message.from_user))
+    user = message.from_user
+    logger.info('User {0} {1} passed authorization'.format(user.id, user.username))
     await message.answer(
         text=MfcMessages.welcome_message, reply_markup=MfcKeyboards().main_menu()
     )
@@ -128,7 +129,7 @@ async def finish_unfinished(callback: CallbackQuery,
     F.text.lower() == "добавить уведомление о нарушении",
     StateFilter(MfcStates.start_checking),
 )
-async def choose_fil_handler(
+async def notification_handler(
     message: Message, state: FSMContext, user: UserService = UserService()
 ):
     await message.answer(text='Функция находится в разработке, выберите что-нибудь другое')
@@ -216,7 +217,7 @@ async def choose_fil_handler(
     )
 
     check_in_obj = await check.add_check(check_create=check_obj)
-
+    logger.debug('obj {} created', check_in_obj)
     await state.update_data(check_id=check_in_obj.id)
     await message.answer(
         text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
@@ -269,13 +270,44 @@ async def choose_violation_handler(
             text=MfcMessages.violation_already_exist, reply_markup=message.reply_markup
         )
         return
-
+    
     await message.answer(
-        text=MfcMessages.add_photo_comm(violation=violation_name),
+        text=MfcMessages.your_choice(violation=violation_name),
         reply_markup=MfcKeyboards().choose_photo_comm(),
     )
 
+    await message.answer(
+        text=MfcMessages.add_photo_comm(violation=violation_name),
+        reply_markup=MfcKeyboards().get_description(violation_id=violation_dict_id),
+    )
+    logger.debug(violation_dict_id)
     await state.set_state(MfcStates.choose_photo_comm)
+
+
+@router.callback_query(F.data.startswith("description_"),
+                       StateFilter(MfcStates.choose_photo_comm))
+async def get_description(callback: CallbackQuery,
+                          state: FSMContext,
+                          violation_dict_obj: ViolationFoundService=ViolationFoundService()):
+    violation_id = int(callback.data.split("_")[-1])
+    logger.debug('get_description_handler')
+    result = await violation_dict_obj.get_description(violation_dict_id=violation_id)
+    if result:
+        try:
+            await callback.answer(text=result, show_alert=True)
+        except TelegramBadRequest:
+            await callback.message.answer(text=result)
+            await callback.answer()
+    else:
+        await callback.answer(text=MfcMessages.no_description, show_alert=True)
+
+
+@router.callback_query(F.data.startswith("description_"),
+                       ~StateFilter(MfcStates.choose_photo_comm))
+async def get_description_wrong(callback: CallbackQuery,
+                          state: FSMContext,
+                          violation_dict_obj: ViolationFoundService=ViolationFoundService()):
+    await callback.answer(text=MfcMessages.wrong_state)
 
 
 @router.message(
@@ -291,7 +323,7 @@ async def add_photo_handler(message: Message, state: FSMContext):
 @router.message(
     F.text.lower() == "написать комментарий", StateFilter(MfcStates.choose_photo_comm)
 )
-async def add_photo_handler(message: Message, state: FSMContext):
+async def add_comm_handler(message: Message, state: FSMContext):
     await message.answer(
         text=MfcMessages.add_comm, reply_markup=MfcKeyboards().just_cancel()
     )
@@ -304,7 +336,7 @@ async def add_photo_handler(message: Message, state: FSMContext):
 
 
 @router.message(F.photo, StateFilter(MfcStates.add_photo))
-async def add_photo_handler(message: Message, state: FSMContext):
+async def add_photo_handler_(message: Message, state: FSMContext):
     photo_id = message.photo[-1].file_id
     data = await state.get_data()
     violation_name = data["violation_name"]

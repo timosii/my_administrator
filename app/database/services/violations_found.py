@@ -16,6 +16,7 @@ from app.database.schemas.violation_schema import (
     ViolationInDB,
 )
 from app.view.cards import FormCards
+from loguru import logger
 
 
 class ViolationFoundService:
@@ -93,7 +94,7 @@ class ViolationFoundService:
 
     async def get_violation_by_id(self, violation_id: int) -> Optional[ViolationInDB]:
         result = await ViolationsRepo().get_violation_by_id(violation_id=violation_id)
-        return result
+        return result if result else None
     
     async def is_violation_already_in_check(self, violation_dict_id: int, check_id: int) -> bool:
         result = await ViolationFoundRepo().is_violation_already_in_check(
@@ -101,6 +102,13 @@ class ViolationFoundService:
             check_id=check_id
             )
         return result
+    
+    async def get_description(self, violation_dict_id: int) -> Optional[str]:
+        result = await ViolationsRepo().get_violation_by_id(
+            violation_id=violation_dict_id,
+            )
+        return result.description if result else None
+
 
     async def form_violation_out(
         self,
