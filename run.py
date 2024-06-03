@@ -19,7 +19,7 @@ def set_logger_config():
 
 def main():
     set_logger_config()
-    asyncio.run(start_bot())
+    asyncio.get_event_loop().run_until_complete(start_bot())
 
 
 if __name__ == "__main__":

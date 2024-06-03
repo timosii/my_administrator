@@ -14,15 +14,9 @@ from app.middlewares.logging_errors import ErrorLoggingMiddleware
 async def set_main(bot: Bot):
     main_menu_commands = [
         BotCommand(command='/start',
-                   description='Начать взаимодействие'),
+                   description='Начать'),
     ]
     await bot.set_my_commands(main_menu_commands)
-    # bot_info = await bot.get_me()
-
-    # logger.info(f"Name     - {bot_info.full_name}")
-    # logger.info(f"Username - @{bot_info.username}")
-    # logger.info(f"ID       - {bot_info.id}")
-
     logger.info('bot started')
 
 

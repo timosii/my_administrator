@@ -29,6 +29,7 @@ class MfcMessages:
     violation_already_exist = 'Вы уже зарегистрировали это нарушение. Пожалуйста, выберите другое'
     wrong_state = 'Описание доступно только после выбора нарушения'
     no_description = 'Нет описания'
+    notification_add = 'Выберите филиал, где проблема обнаружена'
     
     @staticmethod
     def choose_violation(zone: str) -> str:

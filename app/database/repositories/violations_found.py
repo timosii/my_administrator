@@ -157,4 +157,4 @@ class ViolationFoundRepo:
         keys = await self.cache.raw("keys", pattern)
         for key in keys:
             await self.cache.delete(key)
-        logger.info("Cache cleared")
+        logger.info("Cache cleared (keys: {})", keys)

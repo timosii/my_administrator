@@ -43,7 +43,7 @@ async def cmd_start(message: Message, state: FSMContext):
 @router.message(
     F.text.lower() == "начать проверку", StateFilter(MfcStates.start_checking)
 )
-async def choose_fil_handler(
+async def start_checking(
     message: Message, state: FSMContext, user: UserService = UserService()
 ):
     user_id = message.from_user.id
@@ -59,7 +59,7 @@ async def choose_fil_handler(
     F.text.lower() == "проверить незавершенные проверки",
     StateFilter(MfcStates.start_checking),
 )
-async def choose_fil_handler(
+async def get_unfinished_checks(
     message: Message,
     state: FSMContext,
     user: UserService = UserService(),
@@ -137,7 +137,7 @@ async def notification_handler(
     # mo = await user.get_user_mo(user_id=user_id)
     # await state.update_data(user_id=user_id, mo=mo)
     # await message.answer(
-    #     text=MfcMessages.choose_fil, reply_markup=await MfcKeyboards().choose_fil(mo=mo)
+    #     text=MfcMessages.notification_add, reply_markup=await MfcKeyboards().choose_fil(mo=mo)
     # )
     # await state.set_state(MfcStates.choose_fil)
 
@@ -167,17 +167,25 @@ async def back_command(message: Message, state: FSMContext):
             reply_markup=await MfcKeyboards().choose_fil(mo=mo),
         )
         await state.set_state(MfcStates.choose_fil)
+        await state.update_data(
+            fil_=None
+        )
     elif current_state == MfcStates.choose_violation:
         await state.set_state(MfcStates.choose_zone)
         await message.answer(
             text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
         )
-
+        await state.update_data(
+            zone=None
+        )
     elif current_state == MfcStates.choose_photo_comm:
         await state.set_state(MfcStates.choose_violation)
         data = await state.get_data()
         zone = data["zone"]
-        await state.update_data(violation_name=None, vio_id=None)
+        await state.update_data(
+            violation_name=None,
+            vio_id=None
+            )
         await message.answer(
             text=MfcMessages.choose_violation(zone=zone),
             reply_markup=await MfcKeyboards().choose_violation(zone=zone),
@@ -217,7 +225,6 @@ async def choose_fil_handler(
     )
 
     check_in_obj = await check.add_check(check_create=check_obj)
-    logger.debug('obj {} created', check_in_obj)
     await state.update_data(check_id=check_in_obj.id)
     await message.answer(
         text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
@@ -280,7 +287,6 @@ async def choose_violation_handler(
         text=MfcMessages.add_photo_comm(violation=violation_name),
         reply_markup=MfcKeyboards().get_description(violation_id=violation_dict_id),
     )
-    logger.debug(violation_dict_id)
     await state.set_state(MfcStates.choose_photo_comm)
 
 
@@ -290,7 +296,6 @@ async def get_description(callback: CallbackQuery,
                           state: FSMContext,
                           violation_dict_obj: ViolationFoundService=ViolationFoundService()):
     violation_id = int(callback.data.split("_")[-1])
-    logger.debug('get_description_handler')
     result = await violation_dict_obj.get_description(violation_dict_id=violation_id)
     if result:
         try:
@@ -421,7 +426,10 @@ async def cancel_adding_vio(
     await state.set_state(MfcStates.choose_violation)
     data = await state.get_data()
     zone = data["zone"]
-    await state.update_data(violation_name=None)
+    await state.update_data(
+        violation_name=None,
+        vio_id=None
+        )
     await message.answer(
         text=MfcMessages.choose_violation(zone=zone),
         reply_markup=await MfcKeyboards().choose_violation(zone=zone),
@@ -451,7 +459,14 @@ async def save_violation(
         comm=vio_data["comm"],
     )
     await violation.add_violation(violation_create=vio_obj)
-    await callback.answer(text="Информация о нарушении сохранена!", show_alert=True)
+    performers = await violation.get_violation_performers_by_mo(mo=vio_data['mo'])
+    if performers:
+        for performer in performers:
+            await callback.bot.send_message(performer.id, text=f"Новое нарушение: {violation_name}")
+        await callback.message.answer(text=f"Информация о нарушении сохранена! Оповещение отправлено исполнителям МО:{performer}")
+    else: 
+        await callback.message.answer(text='Нет зарегистрированных исполнителей от МО')
+    
     await state.update_data(
         {
             "zone": None,
@@ -467,7 +482,6 @@ async def save_violation(
     await callback.message.answer(
         text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
     )
-
     await state.set_state(MfcStates.choose_zone)
 
 

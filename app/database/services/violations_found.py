@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_maker
 from app.database.repositories.violations_found import ViolationFoundRepo
 from app.database.repositories.violations import ViolationsRepo
+from app.database.repositories.users import UserRepo
 from app.database.models.data import ViolationFound
 from app.database.schemas.violation_found_schema import (
     ViolationFoundCreate,
@@ -14,6 +15,9 @@ from app.database.schemas.violation_found_schema import (
 )
 from app.database.schemas.violation_schema import (
     ViolationInDB,
+)
+from app.database.schemas.user_schema import (
+    UserInDB
 )
 from app.view.cards import FormCards
 from loguru import logger
@@ -103,6 +107,13 @@ class ViolationFoundService:
             )
         return result
     
+    async def get_violation_performers_by_mo(
+        self,
+        mo: str
+    ) -> Optional[List[UserInDB]]:
+        performers = await UserRepo().get_user_performer_by_mo(mo=mo)
+        return performers if performers else None
+    
     async def get_description(self, violation_dict_id: int) -> Optional[str]:
         result = await ViolationsRepo().get_violation_by_id(
             violation_id=violation_dict_id,
@@ -134,4 +145,3 @@ class ViolationFoundService:
         text_mes = FormCards().violation_card(violation=violation)
         return text_mes
     
-
