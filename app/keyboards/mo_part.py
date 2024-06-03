@@ -24,7 +24,8 @@ class MoPerformerKeyboards:
         buttons = [KeyboardButton(text=fil) for fil in fils]
         self.kb.add(*buttons)
         self.kb.adjust(1)
-        return self.kb.as_markup(resize_keyboard=True, one_time_keyboard=True)
+        # для этой клавиатуры на проде можно добавить, one_time_keyboard=True
+        return self.kb.as_markup(resize_keyboard=True)
     
     def back_to_violations(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Продолжить проверку')
