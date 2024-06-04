@@ -40,7 +40,6 @@ class MfcKeyboards:
         buttons = [KeyboardButton(text=zone) for zone in zones]
         self.kb.add(*buttons)
         self.kb.button(text='Закончить проверку')
-        # self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 

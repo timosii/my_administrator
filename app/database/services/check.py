@@ -1,3 +1,5 @@
+import json
+from loguru import logger
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func
@@ -12,8 +14,12 @@ from app.database.schemas.check_schema import (
     CheckOut,
     CheckOutUnfinished
 )
+from aiogram.types import Message, CallbackQuery
+from aiogram.fsm.context import FSMContext
 from app.database.services.violations_found import ViolationFoundService
 from app.view.cards import FormCards
+from app.keyboards.mfc_part import MfcKeyboards
+from app.handlers.messages import MfcMessages
 
 
 class CheckService:
@@ -61,6 +67,47 @@ class CheckService:
     async def get_checks_by_user(self, user_id: int) -> List[CheckInDB]:
         result = await self.db_repository.get_checks_by_user(user_id=user_id)
         return result
+    
+    async def unfinished_checks_process(self,
+                                        message: Message,
+                                        state: FSMContext,
+                                        checks: Optional[List[CheckInDB]],
+                                        ):                                  
+        if not checks:
+            await message.answer(
+                text=MfcMessages.no_unfinished, reply_markup=message.reply_markup
+            )
+        else:
+            for check in checks:
+                check_out = await self.form_check_out_unfinished(check=check)
+                logger.debug(f'{type(check_out)}')
+                text_mes = await self.form_check_card_unfinished(check=check_out)
+                logger.debug(f'{type(text_mes)}')
+                logger.debug(f'{type(check)}')
+                await state.update_data({
+                    f'check_unfinished_{check.id}': check.model_dump_json(),
+                })
+                await message.answer(
+                    text=text_mes,
+                    reply_markup=MfcKeyboards().unfinished_check(check_id=check.id),
+                )
+
+    async def finish_unfinished_process(self,
+                                        state: FSMContext,
+                                        callback: CallbackQuery,
+                                        check_id: int,                                        
+                                        ):
+        data = await state.get_data()
+        check_obj = CheckInDB(**json.loads(data[f"check_unfinished_{check_id}"]))
+        
+        await state.update_data(
+            fil_=check_obj.fil_,
+            check_id=check_id,
+            )
+        await state.update_data({
+            f"check_unfinished_{check_id}": None
+        })
+        await callback.answer(text='Продолжаем проверку')
 
     async def form_check_out(self,
                              check: CheckInDB,

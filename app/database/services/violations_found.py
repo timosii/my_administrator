@@ -132,7 +132,6 @@ class ViolationFoundService:
             res = await self.form_violation_card(violation=violation_found_out)
             for performer in performers:
                 await callback.bot.send_message(performer.id, text=f"<b>Зарегистрировано новое нарушение в филиале {fil_}</b>\n{res}")
-            await callback.message.answer(text=f"Оповещение отправлено исполнителям {mo}")
         else: 
             await callback.message.answer(text='Нет зарегистрированных исполнителей от МО')
 

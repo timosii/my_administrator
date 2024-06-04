@@ -86,7 +86,8 @@ class Check(Base):
     mo_user_id: Mapped[bigint] = mapped_column(nullable=True)
     mo_start: Mapped[dt.datetime] = mapped_column(nullable=True)
     mo_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
-
+    is_task: Mapped[bool] = mapped_column(default=False)
+    
     user: Mapped["User"] = relationship(
         back_populates="checks",
     )

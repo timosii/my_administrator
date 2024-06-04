@@ -68,7 +68,8 @@ class UserRepo:
             query = select(Check).where(
                 and_(
                     Check.user_id == user_id,
-                    Check.mfc_finish.is_(None)
+                    Check.mfc_finish.is_(None),
+                    Check.is_task.is_(False)
                 )
             )
             result = await session.execute(query)

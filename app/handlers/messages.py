@@ -13,8 +13,9 @@ class DefaultMessages:
 
 class MfcMessages:
     start_message = 'Для начала нажмите /start'
-    welcome_message = 'Нажмите, чтобы начать проверку'
-    choose_fil = f'Вы начали проверку {time_determiner()}. Выберите филиал проверки:'
+    welcome_message = f'{form_greeting()}, исполнитель МФЦ!\nВыберите филиал проверки:'
+    main_menu = 'Выберите, что хотите сделать'
+    choose_zone_with_time = f'Вы начали проверку {time_determiner()}. Выберите зону нарушения: '
     choose_zone = 'Выберите зону нарушения:'
     add_photo = 'Отправьте фото'
     add_comm = 'Напишите и отправьте комментарий'
@@ -30,14 +31,11 @@ class MfcMessages:
     wrong_state = 'Описание доступно только после выбора нарушения'
     no_description = 'Нет описания'
     notification_add = 'Выберите филиал, где проблема обнаружена'
+    problem_detection = 'Вы обнаружили проблему ☑️'
     
     @staticmethod
     def choose_violation(zone: str) -> str:
         return f'Выберите нарушение в зоне <b>"{zone}"</b>'
-    
-    @staticmethod
-    def your_choice(violation: str) -> str:
-        return f'Вы выбрали проблему <b>"{violation}"</b>'
     
     @staticmethod
     def add_photo_comm(violation: str) -> str:
@@ -56,7 +54,17 @@ class MfcMessages:
     @staticmethod
     def cancel_violation(violation: str) -> str:
         message = f'Вы можете добавить фото и комментарии для проблемы <b>"{violation}"</b>.'
-        return message    
+        return message
+    
+    @staticmethod
+    def violation_final(mo: str) -> str:
+        message = f'Оповещение отправлено исполнителям в {mo}'
+        return message  
+
+    @staticmethod
+    def notification_final(mo: str) -> str:
+        message = f'Уведомление отправлено в {mo}. Спасибо!'
+        return message   
     
 class MfcLeaderMessages:
     start_message = f"{form_greeting()}, администратор МФЦ!"
