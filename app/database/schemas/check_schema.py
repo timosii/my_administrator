@@ -5,7 +5,7 @@ import datetime as dt
 class CheckBase(BaseModel):
     fil_: str
     user_id: int
-    is_task: bool
+    is_task: bool = False
 
 class CheckCreate(CheckBase):
     pass

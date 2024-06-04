@@ -19,9 +19,6 @@ from app.database.services.violations_found import ViolationFoundService
 from app.database.schemas.check_schema import CheckCreate, CheckInDB, CheckUpdate
 from app.database.schemas.violation_found_schema import (
     ViolationFoundCreate,
-    ViolationFoundOut,
-    ViolationFoundInDB,
-    ViolationFoundUpdate,
 )
 from loguru import logger
 from aiogram.exceptions import TelegramBadRequest
@@ -50,7 +47,7 @@ async def cmd_start(message: Message,
     lambda message: message.text in get_filials(), StateFilter(MfcStates.choose_fil)
 )
 async def choose_fil_handler(
-    message: Message, state: FSMContext, check: CheckService = CheckService()
+    message: Message, state: FSMContext,
 ):
     await state.update_data(fil_=message.text)
     await message.answer(
@@ -126,20 +123,6 @@ async def finish_unfinished(callback: CallbackQuery,
     await callback.message.answer(
             text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
         )
-    # data = await state.get_data()
-    # check_obj = CheckInDB(**json.loads(data[f"check_unfinished_{check_id}"]))
-    
-    # await state.update_data(
-    #     fil_=check_obj.fil_,
-    #     check_id=check_id,
-    #     )
-    # await state.update_data({
-    #     f"check_unfinished_{check_id}": None
-    # })
-    # await callback.message.answer(
-    #     text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
-    # )
-    # await callback.answer(text='Продолжаем проверку')
     await state.set_state(MfcStates.choose_zone)
 
 
@@ -151,18 +134,15 @@ async def notification_handler(
     message: Message, state: FSMContext,
     check: CheckService=CheckService(),
 ):
-    # await message.answer(text='Функция находится в разработке, выберите что-нибудь другое')
-    # user_id = message.from_user.id
-    # mo = await user.get_user_mo(user_id=user_id)
-    # await state.update_data(user_id=user_id, mo=mo)
-    check_data = await state.get_data()
+    data = await state.get_data()
     check_obj = CheckCreate(
-        fil_=check_data["fil_"],
-        user_id=check_data["user_id"],
+        fil_=data["fil_"],
+        user_id=data["user_id"],
         is_task=True
     )
-    await check.add_check(check_create=check_obj)
+    check_in_obj = await check.add_check(check_create=check_obj)
     await state.update_data(
+        check_id=check_in_obj.id,
         is_task=True
     )
     await message.answer(
@@ -184,8 +164,10 @@ async def back_command(message: Message, state: FSMContext):
             text=MfcMessages.start_message, reply_markup=ReplyKeyboardRemove()
         )
     elif current_state == MfcStates.choose_type_checking:
+        data = await state.get_data()
+        mo = data["mo"]
         await message.answer(
-            text=MfcMessages.welcome_message, reply_markup=MfcKeyboards().choose_fil()
+            text=MfcMessages.welcome_message, reply_markup=await MfcKeyboards().choose_fil(mo=mo)
         )
         await state.update_data(
             fil_=None,
