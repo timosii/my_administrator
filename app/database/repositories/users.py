@@ -81,7 +81,7 @@ class UserRepo:
         logger.info('get user count')
         return await self._get_scalar(query=query) or 0
     
-    @cached(ttl=10, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer())
+    @cached(ttl=60, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer())
     async def get_user_performer_by_mo(self, mo: str) -> Optional[List[UserInDB]]:
         async with self.session_maker() as session:
             query = select(User).where(
@@ -92,7 +92,6 @@ class UserRepo:
             )
             result = await session.execute(query)
             users = result.scalars().all()
-            logger.info('found {} performers', len(users))
             return [UserInDB.model_validate(user) for user in users] if users else None
 
     @cached(ttl=600, cache=Cache.REDIS, namespace='user')

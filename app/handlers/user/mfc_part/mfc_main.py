@@ -19,6 +19,7 @@ from app.database.services.violations_found import ViolationFoundService
 from app.database.schemas.check_schema import CheckCreate, CheckInDB, CheckUpdate
 from app.database.schemas.violation_found_schema import (
     ViolationFoundCreate,
+    ViolationFoundOut,
     ViolationFoundInDB,
     ViolationFoundUpdate,
 )
@@ -458,15 +459,11 @@ async def save_violation(
         photo_id=vio_data["photo_id"],
         comm=vio_data["comm"],
     )
-    await violation.add_violation(violation_create=vio_obj)
-    performers = await violation.get_violation_performers_by_mo(mo=vio_data['mo'])
-    if performers:
-        for performer in performers:
-            await callback.bot.send_message(performer.id, text=f"Новое нарушение: {violation_name}")
-        await callback.message.answer(text=f"Информация о нарушении сохранена! Оповещение отправлено исполнителям МО:{performer}")
-    else: 
-        await callback.message.answer(text='Нет зарегистрированных исполнителей от МО')
-    
+    vio_in_db = await violation.add_violation(violation_create=vio_obj)
+    await violation.send_vio_notification_to_mo_performers(callback=callback,
+                                                           mo=vio_data['mo'],
+                                                           fil_=vio_data['fil_'],
+                                                           violation=vio_in_db) 
     await state.update_data(
         {
             "zone": None,
@@ -489,7 +486,9 @@ async def save_violation(
     F.text.lower() == "закончить проверку", StateFilter(MfcStates.choose_zone)
 )
 async def finish_check(
-    message: Message, state: FSMContext, check: CheckService = CheckService()
+    message: Message,
+    state: FSMContext,
+    check: CheckService = CheckService()
 ):
     data = await state.get_data()
     check_id = data["check_id"]

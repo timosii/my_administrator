@@ -7,7 +7,7 @@ from app.handlers.admin import admin
 from app.handlers.user.mo_part import mo_controler, mo_performer
 from app.handlers.user.mfc_part import mfc_main, mfc_leader
 from aiogram.types import BotCommand
-from app.middlewares.logging_errors import ErrorLoggingMiddleware
+from app.middlewares.logging_mw import ErrorLoggingMiddleware, FSMMiddleware
 
 
 
@@ -39,6 +39,7 @@ async def start_bot() -> None:
         mo_controler.router
     )
     await bot.delete_webhook(drop_pending_updates=True)
+    dp.update.middleware(FSMMiddleware())
     dp.update.middleware(ErrorLoggingMiddleware())
     dp.startup.register(set_main)
     dp.shutdown.register(on_shutdown)

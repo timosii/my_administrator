@@ -28,7 +28,7 @@ class ViolationsRepo:
             logger.info('get dict vio id by name and zone')
             return violation_id if violation_id else None       
 
-    @cached(ttl=300, cache=Cache.REDIS, namespace='violations', serializer=PickleSerializer())
+    @cached(ttl=600, cache=Cache.REDIS, namespace='violations', serializer=PickleSerializer())
     async def get_violation_by_id(
         self,
         violation_id: int

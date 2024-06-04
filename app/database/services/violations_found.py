@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from aiogram.types import CallbackQuery
 from app.database.database import session_maker
 from app.database.repositories.violations_found import ViolationFoundRepo
 from app.database.repositories.violations import ViolationsRepo
@@ -119,7 +120,21 @@ class ViolationFoundService:
             violation_id=violation_dict_id,
             )
         return result.description if result else None
-
+    
+    async def send_vio_notification_to_mo_performers(self,
+                                                 callback: CallbackQuery,
+                                                 mo: str,
+                                                 fil_: str,
+                                                 violation: ViolationFoundInDB):
+        performers = await self.get_violation_performers_by_mo(mo=mo)
+        if performers:
+            violation_found_out = await self.form_violation_out(violation=violation)
+            res = await self.form_violation_card(violation=violation_found_out)
+            for performer in performers:
+                await callback.bot.send_message(performer.id, text=f"<b>Зарегистрировано новое нарушение в филиале {fil_}</b>\n{res}")
+            await callback.message.answer(text=f"Оповещение отправлено исполнителям {mo}")
+        else: 
+            await callback.message.answer(text='Нет зарегистрированных исполнителей от МО')
 
     async def form_violation_out(
         self,

@@ -66,7 +66,7 @@ class ViolationFoundRepo:
             logger.info('deleted violation found')
             await self.clear_cache()
 
-    @cached(ttl=300, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer())
+    # @cached(ttl=10, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer())
     async def get_all_violations_found(self) -> List[ViolationFoundInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(ViolationFound))
@@ -76,7 +76,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
         
-    @cached(ttl=300, cache=Cache.REDIS, namespace='violation_found')
+    @cached(ttl=10, cache=Cache.REDIS, namespace='violation_found')
     async def get_violations_found_count_by_check(self, check_id: int) -> int:
         query = select(func.count()).select_from(ViolationFound).where(
             and_(
@@ -90,7 +90,7 @@ class ViolationFoundRepo:
             or 0
         )
     
-    @cached(ttl=300, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer())
+    @cached(ttl=10, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer())
     async def get_violations_found_by_check(self, check_id: int) -> Optional[List[ViolationFoundInDB]]:
         async with self.session_maker() as session:
             query = select(ViolationFound).where(
@@ -106,7 +106,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ] if violations else None
 
-    @cached(ttl=300, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer())
+    @cached(ttl=10, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer())
     async def get_violations_found_by_fil(self, fil_: str) -> Optional[List[ViolationFoundInDB]]:
         async with self.session_maker() as session:
             checks = await session.execute(
@@ -125,7 +125,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
     
-    @cached(ttl=300, cache=Cache.REDIS, namespace='violation_found')
+    @cached(ttl=10, cache=Cache.REDIS, namespace='violation_found')
     async def is_violation_already_in_check(self, violation_dict_id: int, check_id: int) -> bool:
         query = select(ViolationFound).where(
             and_(
@@ -136,7 +136,8 @@ class ViolationFoundRepo:
         result = await self._get_scalar(query=query)
         logger.info('is violation already in check')
         return bool(result)
-                      
+    
+
     async def _get_scalar(self, query) -> any:
         async with self.session_maker() as session:
             result = await session.execute(query)

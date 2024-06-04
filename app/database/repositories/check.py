@@ -53,7 +53,7 @@ class CheckRepo:
             logger.info('check deleted')
             await self.clear_cache()
 
-    @cached(ttl=300, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
+    @cached(ttl=10, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
     async def get_all_checks(self) -> List[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check))
@@ -61,6 +61,7 @@ class CheckRepo:
             logger.info('get all checks')
             return [CheckInDB.model_validate(check) for check in checks]
 
+    @cached(ttl=6, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
     async def get_all_active_checks_by_fil(
         self, fil_: str
     ) -> List[CheckInDB] | str:
@@ -81,13 +82,13 @@ class CheckRepo:
                 else ''
             )
 
-    @cached(ttl=300, cache=Cache.REDIS, namespace='check')
+    @cached(ttl=10, cache=Cache.REDIS, namespace='check')
     async def get_checks_count(self) -> int:
         query = select(func.count()).select_from(Check)
         logger.info('get checks count')
         return await self._get_scalar(query=query) or 0
 
-    @cached(ttl=300, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
+    @cached(ttl=10, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
     async def get_checks_by_user(self, user_id: int) -> List[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check).filter_by(user_id=user_id))
