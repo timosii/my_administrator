@@ -2,6 +2,7 @@ from aiocache.serializers import PickleSerializer
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func, and_, text
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_maker
 from app.database.models.data import ViolationFound, Check
@@ -48,6 +49,24 @@ class ViolationFoundRepo:
             violation = result.scalar_one_or_none()
             logger.info('get violation found by id')
             return ViolationFoundInDB.model_validate(violation) if violation else None    
+
+    async def get_violation_found_fil_by_id(
+            self,
+            violation_id: int
+    ) -> str:
+        query = select(Check.fil_).select_from(Check).join(ViolationFound).where(
+            and_(
+                ViolationFound.id == violation_id,
+                ViolationFound.check_id == Check.id,
+            )
+        )
+        logger.info('get_violation_found_fil_by_id')
+        return (
+            await self._get_scalar(query=query)
+            or None
+        )
+        
+        
 
     async def update_violation_found(
         self, violation_id: int, violation_update: ViolationFoundUpdate
@@ -134,6 +153,33 @@ class ViolationFoundRepo:
             return [
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
+        
+    async def get_active_violations_by_fil(
+            self, fil_: str
+    ) -> Optional[List[ViolationFoundInDB]]:
+        async with self.session_maker() as session:
+            query = (
+                select(ViolationFound)
+                .join(ViolationFound.check)
+                .filter(
+                    Check.fil_ == fil_,
+                    Check.mfc_finish.is_not(None),
+                    Check.mo_finish.is_(None),
+                    Check.is_task.is_(True),
+                    ViolationFound.violation_fixed.is_(None)
+                    )
+                .options(joinedload(ViolationFound.check))
+            )
+            
+            result = await session.execute(query)
+            
+            violations = result.scalars().all()
+            logger.info('get_active_violations_by_fil')
+            
+            return [
+                ViolationFoundInDB.model_validate(violation) for violation in violations
+            ] if violations else None
+        
     
     @cached(ttl=10, cache=Cache.REDIS, namespace='violation_found')
     async def is_violation_already_in_check(self, violation_dict_id: int, check_id: int) -> bool:

@@ -253,7 +253,7 @@ async def choose_violation_handler(
         violation_name=violation_name,
         violation_dict_id=violation_dict_id,
     )
-    if not data.get('is_task'):
+    if not data.get("is_task"):
         check_id = data["check_id"]
         check = await check_obj.get_check_by_id(check_id=check_id)
         if not check.is_task:
@@ -282,9 +282,7 @@ async def choose_violation_handler(
     await state.set_state(MfcStates.choose_photo_comm)
 
 
-@router.callback_query(
-    F.data.startswith("description_"), ~StateFilter(default_state)
-)
+@router.callback_query(F.data.startswith("description_"), ~StateFilter(default_state))
 async def get_description(
     callback: CallbackQuery,
     violation_dict_obj: ViolationFoundService = ViolationFoundService(),
@@ -427,20 +425,18 @@ async def cancel_adding_vio(
 async def save_violation(
     callback: CallbackQuery,
     state: FSMContext,
-    violation: ViolationFoundService=ViolationFoundService(),
-    check: CheckService=CheckService()
+    violation: ViolationFoundService = ViolationFoundService(),
+    check: CheckService = CheckService(),
 ):
     vio_data = await state.get_data()
-    if vio_data.get('is_task'):
+    if vio_data.get("is_task"):
         check_obj = CheckCreate(
             fil_=vio_data["fil_"],
             user_id=vio_data["user_id"],
-            is_task=vio_data['is_task']
+            is_task=vio_data["is_task"],
         )
         check_in_db = await check.add_check(check_create=check_obj)
-        await state.update_data(
-            check_id=check_in_db.id
-        )
+        await state.update_data(check_id=check_in_db.id)
         vio_data = await state.get_data()
 
     await violation.save_violation_process(
@@ -455,7 +451,7 @@ async def save_violation(
         await check.update_check(check_id=check_id, check_update=check_upd)
         await state.clear()
         return
-    
+
     await callback.message.answer(
         text=MfcMessages.continue_check,
     )
@@ -484,7 +480,13 @@ async def finish_check(
     message: Message, state: FSMContext, check: CheckService = CheckService()
 ):
     data = await state.get_data()
-    check_id = data["check_id"]
+    check_id = data.get("check_id")
+    if not check_id:
+        await message.answer(
+            text=MfcMessages.cancel_check,
+            reply_markup=DefaultKeyboards().get_authorization())
+        await state.clear()
+        return
     check_upd = CheckUpdate(mfc_finish=dt.datetime.now())
     await check.update_check(check_id=check_id, check_update=check_upd)
     await state.clear()
@@ -509,7 +511,6 @@ async def finish_process(message: Message, state: FSMContext):
         text=DefaultMessages.finish,
         reply_markup=ReplyKeyboardRemove(),
     )
-
 
 @router.message()
 async def something_wrong(message: Message):

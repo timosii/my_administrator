@@ -67,24 +67,6 @@ class CheckService:
         else:
             return result
 
-    async def get_all_active_tasks_by_fil(
-        self, fil_: str, violation_obj: ViolationFoundService = ViolationFoundService()
-    ) -> Optional[List[ViolationFoundInDB]]:
-        check_objects = await self.db_repository.get_all_active_tasks_by_fil(fil_=fil_)
-        logger.debug(check_objects)
-        if not check_objects:
-            return None
-        else:
-            check_ids = [check.id for check in check_objects]
-            res = []
-            for id_ in check_ids:
-                violation_found_objects = await violation_obj.get_violations_found_by_check(check_id=id_)
-                if not violation_found_objects:
-                    continue
-                for vio_obj in violation_found_objects:
-                    res.append(vio_obj)
-            return res
-
     async def get_checks_count(self) -> int:
         result = await self.db_repository.get_all_checks()
         return result

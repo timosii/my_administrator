@@ -93,28 +93,6 @@ class CheckRepo:
                 else ''
             )
         
-    # @cached(ttl=3, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
-    async def get_all_active_tasks_by_fil(
-        self, fil_: str
-    ) -> Optional[List[CheckInDB]]:
-        async with self.session_maker() as session:
-            query = select(Check).where(
-                and_(
-                    Check.fil_ == fil_,
-                    Check.mfc_finish.is_not(None),
-                    Check.mo_finish.is_(None),
-                    Check.is_task.is_(True)
-                )
-            )
-            result = await session.execute(query)
-            checks = result.scalars().all()
-            logger.info('get all active tasks by fil')
-            return (
-                [CheckInDB.model_validate(check) for check in checks]
-                if checks
-                else None
-            )
-
     @cached(ttl=10, cache=Cache.REDIS, namespace='check')
     async def get_checks_count(self) -> int:
         query = select(func.count()).select_from(Check)

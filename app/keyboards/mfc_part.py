@@ -76,6 +76,14 @@ class MfcKeyboards:
         ])
         return self.kb
     
+    def take_task_to_work(self, violation_id: int, is_task: int) -> InlineKeyboardMarkup:
+        self.kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text='Взять в работу', callback_data=f'take_{violation_id}_{is_task}'),
+            ]
+        ])
+        return self.kb
+    
     def get_description(self, violation_id: int) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
             [
