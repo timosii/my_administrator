@@ -119,7 +119,7 @@ async def take_to_work(
 ):
     await state.set_state(MoPerformerStates.mo_performer)
     violation_id = int(callback.data.split('_')[1])
-    is_task = bool(callback.data.split('_')[-1])
+    is_task = bool(int(callback.data.split('_')[-1]))
     user_id = callback.message.from_user.id
     violation_in_db = await violation_obj.get_violation_found_by_id(violation_id=violation_id)
     violation_out = await violation_obj.form_violation_out(violation_in_db)
@@ -533,21 +533,13 @@ async def finish_process(message: Message, state: FSMContext):
     )
 
 
-@router.message(Command("finish"))
-async def finish_process(message: Message, state: FSMContext):
-    await state.clear()
-    await message.answer(
-        text=DefaultMessages.finish,
-        reply_markup=ReplyKeyboardRemove(),
-    )
-
-
 ##############
 # back_logic #
 ##############
 
 
-@router.message(F.text.lower() == "назад")
+@router.message(F.text.lower() == "назад",
+                StateFilter(MoPerformerStates))
 async def back_command(
     message: Message,
     state: FSMContext,
@@ -601,3 +593,8 @@ async def back_command(
 @router.message()
 async def something_wrong(message: Message, state: FSMContext):
     await message.answer(text=DefaultMessages.something_wrong)
+
+
+@router.callback_query()
+async def something_wrong(callback: CallbackQuery, state: FSMContext):
+    await callback.answer(text=DefaultMessages.not_good_time)

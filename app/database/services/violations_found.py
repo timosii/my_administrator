@@ -195,6 +195,7 @@ class ViolationFoundService:
             comm=vio_data["comm"],
         )
         vio_in_db = await self.add_violation(violation_create=vio_obj)
+        logger.info(f'IS_TASK_IS: {bool(vio_data.get("is_task"))}')
         await self.send_vio_notification_to_mo_performers(
             callback=callback,
             mo=vio_data["mo"],

@@ -71,7 +71,7 @@ class CheckRepo:
             logger.info('get all checks')
             return [CheckInDB.model_validate(check) for check in checks]
 
-    @cached(ttl=3, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
+    # @cached(ttl=3, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
     async def get_all_active_checks_by_fil(
         self, fil_: str
     ) -> List[CheckInDB] | str:

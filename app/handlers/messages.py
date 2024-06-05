@@ -9,6 +9,7 @@ class AdminMessages:
 class DefaultMessages:
     start_message = f'{form_greeting()}! Нажмите кнопку, чтобы я узнал вас!'
     something_wrong = 'Что-то пошло не так. Попробуйте ещё раз или начните сначала /start '
+    not_good_time = 'Сейчас не лучшее время для этого ...'
 
 class MfcMessages:
     start_message = 'Для начала нажмите /start'

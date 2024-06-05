@@ -519,4 +519,4 @@ async def something_wrong(message: Message):
 
 @router.callback_query(StateFilter(MfcStates))
 async def something_wrong(callback: CallbackQuery):
-    await callback.answer()
+    await callback.answer(text=DefaultMessages.not_good_time)
