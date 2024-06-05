@@ -49,3 +49,16 @@ async def insert_data_user(user: UserService = UserService()):
     await user.add_user(user_test_2)
     await user.add_user(user_test_3)
     logger.info('users added to db')
+
+
+async def clear_data(
+        user: UserService=UserService(),
+        check: CheckService=CheckService(),
+        violations_found: ViolationFoundService=ViolationFoundService()
+        ):
+    await violations_found.delete_all_violations_found()
+    logger.info('violations found deleted')
+    await check.delete_all_checks()
+    logger.info('checks deleted')
+    await user.delete_all_users()
+    logger.info('users deleted')

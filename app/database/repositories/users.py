@@ -56,6 +56,14 @@ class UserRepo:
             logger.info('user deleted')
             await self.clear_cache()
 
+    async def delete_all_users(self) -> None:
+        async with self.session_maker() as session:
+            stmt = delete(User)
+            await session.execute(stmt)
+            await session.commit()
+            logger.info('ALL users deleted')
+            await self.clear_cache()
+
     async def get_all_users(self) -> List[UserInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(User))
@@ -63,18 +71,18 @@ class UserRepo:
             logger.info('get all users')
             return [UserInDB.model_validate(user) for user in users]
 
-    async def get_user_active_checks(self, user_id: int) -> Optional[List[CheckInDB]]:
+    async def get_fil_active_checks(self, fil_: str) -> Optional[List[CheckInDB]]:
         async with self.session_maker() as session:
             query = select(Check).where(
                 and_(
-                    Check.user_id == user_id,
+                    Check.fil_ == fil_,
                     Check.mfc_finish.is_(None),
                     Check.is_task.is_(False)
                 )
             )
             result = await session.execute(query)
             checks = result.scalars().all()
-            logger.info('get user active checks')
+            logger.info('get fil active checks')
             return [CheckInDB.model_validate(check) for check in checks] if checks else ''
     
     async def get_user_count(self) -> int:

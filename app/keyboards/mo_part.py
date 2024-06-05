@@ -33,6 +33,11 @@ class MoPerformerKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
     
+    def back_to_menu(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Вернуться в меню')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+    
     def check_finished(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Закончить проверку')
         self.kb.adjust(1)
@@ -40,6 +45,12 @@ class MoPerformerKeyboards:
     
     def just_back(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Назад')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+    
+    def check_or_tasks(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Активные задачи')
+        self.kb.button(text='Активные проверки')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 

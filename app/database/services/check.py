@@ -12,8 +12,9 @@ from app.database.schemas.check_schema import (
     CheckUpdate,
     CheckInDB,
     CheckOut,
-    CheckOutUnfinished
+    CheckOutUnfinished,
 )
+from app.database.schemas.violation_found_schema import ViolationFoundInDB
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from app.database.services.violations_found import ViolationFoundService
@@ -49,16 +50,40 @@ class CheckService:
         result = await self.db_repository.delete_check(check_id=check_id)
         return result
 
+    async def delete_all_checks(self) -> None:
+        result = await self.db_repository.delete_all_checks()
+        return result
+
     async def get_all_checks(self) -> List[CheckInDB]:
         result = await self.db_repository.get_all_checks()
         return result
 
-    async def get_all_active_checks_by_fil(self, fil_: str) -> Optional[List[CheckInDB]]:
+    async def get_all_active_checks_by_fil(
+        self, fil_: str
+    ) -> Optional[List[CheckInDB]]:
         result = await self.db_repository.get_all_active_checks_by_fil(fil_=fil_)
         if not result:
             return None
         else:
             return result
+
+    async def get_all_active_tasks_by_fil(
+        self, fil_: str, violation_obj: ViolationFoundService = ViolationFoundService()
+    ) -> Optional[List[ViolationFoundInDB]]:
+        check_objects = await self.db_repository.get_all_active_tasks_by_fil(fil_=fil_)
+        logger.debug(check_objects)
+        if not check_objects:
+            return None
+        else:
+            check_ids = [check.id for check in check_objects]
+            res = []
+            for id_ in check_ids:
+                violation_found_objects = await violation_obj.get_violations_found_by_check(check_id=id_)
+                if not violation_found_objects:
+                    continue
+                for vio_obj in violation_found_objects:
+                    res.append(vio_obj)
+            return res
 
     async def get_checks_count(self) -> int:
         result = await self.db_repository.get_all_checks()
@@ -67,12 +92,13 @@ class CheckService:
     async def get_checks_by_user(self, user_id: int) -> List[CheckInDB]:
         result = await self.db_repository.get_checks_by_user(user_id=user_id)
         return result
-    
-    async def unfinished_checks_process(self,
-                                        message: Message,
-                                        state: FSMContext,
-                                        checks: Optional[List[CheckInDB]],
-                                        ):                                  
+
+    async def unfinished_checks_process(
+        self,
+        message: Message,
+        state: FSMContext,
+        checks: Optional[List[CheckInDB]],
+    ):
         if not checks:
             await message.answer(
                 text=MfcMessages.no_unfinished, reply_markup=message.reply_markup
@@ -80,38 +106,38 @@ class CheckService:
         else:
             for check in checks:
                 check_out = await self.form_check_out_unfinished(check=check)
-                logger.debug(f'{type(check_out)}')
                 text_mes = await self.form_check_card_unfinished(check=check_out)
-                logger.debug(f'{type(text_mes)}')
-                logger.debug(f'{type(check)}')
-                await state.update_data({
-                    f'check_unfinished_{check.id}': check.model_dump_json(),
-                })
+                await state.update_data(
+                    {
+                        f"check_unfinished_{check.id}": check.model_dump_json(),
+                    }
+                )
                 await message.answer(
                     text=text_mes,
                     reply_markup=MfcKeyboards().unfinished_check(check_id=check.id),
                 )
 
-    async def finish_unfinished_process(self,
-                                        state: FSMContext,
-                                        callback: CallbackQuery,
-                                        check_id: int,                                        
-                                        ):
+    async def finish_unfinished_process(
+        self,
+        state: FSMContext,
+        callback: CallbackQuery,
+        check_id: int,
+    ):
         data = await state.get_data()
         check_obj = CheckInDB(**json.loads(data[f"check_unfinished_{check_id}"]))
-        
+
         await state.update_data(
             fil_=check_obj.fil_,
             check_id=check_id,
-            )
-        await state.update_data({
-            f"check_unfinished_{check_id}": None
-        })
-        await callback.answer(text='Продолжаем проверку')
+        )
+        await state.update_data({f"check_unfinished_{check_id}": None})
+        await callback.answer(text="Продолжаем проверку")
 
-    async def form_check_out(self,
-                             check: CheckInDB,
-                             violation_obj: ViolationFoundService = ViolationFoundService()) -> CheckOut:
+    async def form_check_out(
+        self,
+        check: CheckInDB,
+        violation_obj: ViolationFoundService = ViolationFoundService(),
+    ) -> CheckOut:
         check_out = CheckOut(
             id=check.id,
             fil_=check.fil_,
@@ -122,11 +148,12 @@ class CheckService:
             ),
         )
         return check_out
-    
-    async def form_check_out_unfinished(self,
-                             check: CheckInDB,
-                             violation_obj: ViolationFoundService = ViolationFoundService()
-                             ) -> CheckOutUnfinished:
+
+    async def form_check_out_unfinished(
+        self,
+        check: CheckInDB,
+        violation_obj: ViolationFoundService = ViolationFoundService(),
+    ) -> CheckOutUnfinished:
         check_out = CheckOutUnfinished(
             fil_=check.fil_,
             mfc_start=check.mfc_start,
@@ -142,7 +169,7 @@ class CheckService:
     ) -> str:
         text_mes = FormCards().check_card(check=check)
         return text_mes
-    
+
     async def form_check_card_unfinished(
         self,
         check: CheckOutUnfinished,

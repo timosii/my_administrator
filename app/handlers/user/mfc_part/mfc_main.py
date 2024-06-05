@@ -29,16 +29,16 @@ router.message.filter(MfcFilter())
 
 
 @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
-async def cmd_start(message: Message,
-                    state: FSMContext,
-                    user_obj: UserService=UserService()
-                    ):
+async def cmd_start(
+    message: Message, state: FSMContext, user_obj: UserService = UserService()
+):
     user = message.from_user
     mo = await user_obj.get_user_mo(user_id=user.id)
     await state.update_data(user_id=user.id, mo=mo)
-    logger.info('User {0} {1} passed authorization'.format(user.id, user.username))
+    logger.info("User {0} {1} passed authorization".format(user.id, user.username))
     await message.answer(
-        text=MfcMessages.welcome_message, reply_markup=await MfcKeyboards().choose_fil(mo=mo)
+        text=MfcMessages.welcome_message,
+        reply_markup=await MfcKeyboards().choose_fil(mo=mo),
     )
     await state.set_state(MfcStates.choose_fil)
 
@@ -47,7 +47,8 @@ async def cmd_start(message: Message,
     lambda message: message.text in get_filials(), StateFilter(MfcStates.choose_fil)
 )
 async def choose_fil_handler(
-    message: Message, state: FSMContext,
+    message: Message,
+    state: FSMContext,
 ):
     await state.update_data(fil_=message.text)
     await message.answer(
@@ -60,8 +61,7 @@ async def choose_fil_handler(
     F.text.lower() == "начать проверку", StateFilter(MfcStates.choose_type_checking)
 )
 async def start_checking(
-    message: Message, state: FSMContext,
-    check: CheckService=CheckService()
+    message: Message, state: FSMContext, check: CheckService = CheckService()
 ):
     check_data = await state.get_data()
     check_obj = CheckCreate(
@@ -70,7 +70,8 @@ async def start_checking(
     )
     check_in_obj = await check.add_check(check_create=check_obj)
     await message.answer(
-        text=MfcMessages.choose_zone_with_time, reply_markup=MfcKeyboards().choose_zone()
+        text=MfcMessages.choose_zone_with_time,
+        reply_markup=MfcKeyboards().choose_zone(),
     )
     await state.update_data(check_id=check_in_obj.id)
     await state.set_state(MfcStates.choose_zone)
@@ -83,23 +84,22 @@ async def start_checking(
 async def get_unfinished_checks(
     message: Message,
     state: FSMContext,
-    user: UserService=UserService(),
-    check_obj: CheckService=CheckService(),
+    user: UserService = UserService(),
+    check_obj: CheckService = CheckService(),
 ):
     data = await state.get_data()
-    user_id = data['user_id']
-    checks = await user.get_user_active_checks(user_id=user_id)
-    await check_obj.unfinished_checks_process(message=message,
-                                              state=state,
-                                              checks=checks)
+    fil_ = data["fil_"]
+    checks = await user.get_fil_active_checks(fil_=fil_)
+    await check_obj.unfinished_checks_process(
+        message=message, state=state, checks=checks
+    )
+
 
 @router.callback_query(
     F.data.startswith("delete_unfinished_check_"), MfcStates.choose_type_checking
 )
 async def continue_unfinished(
-    callback: CallbackQuery,
-    state: FSMContext,
-    check_obj: CheckService = CheckService()
+    callback: CallbackQuery, state: FSMContext, check_obj: CheckService = CheckService()
 ):
     check_id = int(callback.data.split("_")[-1])
     await check_obj.delete_check(check_id=check_id)
@@ -112,17 +112,16 @@ async def continue_unfinished(
 @router.callback_query(
     F.data.startswith("finish_unfinished_check_"), MfcStates.choose_type_checking
 )
-async def finish_unfinished(callback: CallbackQuery,
-                            state: FSMContext,
-                            check_obj: CheckService=CheckService()
-                            ):
+async def finish_unfinished(
+    callback: CallbackQuery, state: FSMContext, check_obj: CheckService = CheckService()
+):
     check_id = int(callback.data.split("_")[-1])
-    await check_obj.finish_unfinished_process(state=state,
-                                              callback=callback,
-                                              check_id=check_id)
+    await check_obj.finish_unfinished_process(
+        state=state, callback=callback, check_id=check_id
+    )
     await callback.message.answer(
-            text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
-        )
+        text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
+    )
     await state.set_state(MfcStates.choose_zone)
 
 
@@ -131,20 +130,15 @@ async def finish_unfinished(callback: CallbackQuery,
     StateFilter(MfcStates.choose_type_checking),
 )
 async def notification_handler(
-    message: Message, state: FSMContext,
-    check: CheckService=CheckService(),
+    message: Message,
+    state: FSMContext,
+    check: CheckService = CheckService(),
 ):
-    data = await state.get_data()
-    check_obj = CheckCreate(
-        fil_=data["fil_"],
-        user_id=data["user_id"],
-        is_task=True
-    )
-    check_in_obj = await check.add_check(check_create=check_obj)
-    await state.update_data(
-        check_id=check_in_obj.id,
-        is_task=True
-    )
+    # data = await state.get_data()
+    # check_obj = CheckCreate(fil_=data["fil_"], user_id=data["user_id"], is_task=True)
+    # check_in_obj = await check.add_check(check_create=check_obj)
+    # await state.update_data(check_id=check_in_obj.id, is_task=True)
+    await state.update_data(is_task=True)
     await message.answer(
         text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
     )
@@ -154,6 +148,7 @@ async def notification_handler(
 ##############
 # back_logic #
 ##############
+
 
 @router.message(F.text.lower() == "назад")
 async def back_command(message: Message, state: FSMContext):
@@ -167,7 +162,8 @@ async def back_command(message: Message, state: FSMContext):
         data = await state.get_data()
         mo = data["mo"]
         await message.answer(
-            text=MfcMessages.welcome_message, reply_markup=await MfcKeyboards().choose_fil(mo=mo)
+            text=MfcMessages.welcome_message,
+            reply_markup=await MfcKeyboards().choose_fil(mo=mo),
         )
         await state.update_data(
             fil_=None,
@@ -188,23 +184,22 @@ async def back_command(message: Message, state: FSMContext):
         await message.answer(
             text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
         )
-        await state.update_data(
-            zone=None
-        )
+        await state.update_data(zone=None)
     elif current_state == MfcStates.choose_photo_comm:
         await state.set_state(MfcStates.choose_violation)
         data = await state.get_data()
         zone = data["zone"]
-        await state.update_data(
-            violation_name=None,
-            violation_dict_id=None
-            )
+        await state.update_data(violation_name=None, violation_dict_id=None)
         await message.answer(
             text=MfcMessages.choose_violation(zone=zone),
             reply_markup=await MfcKeyboards().choose_violation(zone=zone),
         )
 
-    elif current_state in (MfcStates.add_photo, MfcStates.add_comm, MfcStates.continue_state):
+    elif current_state in (
+        MfcStates.add_photo,
+        MfcStates.add_comm,
+        MfcStates.continue_state,
+    ):
         data = await state.get_data()
         violation = data["violation_name"]
         await message.answer(
@@ -222,6 +217,7 @@ async def back_command(message: Message, state: FSMContext):
 #######################
 # main mfc part logic #
 #######################
+
 
 @router.message(
     lambda message: message.text in get_zones(), StateFilter(MfcStates.choose_zone)
@@ -243,33 +239,37 @@ async def choose_zone_handler(message: Message, state: FSMContext):
 async def choose_violation_handler(
     message: Message,
     state: FSMContext,
-    check_obj: CheckService=CheckService(),
-    violation_obj: ViolationFoundService=ViolationFoundService(),
+    check_obj: CheckService = CheckService(),
+    violation_obj: ViolationFoundService = ViolationFoundService(),
 ):
     violation_name = message.text
 
     data = await state.get_data()
     zone = data["zone"]
     violation_dict_id = await violation_obj.get_id_by_name(
-            zone=zone, violation_name=violation_name
-        )
+        zone=zone, violation_name=violation_name
+    )
     await state.update_data(
         violation_name=violation_name,
         violation_dict_id=violation_dict_id,
     )
-    check_id = data["check_id"]
-    check = await check_obj.get_check_by_id(check_id=check_id)
-    if not check.is_task:
-        is_violation_already_in_check = await violation_obj.is_violation_already_in_check(
-            violation_dict_id=violation_dict_id,
-            check_id=check_id,
-        )
-        if is_violation_already_in_check:
-            await message.answer(
-                text=MfcMessages.violation_already_exist, reply_markup=message.reply_markup
+    if not data.get('is_task'):
+        check_id = data["check_id"]
+        check = await check_obj.get_check_by_id(check_id=check_id)
+        if not check.is_task:
+            is_violation_already_in_check = (
+                await violation_obj.is_violation_already_in_check(
+                    violation_dict_id=violation_dict_id,
+                    check_id=check_id,
+                )
             )
-            return
-    
+            if is_violation_already_in_check:
+                await message.answer(
+                    text=MfcMessages.violation_already_exist,
+                    reply_markup=message.reply_markup,
+                )
+                return
+
     await message.answer(
         text=MfcMessages.problem_detection,
         reply_markup=MfcKeyboards().choose_photo_comm(),
@@ -282,10 +282,13 @@ async def choose_violation_handler(
     await state.set_state(MfcStates.choose_photo_comm)
 
 
-@router.callback_query(F.data.startswith("description_"),
-                       StateFilter(MfcStates.choose_photo_comm))
-async def get_description(callback: CallbackQuery,
-                          violation_dict_obj: ViolationFoundService=ViolationFoundService()):
+@router.callback_query(
+    F.data.startswith("description_"), ~StateFilter(default_state)
+)
+async def get_description(
+    callback: CallbackQuery,
+    violation_dict_obj: ViolationFoundService = ViolationFoundService(),
+):
     violation_id = int(callback.data.split("_")[-1])
     result = await violation_dict_obj.get_description(violation_dict_id=violation_id)
     if result:
@@ -297,11 +300,6 @@ async def get_description(callback: CallbackQuery,
     else:
         await callback.answer(text=MfcMessages.no_description, show_alert=True)
 
-
-@router.callback_query(F.data.startswith("description_"),
-                       ~StateFilter(MfcStates.choose_photo_comm))
-async def get_description_wrong(callback: CallbackQuery):
-    await callback.answer(text=MfcMessages.wrong_state)
 
 @router.message(
     F.text.lower() == "загрузить фото", StateFilter(MfcStates.choose_photo_comm)
@@ -413,10 +411,7 @@ async def cancel_adding_vio(
     await state.set_state(MfcStates.choose_violation)
     data = await state.get_data()
     zone = data["zone"]
-    await state.update_data(
-        violation_name=None,
-        violation_dict_id=None
-        )
+    await state.update_data(violation_name=None, violation_dict_id=None)
     await message.answer(
         text=MfcMessages.choose_violation(zone=zone),
         reply_markup=await MfcKeyboards().choose_violation(zone=zone),
@@ -432,38 +427,35 @@ async def cancel_adding_vio(
 async def save_violation(
     callback: CallbackQuery,
     state: FSMContext,
-    check: CheckService=CheckService(),
-    violation: ViolationFoundService = ViolationFoundService(),
+    violation: ViolationFoundService=ViolationFoundService(),
+    check: CheckService=CheckService()
 ):
     vio_data = await state.get_data()
-    violation_name = vio_data["violation_name"]
-    await callback.message.edit_text(
-        text=MfcMessages.save_violation(violation=violation_name), reply_markup=None
-    )
-    vio_obj = ViolationFoundCreate(
-        check_id=vio_data["check_id"],
-        violation_id=vio_data["violation_dict_id"],
-        photo_id=vio_data["photo_id"],
-        comm=vio_data["comm"],
-    )
-    vio_in_db = await violation.add_violation(violation_create=vio_obj)
-    await violation.send_vio_notification_to_mo_performers(callback=callback,
-                                                           mo=vio_data['mo'],
-                                                           fil_=vio_data['fil_'],
-                                                           violation=vio_in_db) 
-    await callback.message.answer(text=MfcMessages.violation_final(mo=vio_data['mo']))
     if vio_data.get('is_task'):
-        await callback.message.answer(
-            text=MfcMessages.notification_final(mo=vio_data['mo']),
-            reply_markup=ReplyKeyboardRemove()
+        check_obj = CheckCreate(
+            fil_=vio_data["fil_"],
+            user_id=vio_data["user_id"],
+            is_task=vio_data['is_task']
         )
+        check_in_db = await check.add_check(check_create=check_obj)
+        await state.update_data(
+            check_id=check_in_db.id
+        )
+        vio_data = await state.get_data()
+
+    await violation.save_violation_process(
+        callback=callback,
+        vio_data=vio_data,
+    )
+
+    await callback.answer(text=MfcMessages.violation_saved, show_alert=True)
+    if vio_data.get("is_task"):
         check_id = vio_data["check_id"]
         check_upd = CheckUpdate(mfc_finish=dt.datetime.now())
         await check.update_check(check_id=check_id, check_update=check_upd)
         await state.clear()
         return
-
-
+    
     await callback.message.answer(
         text=MfcMessages.continue_check,
     )
@@ -482,7 +474,6 @@ async def save_violation(
         }
     )
 
-
     await state.set_state(MfcStates.choose_zone)
 
 
@@ -490,9 +481,7 @@ async def save_violation(
     F.text.lower() == "закончить проверку", StateFilter(MfcStates.choose_zone)
 )
 async def finish_check(
-    message: Message,
-    state: FSMContext,
-    check: CheckService = CheckService()
+    message: Message, state: FSMContext, check: CheckService = CheckService()
 ):
     data = await state.get_data()
     check_id = data["check_id"]
@@ -512,6 +501,7 @@ async def finish_process(message: Message, state: FSMContext):
         reply_markup=DefaultKeyboards().get_authorization(),
     )
 
+
 @router.message(Command("finish"))
 async def finish_process(message: Message, state: FSMContext):
     await state.clear()
@@ -520,6 +510,12 @@ async def finish_process(message: Message, state: FSMContext):
         reply_markup=ReplyKeyboardRemove(),
     )
 
+
 @router.message()
-async def something_wrong(message: Message, state: FSMContext):
+async def something_wrong(message: Message):
     await message.answer(text=DefaultMessages.something_wrong)
+
+
+@router.callback_query(StateFilter(MfcStates))
+async def something_wrong(callback: CallbackQuery):
+    await callback.answer()

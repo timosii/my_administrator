@@ -1,3 +1,4 @@
+import datetime as dt
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func
@@ -7,6 +8,7 @@ from app.database.database import session_maker
 from app.database.repositories.violations_found import ViolationFoundRepo
 from app.database.repositories.violations import ViolationsRepo
 from app.database.repositories.users import UserRepo
+from aiogram.fsm.context import FSMContext
 from app.database.models.data import ViolationFound
 from app.database.schemas.violation_found_schema import (
     ViolationFoundCreate,
@@ -14,12 +16,13 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundInDB,
     ViolationFoundOut,
 )
+from app.database.schemas.check_schema import CheckUpdate
+from app.handlers.messages import MfcMessages
+from app.keyboards.mfc_part import MfcKeyboards
 from app.database.schemas.violation_schema import (
     ViolationInDB,
 )
-from app.database.schemas.user_schema import (
-    UserInDB
-)
+from app.database.schemas.user_schema import UserInDB
 from app.view.cards import FormCards
 from loguru import logger
 
@@ -64,6 +67,10 @@ class ViolationFoundService:
             violation_id=violation_id
         )
         return result
+    
+    async def delete_all_violations_found(self) -> None:
+        result = await self.db_repository.delete_all_violations_found()
+        return result
 
     async def get_all_violations(self) -> List[ViolationFoundInDB]:
         result = await self.db_repository.get_all_violations_found()
@@ -100,40 +107,74 @@ class ViolationFoundService:
     async def get_violation_by_id(self, violation_id: int) -> Optional[ViolationInDB]:
         result = await ViolationsRepo().get_violation_by_id(violation_id=violation_id)
         return result if result else None
-    
-    async def is_violation_already_in_check(self, violation_dict_id: int, check_id: int) -> bool:
+
+    async def is_violation_already_in_check(
+        self, violation_dict_id: int, check_id: int
+    ) -> bool:
         result = await ViolationFoundRepo().is_violation_already_in_check(
-            violation_dict_id=violation_dict_id,
-            check_id=check_id
-            )
+            violation_dict_id=violation_dict_id, check_id=check_id
+        )
         return result
-    
-    async def get_violation_performers_by_mo(
-        self,
-        mo: str
-    ) -> Optional[List[UserInDB]]:
+
+    async def get_violation_performers_by_mo(self, mo: str) -> Optional[List[UserInDB]]:
         performers = await UserRepo().get_user_performer_by_mo(mo=mo)
         return performers if performers else None
-    
+
     async def get_description(self, violation_dict_id: int) -> Optional[str]:
         result = await ViolationsRepo().get_violation_by_id(
             violation_id=violation_dict_id,
-            )
+        )
         return result.description if result else None
-    
-    async def send_vio_notification_to_mo_performers(self,
-                                                 callback: CallbackQuery,
-                                                 mo: str,
-                                                 fil_: str,
-                                                 violation: ViolationFoundInDB):
+
+    async def send_vio_notification_to_mo_performers(
+        self, callback: CallbackQuery, mo: str, fil_: str, violation: ViolationFoundInDB
+    ):
         performers = await self.get_violation_performers_by_mo(mo=mo)
         if performers:
             violation_found_out = await self.form_violation_out(violation=violation)
             res = await self.form_violation_card(violation=violation_found_out)
+            await callback.message.answer(text=f'Оповещение о нарушении отправлено сотрудникам {mo}')
             for performer in performers:
-                await callback.bot.send_message(performer.id, text=f"<b>Зарегистрировано новое нарушение в филиале {fil_}</b>\n{res}")
-        else: 
-            await callback.message.answer(text='Нет зарегистрированных исполнителей от МО')
+                if violation.photo_id:
+                    await callback.bot.send_photo(
+                        chat_id=performer.id,
+                        photo=violation.photo_id,
+                        caption=f"<b>Зарегистрировано новое нарушение в филиале {fil_}</b>\n{res}",
+                    )
+                else:
+                    await callback.bot.send_message(
+                        chat_id=performer.id,
+                        text=f"<b>Зарегистрировано новое нарушение в филиале {fil_}</b>\n{res}",
+                    )
+        else:
+            await callback.message.answer(
+                text="Нет зарегистрированных исполнителей от МО"
+            )
+
+    async def save_violation_process(
+        self,
+        callback: CallbackQuery,
+        vio_data: dict,
+    ):
+        violation_name = vio_data["violation_name"]
+        await callback.message.edit_text(
+            text=MfcMessages.save_violation(violation=violation_name), reply_markup=None
+        )
+
+        vio_obj = ViolationFoundCreate(
+            check_id=vio_data["check_id"],
+            violation_id=vio_data["violation_dict_id"],
+            photo_id=vio_data["photo_id"],
+            comm=vio_data["comm"],
+        )
+        vio_in_db = await self.add_violation(violation_create=vio_obj)
+        await self.send_vio_notification_to_mo_performers(
+            callback=callback,
+            mo=vio_data["mo"],
+            fil_=vio_data["fil_"],
+            violation=vio_in_db,
+        )
+
 
     async def form_violation_out(
         self,
@@ -158,4 +199,3 @@ class ViolationFoundService:
     ) -> str:
         text_mes = FormCards().violation_card(violation=violation)
         return text_mes
-    

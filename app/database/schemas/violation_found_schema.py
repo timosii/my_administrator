@@ -4,7 +4,7 @@ import datetime as dt
 
 
 class ViolationFoundBase(BaseModel):
-    check_id: Optional[int]
+    check_id: int
     violation_id: int
 
 class ViolationFoundCreate(ViolationFoundBase):

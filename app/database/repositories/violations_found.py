@@ -1,7 +1,7 @@
 from aiocache.serializers import PickleSerializer
 from pydantic import BaseModel
 from typing import Optional, List
-from sqlalchemy import select, update, delete, func, and_
+from sqlalchemy import select, update, delete, func, and_, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_maker
 from app.database.models.data import ViolationFound, Check
@@ -64,6 +64,16 @@ class ViolationFoundRepo:
             await session.execute(stmt)
             await session.commit()
             logger.info('deleted violation found')
+            await self.clear_cache()
+
+    async def delete_all_violations_found(self) -> None:
+        async with self.session_maker() as session:
+            stmt = delete(ViolationFound)
+            await session.execute(stmt)
+            await session.commit()
+            await session.execute(text("ALTER SEQUENCE data.violation_found_id_seq RESTART WITH 1"))
+            await session.commit()
+            logger.info('ALL violations found deleted')
             await self.clear_cache()
 
     # @cached(ttl=10, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer())

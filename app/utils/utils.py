@@ -1,4 +1,5 @@
 import datetime as dt
+from loguru import logger
 
 def time_determiner():
     tz = dt.timezone(dt.timedelta(hours=3), name='Europe/Moscow')
@@ -57,12 +58,12 @@ def format_timedelta(td):
 
     if days > 0:
         result = f"{days_out} {hours_out} {minutes_out}"
-    if hours > 0:
+    elif hours > 0:
         result = f"{hours_out} {minutes_out}"
     else:
-        result = f"{minutes_out}"
+        result = f"{minutes_out}" if minutes_out else '1 минуту'
         
-    return result if result else '1 минута'
+    return result
 
 def get_index_by_violation_id(objects: list[object], violation_id: int) -> int | None:
     for index, obj in enumerate(objects):
@@ -72,11 +73,10 @@ def get_index_by_violation_id(objects: list[object], violation_id: int) -> int |
 
 
 if __name__ == '__main__':
-    print(time_determiner())
-    td1 = dt.timedelta(minutes=50)
-    td2 = dt.timedelta(hours=1, minutes=50)
-    td3 = dt.timedelta(days=5, hours=1, minutes=50)
-    td4 = dt.timedelta(days=0, hours=25, minutes=50)
+    td1 = dt.timedelta(days=0, hours=0, minutes=5)
+    td2 = dt.timedelta(days=5, hours=1, minutes=50)
+    td3 = dt.timedelta(days=0, hours=0, minutes=30)
+    td4 = dt.timedelta(days=1, hours=0, minutes=0)
 
     print(format_timedelta(td1))
     print(format_timedelta(td2))

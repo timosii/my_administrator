@@ -30,31 +30,21 @@ router = Router()
 router.message.filter(MoPerformerFilter())
 
 
-@router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
-async def cmd_start(message: Message, state: FSMContext):
+@router.message(F.text.lower() == "пройти авторизацию",
+                StateFilter(default_state))
+async def cmd_start(message: Message,
+                    state: FSMContext,
+                    user_obj: UserService=UserService()):
     user = message.from_user
+    mo = await user_obj.get_user_mo(user_id=user.id)
     logger.info('User {0} {1} passed authorization'.format(user.id, user.username))
+    await state.update_data(user_id=user.id,
+                            mo=mo)
     await message.answer(
         text=MoPerformerMessages.start_message,
-        reply_markup=MoPerformerKeyboards().main_menu(),
-    )
-    await state.set_state(MoPerformerStates.mo_performer)
-
-
-@router.message(
-    F.text.lower() == "посмотреть активные проверки",
-    StateFilter(MoPerformerStates.mo_performer),
-)
-async def are_violations(
-    message: Message, state: FSMContext, user: UserService = UserService()
-):
-    user_id = message.from_user.id
-    mo = await user.get_user_mo(user_id=user_id)
-
-    await message.answer(
-        text=MoPerformerMessages.choose_fil,
         reply_markup=await MoPerformerKeyboards().choose_fil(mo=mo),
     )
+    await state.set_state(MoPerformerStates.mo_performer)
 
 
 @router.message(
@@ -67,6 +57,23 @@ async def get_checks(
     check_obj: CheckService = CheckService(),
 ):
     fil_ = message.text
+    await state.update_data(fil_=fil_)
+    await message.answer(
+        text=MoPerformerMessages.choose_check_task,
+        reply_markup=MoPerformerKeyboards().check_or_tasks(),
+        )
+
+
+@router.message(
+    F.text.lower() == "активные проверки",
+    StateFilter(MoPerformerStates.mo_performer),
+)
+async def get_active_violations(
+    message: Message, state: FSMContext,
+    check_obj: CheckService=CheckService()
+):
+    data = await state.get_data()
+    fil_ = data['fil_']
     checks = await check_obj.get_all_active_checks_by_fil(fil_=fil_)
     if not checks:
         await message.answer(
@@ -76,6 +83,7 @@ async def get_checks(
     else:
         await state.update_data(fil_=fil_, mo_user_id=message.from_user.id)
         for check in checks:
+            logger.info(check)
             check_out = await check_obj.form_check_out(check=check)
             await state.update_data(
                 {f"check_{check_out.id}": check_out.model_dump_json()}
@@ -83,6 +91,54 @@ async def get_checks(
             text_mes = await check_obj.form_check_card(check=check_out)
             keyboard = MoPerformerKeyboards().get_under_check(check_id=check.id)
             await message.answer(text=text_mes, reply_markup=keyboard)
+
+@router.message(
+    F.text.lower() == "активные задачи",
+    StateFilter(MoPerformerStates.mo_performer),
+)
+async def get_active_tasks(
+    message: Message, state: FSMContext,
+    check_obj: CheckService=CheckService(),
+    violation_obj: ViolationFoundService=ViolationFoundService()
+):
+    data = await state.get_data()
+    fil_ = data['fil_']
+    tasks = await check_obj.get_all_active_tasks_by_fil(fil_=fil_)
+    logger.debug(f'TASKS: {tasks}')
+    if not tasks:
+        await message.answer(
+            text=MoPerformerMessages.form_no_tasks_answer(fil_=fil_),
+            reply_markup=message.reply_markup,
+        )
+    else:
+        await state.update_data(fil_=fil_, mo_user_id=message.from_user.id)
+        if not data.get("mo_start"):
+            await state.update_data(mo_start=dt.datetime.now().isoformat())
+        for task in tasks:
+            logger.info(task)
+            violation_out = await violation_obj.form_violation_out(violation=task)
+            await state.update_data(
+                {f"vio_{violation_out.id}": violation_out.model_dump_json()}
+            )
+        data = await state.get_data()
+        violation_out_objects = sorted(
+            [
+                ViolationFoundOut(**json.loads(v))
+                for k, v in data.items()
+                if (k.startswith("vio_") and v)
+            ],
+            key=lambda x: x.violation_id,
+        )
+
+        reply_obj = FormCards().form_reply(
+            violations_out=violation_out_objects, order=0
+        )
+        photo_id = reply_obj.photo_id
+        text_mes = reply_obj.text_mes
+        keyboard = reply_obj.keyboard
+        await message.answer_photo(
+            photo=photo_id, caption=text_mes, reply_markup=keyboard
+        )
 
 
 @router.callback_query(
@@ -94,7 +150,13 @@ async def get_violations(
     violation_obj: ViolationFoundService = ViolationFoundService(),
 ):
     check_id = int(callback.data.split("_")[1])
-    await state.update_data(current_check_id=check_id)
+    await state.update_data(
+        current_check_id=check_id,
+        )
+    data = await state.get_data()
+    await state.update_data({
+        k: None for k in data.keys() if k.startswith('vio_')
+    })
     violations = await violation_obj.get_violations_found_by_check(check_id=check_id)
     data = await state.get_data()
     if not data.get("mo_start"):
@@ -286,6 +348,7 @@ async def save_violation_found_process(
     callback: CallbackQuery,
     state: FSMContext,
     violation_obj: ViolationFoundService = ViolationFoundService(),
+    check_obj: CheckService=CheckService()
 ):
     data = await state.get_data()
     violation_id = int(callback.data.split("_")[1])
@@ -295,11 +358,7 @@ async def save_violation_found_process(
         text=MoPerformerMessages.photo_comm_added,
         show_alert=True
     )
-    await callback.message.answer(
-        text=MoPerformerMessages.can_continue_or_finish,
-        reply_markup=MoPerformerKeyboards().back_to_violations(),
-    )
-
+    
     vio_upd = ViolationFoundUpdate(
         photo_id_mo=violation_found_out.photo_id,
         comm_mo=violation_found_out.comm,
@@ -309,6 +368,22 @@ async def save_violation_found_process(
         violation_id=violation_id, violation_update=vio_upd
     )
 
+    if not data.get("current_check_id"):
+        violation_id = data['current_vio_id']
+        vio_obj = await violation_obj.get_violation_found_by_id(violation_id=violation_id)
+        check_id = vio_obj.check_id
+        check_upd = CheckUpdate(
+            mo_user_id=data["mo_user_id"],
+            mo_start=dt.datetime.fromisoformat(data["mo_start"]),
+            mo_finish=dt.datetime.now(),
+        )
+        await check_obj.update_check(check_id=check_id, check_update=check_upd)
+        await state.update_data(mo_start=None)
+        await callback.message.answer(
+            text=MoPerformerMessages.can_continue_or_finish,
+            reply_markup=MoPerformerKeyboards().back_to_menu(),
+        )
+    
     await state.update_data(
         {
             "current_vio_id": None,
@@ -317,7 +392,26 @@ async def save_violation_found_process(
             f"vio_{violation_id}": None,
         }
     )
+
+    if data.get("current_check_id"):
+        await callback.message.answer(
+            text=MoPerformerMessages.can_continue_or_finish,
+            reply_markup=MoPerformerKeyboards().back_to_violations(),
+        )
     await state.set_state(MoPerformerStates.mo_performer)
+
+
+@router.message(F.text.lower() == 'вернуться в меню', StateFilter(MoPerformerStates.mo_performer))
+async def add_photo_handler(
+    message: Message,
+    state: FSMContext,
+):
+    await message.answer(
+        text=MoPerformerMessages.choose_check_task,
+        reply_markup=MoPerformerKeyboards().check_or_tasks(),
+        )
+
+
 
 
 @router.callback_query(
@@ -395,9 +489,14 @@ async def correct_vio_process_finish(
     message: Message,
     state: FSMContext,
     check_obj: CheckService = CheckService(),
+    violation: ViolationFoundService=ViolationFoundService()
 ):
     data = await state.get_data()
-    check_id = data["current_check_id"]
+    if not data.get("current_check_id"):
+        await message.answer(
+            text=MoPerformerMessages.tasks_work_finish, reply_markup=ReplyKeyboardRemove()
+        )
+
     violation_out_objects = sorted(
         [
             ViolationFoundOut(**json.loads(v))
@@ -417,7 +516,7 @@ async def correct_vio_process_finish(
         mo_start=dt.datetime.fromisoformat(data["mo_start"]),
         mo_finish=dt.datetime.now(),
     )
-
+    check_id = data['current_check_id']
     await check_obj.update_check(check_id=check_id, check_update=check_upd)
     await state.update_data(mo_start=None)
     fil_ = data["fil_"]
@@ -426,13 +525,9 @@ async def correct_vio_process_finish(
     if not checks:
         await message.answer(
             text=MoPerformerMessages.form_no_checks_answer(fil_=fil_),
-        )
-        await state.clear()
-        await message.answer(
-            text=DefaultMessages.finish,
             reply_markup=ReplyKeyboardRemove(),
         )
-
+        await state.clear()
     else:
         for check in checks:
             check_out = await check_obj.form_check_out(check=check)

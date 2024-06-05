@@ -9,7 +9,6 @@ class AdminMessages:
 class DefaultMessages:
     start_message = f'{form_greeting()}! Нажмите кнопку, чтобы я узнал вас!'
     something_wrong = 'Что-то пошло не так. Попробуйте ещё раз или начните сначала /start '
-    finish = 'Спасибо, сеанс окончен!'
 
 class MfcMessages:
     start_message = 'Для начала нажмите /start'
@@ -32,7 +31,8 @@ class MfcMessages:
     no_description = 'Нет описания'
     notification_add = 'Выберите филиал, где проблема обнаружена'
     problem_detection = 'Вы обнаружили проблему ☑️'
-    
+    violation_saved = 'Информация сохранена ✅'
+
     @staticmethod
     def choose_violation(zone: str) -> str:
         return f'Выберите нарушение в зоне <b>"{zone}"</b>'
@@ -55,11 +55,7 @@ class MfcMessages:
     def cancel_violation(violation: str) -> str:
         message = f'Вы можете добавить фото и комментарии для проблемы <b>"{violation}"</b>.'
         return message
-    
-    @staticmethod
-    def violation_final(mo: str) -> str:
-        message = f'Оповещение отправлено исполнителям в {mo}'
-        return message  
+
 
     @staticmethod
     def notification_final(mo: str) -> str:
@@ -70,7 +66,7 @@ class MfcLeaderMessages:
     start_message = f"{form_greeting()}, администратор МФЦ!"
 
 class MoPerformerMessages:
-    start_message = f"{form_greeting()}, исполнитель МО!"
+    start_message = f"{form_greeting()}, исполнитель МО! Выберите филиал:"
     choose_fil = 'Выберите филиал:'
     add_photo = 'Отправьте фотографию. Она будет сохранена в качестве фотофиксации исправления нарушения.'
     add_comm = 'Напишите и отправьте текст. Он будет сохранен в качестве комментария к нарушению.'
@@ -85,7 +81,9 @@ class MoPerformerMessages:
     choose_vio = 'Вы вышли из режима исправления. Выберите нарушение:'
     cant_finish = 'Вы не можете закончить проверку, остались неисправленные нарушения!'
     can_continue_or_finish = 'Мы всё сохранили. Спасибо!'
-    photo_comm_added = 'Информация для нарушения добавлена'
+    photo_comm_added = 'Информация сохранена ✅'
+    choose_check_task = 'Вы можете выбрать активные задачи (это уведомления с нарушениями) или полноценные проверки'
+    tasks_work_finish = 'Работа с задачами закончена'
 
     @staticmethod
     def finish_mes(violation_name: str):
@@ -94,6 +92,10 @@ class MoPerformerMessages:
     @staticmethod
     def form_no_checks_answer(fil_: str):
         return f'Активных проверок для филиала {fil_} не найдено'
+    
+    @staticmethod
+    def form_no_tasks_answer(fil_: str):
+        return f'Активных задач для филиала {fil_} нет'
 
     @staticmethod
     def correct_mode(text_mes: str) -> str:

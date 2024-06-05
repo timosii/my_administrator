@@ -7,17 +7,16 @@ from app.config import settings
 from app.database.models.data import User
 from app.database.schemas.user_schema import UserCreate
 
-from app.database.db_helpers.insert_data import (
+from app.database.db_helpers.data_operations import (
     insert_data_user,
+    clear_data
 )
 from app.database.services.users import UserService
 
 from app.database.insert_dicts.insert_dicts import DictsInsert
 
-# asyncio.run(create_tables())
-DictsInsert().insert_dicts_to_db()
+# DictsInsert().insert_dicts_to_db()
+# asyncio.run(clear_data())
 asyncio.run(insert_data_user())
-# asyncio.run(insert_data_check())
-# asyncio.run(insert_data_violation())
 
 # drop table dicts.mos , dicts.filials , dicts.problems , dicts.violations , dicts.zones, "data"."check" , data."user" , data.violation_found cascade;

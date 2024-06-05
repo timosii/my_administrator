@@ -2,7 +2,7 @@ from aiocache.serializers import PickleSerializer
 import redis.asyncio as redis
 from pydantic import BaseModel
 from typing import Optional, List
-from sqlalchemy import select, update, delete, func, not_, and_
+from sqlalchemy import select, update, delete, func, not_, and_, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_maker
 from app.database.models.data import Check
@@ -53,6 +53,16 @@ class CheckRepo:
             logger.info('check deleted')
             await self.clear_cache()
 
+    async def delete_all_checks(self) -> None:
+        async with self.session_maker() as session:
+            stmt = delete(Check)
+            await session.execute(stmt)
+            await session.commit()
+            await session.execute(text("ALTER SEQUENCE data.check_id_seq RESTART WITH 1"))
+            await session.commit()
+            logger.info('ALL checks deleted')
+            await self.clear_cache()
+
     @cached(ttl=10, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
     async def get_all_checks(self) -> List[CheckInDB]:
         async with self.session_maker() as session:
@@ -61,7 +71,7 @@ class CheckRepo:
             logger.info('get all checks')
             return [CheckInDB.model_validate(check) for check in checks]
 
-    @cached(ttl=6, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
+    @cached(ttl=3, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
     async def get_all_active_checks_by_fil(
         self, fil_: str
     ) -> List[CheckInDB] | str:
@@ -71,6 +81,7 @@ class CheckRepo:
                     Check.fil_ == fil_,
                     Check.mfc_finish.is_not(None),
                     Check.mo_finish.is_(None),
+                    Check.is_task.is_(False)
                 )
             )
             result = await session.execute(query)
@@ -80,6 +91,28 @@ class CheckRepo:
                 [CheckInDB.model_validate(check) for check in checks]
                 if checks
                 else ''
+            )
+        
+    # @cached(ttl=3, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
+    async def get_all_active_tasks_by_fil(
+        self, fil_: str
+    ) -> Optional[List[CheckInDB]]:
+        async with self.session_maker() as session:
+            query = select(Check).where(
+                and_(
+                    Check.fil_ == fil_,
+                    Check.mfc_finish.is_not(None),
+                    Check.mo_finish.is_(None),
+                    Check.is_task.is_(True)
+                )
+            )
+            result = await session.execute(query)
+            checks = result.scalars().all()
+            logger.info('get all active tasks by fil')
+            return (
+                [CheckInDB.model_validate(check) for check in checks]
+                if checks
+                else None
             )
 
     @cached(ttl=10, cache=Cache.REDIS, namespace='check')
