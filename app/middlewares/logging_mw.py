@@ -56,18 +56,18 @@ class FSMMiddleware(BaseMiddleware):
         return await handler(event, data)
 
 
-class UnexpectedBehaviorMiddleware(BaseMiddleware):
-    async def __call__(
-        self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-        event: TelegramObject,
-        data: Dict[str, Any],
-    ) -> Any:
-        result = await handler(event, data)
-        if not result:
-            if isinstance(event, CallbackQuery):
-                event.answer(text='Сейчас не лучшее время для этого ...')
-            if isinstance(event, Message):
-                event.answer(text='Что-то пошло не так. Попробуйте ещё раз или начните сначала /start')
-        return result
+# class UnexpectedBehaviorMiddleware(BaseMiddleware):
+#     async def __call__(
+#         self,
+#         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+#         event: TelegramObject,
+#         data: Dict[str, Any],
+#     ) -> Any:
+#         result = await handler(event, data)
+#         if not result:
+#             if isinstance(event, CallbackQuery):
+#                 event.answer(text='Сейчас не лучшее время для этого ...')
+#             if isinstance(event, Message):
+#                 event.answer(text='Что-то пошло не так. Попробуйте ещё раз или начните сначала /start')
+#         return result
                 

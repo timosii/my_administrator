@@ -7,9 +7,7 @@ from app.handlers.admin import admin
 from app.handlers.user.mo_part import mo_controler, mo_performer
 from app.handlers.user.mfc_part import mfc_main, mfc_leader
 from aiogram.types import BotCommand
-from app.middlewares.logging_mw import ErrorLoggingMiddleware, FSMMiddleware, UnexpectedBehaviorMiddleware
-
-
+from app.middlewares.logging_mw import ErrorLoggingMiddleware, FSMMiddleware
 
 async def set_main(bot: Bot):
     main_menu_commands = [
@@ -41,7 +39,6 @@ async def start_bot() -> None:
     await bot.delete_webhook(drop_pending_updates=True)
     dp.update.middleware(FSMMiddleware())
     dp.update.middleware(ErrorLoggingMiddleware())
-    dp.update.middleware(UnexpectedBehaviorMiddleware())
     dp.startup.register(set_main)
     dp.shutdown.register(on_shutdown)
     await dp.start_polling(bot)
