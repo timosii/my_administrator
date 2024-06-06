@@ -40,9 +40,9 @@ str_pk = Annotated[str, mapped_column(
 str_255 = Annotated[str, mapped_column(
     type_=String(255)
 )]
-datetime_now = Annotated[dt.datetime, mapped_column(server_default=func.now())]
+datetime_now = Annotated[dt.datetime, mapped_column(server_default=func.timezone('Europe/Moscow', func.now()))]
 updated_at = Annotated[dt.datetime, mapped_column(
-        server_default=func.now(),
+        server_default=func.timezone('Europe/Moscow', func.now()),
         onupdate=dt.datetime.now,
     )]
 
