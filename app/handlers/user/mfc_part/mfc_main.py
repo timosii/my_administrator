@@ -67,6 +67,7 @@ async def start_checking(
     check_obj = CheckCreate(
         fil_=check_data["fil_"],
         user_id=check_data["user_id"],
+        is_task=False
     )
     check_in_obj = await check.add_check(check_create=check_obj)
     await message.answer(
@@ -84,16 +85,14 @@ async def start_checking(
 async def get_unfinished_checks(
     message: Message,
     state: FSMContext,
-    user: UserService = UserService(),
     check_obj: CheckService = CheckService(),
 ):
     data = await state.get_data()
     fil_ = data["fil_"]
-    checks = await user.get_fil_active_checks(fil_=fil_)
+    checks = await check_obj.get_mfc_fil_active_checks(fil_=fil_)
     await check_obj.unfinished_checks_process(
         message=message, state=state, checks=checks
     )
-
 
 @router.callback_query(
     F.data.startswith("delete_unfinished_check_"), MfcStates.choose_type_checking
@@ -134,11 +133,13 @@ async def notification_handler(
     state: FSMContext,
     check: CheckService = CheckService(),
 ):
-    # data = await state.get_data()
-    # check_obj = CheckCreate(fil_=data["fil_"], user_id=data["user_id"], is_task=True)
-    # check_in_obj = await check.add_check(check_create=check_obj)
-    # await state.update_data(check_id=check_in_obj.id, is_task=True)
-    await state.update_data(is_task=True)
+    check_data = await state.get_data()
+    check_obj = CheckCreate(
+        fil_=check_data["fil_"],
+        user_id=check_data["user_id"],
+        is_task=True
+    )
+    check_in_obj = await check.add_check(check_create=check_obj)
     await message.answer(
         text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
     )

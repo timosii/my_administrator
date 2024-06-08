@@ -67,8 +67,3 @@ class UserService:
     async def is_mo_controler(self, user_id: int) -> bool:
         result = await self.db_repository.is_mo_controler(user_id=user_id)
         return result  
-
-    async def get_fil_active_checks(self, fil_: str) -> Optional[List[CheckInDB]]:
-        result = await self.db_repository.get_fil_active_checks(fil_=fil_)
-        return result
-

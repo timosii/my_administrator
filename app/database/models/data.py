@@ -32,7 +32,7 @@ class User(Base):
         {'schema': 'data'},
     )
 
-    id: Mapped[bigint_pk_tg]
+    user_id: Mapped[bigint_pk_tg]
 
     mo_: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_"))
     last_name: Mapped[str_255]
@@ -46,6 +46,7 @@ class User(Base):
     is_mo_controler: Mapped[bool] = mapped_column(default=False)
     is_archived: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime_now]
+    updated_at: Mapped[updated_at]
 
     checks: Mapped[list['Check']] = relationship(
         back_populates = "user"
@@ -55,12 +56,12 @@ class ViolationFound(Base):
     __tablename__ = 'violation_found'
     __table_args__ = {'schema': 'data'}
 
-    id: Mapped[bigint_pk]
+    violation_found_id: Mapped[bigint_pk]
 
-    check_id: Mapped[bigint] = mapped_column(ForeignKey("data.check.id", ondelete='CASCADE'))
-    violation_id: Mapped[int] = mapped_column(ForeignKey("dicts.violations.id"))
-    photo_id: Mapped[str_255] = mapped_column(nullable=True)
-    comm: Mapped[str] = mapped_column(nullable=True)
+    check_id: Mapped[bigint] = mapped_column(ForeignKey("data.check.check_id", ondelete='CASCADE'))
+    violation_dict_id: Mapped[int] = mapped_column(ForeignKey("dicts.violations.violation_dict_id"))
+    photo_id_mfc: Mapped[str_255] = mapped_column(nullable=True)
+    comm_mfc: Mapped[str] = mapped_column(nullable=True)
     photo_id_mo: Mapped[str_255] = mapped_column(nullable=True)
     comm_mo: Mapped[str] = mapped_column(nullable=True)
     violation_detected: Mapped[datetime_now]
@@ -78,12 +79,12 @@ class Check(Base):
         {'schema': 'data'},
     )
 
-    id: Mapped[bigint_pk]
+    check_id: Mapped[bigint_pk]
     fil_: Mapped[str_255] = mapped_column(ForeignKey("dicts.filials.fil_"))
-    user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.id"))
+    mfc_user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.user_id"))
     mfc_start: Mapped[datetime_now]
     mfc_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
-    mo_user_id: Mapped[bigint] = mapped_column(nullable=True)
+    mo_user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.user_id"), nullable=True)
     mo_start: Mapped[dt.datetime] = mapped_column(nullable=True)
     mo_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
     is_task: Mapped[bool] = mapped_column(default=False)

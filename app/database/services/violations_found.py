@@ -175,7 +175,7 @@ class ViolationFoundService:
                     )
         else:
             await callback.message.answer(
-                text="Нет зарегистрированных исполнителей от МО"
+                text="Отправка уведомления в МО невозможна: нет зарегистрированных исполнителей от МО"
             )
 
     async def save_violation_process(

@@ -70,20 +70,6 @@ class UserRepo:
             users = result.scalars().all()
             logger.info('get all users')
             return [UserInDB.model_validate(user) for user in users]
-
-    async def get_fil_active_checks(self, fil_: str) -> Optional[List[CheckInDB]]:
-        async with self.session_maker() as session:
-            query = select(Check).where(
-                and_(
-                    Check.fil_ == fil_,
-                    Check.mfc_finish.is_(None),
-                    Check.is_task.is_(False)
-                )
-            )
-            result = await session.execute(query)
-            checks = result.scalars().all()
-            logger.info('get fil active checks')
-            return [CheckInDB.model_validate(check) for check in checks] if checks else ''
     
     async def get_user_count(self) -> int:
         query = select(func.count()).select_from(User)

@@ -58,7 +58,7 @@ class Violations(Base):
     __tablename__ = 'violations'
     __table_args__ = {'schema': 'dicts'}
 
-    id: Mapped[intpk]
+    violation_dict_id: Mapped[intpk]
     violation_name: Mapped[str_255]
     zone: Mapped[str_255] = mapped_column(ForeignKey("dicts.zones.zone_name", ondelete="CASCADE"))
     problem: Mapped[str_255] = mapped_column(ForeignKey("dicts.problems.problem_name", ondelete="CASCADE"))

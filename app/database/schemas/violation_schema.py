@@ -4,7 +4,7 @@ import datetime as dt
 
 
 class ViolationBase(BaseModel):
-    id: int
+    violation_dict_id: int
     violation_name: str    
     zone: str
     problem: str

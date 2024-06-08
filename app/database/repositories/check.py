@@ -70,6 +70,20 @@ class CheckRepo:
             checks = result.scalars().all()
             logger.info('get all checks')
             return [CheckInDB.model_validate(check) for check in checks]
+        
+    async def get_mfc_fil_active_checks(self, fil_: str) -> Optional[List[CheckInDB]]:
+        async with self.session_maker() as session:
+            query = select(Check).where(
+                and_(
+                    Check.fil_ == fil_,
+                    Check.mfc_finish.is_(None),
+                    Check.is_task.is_(False)
+                )
+            )
+            result = await session.execute(query)
+            checks = result.scalars().all()
+            logger.info('get fil active checks')
+            return [CheckInDB.model_validate(check) for check in checks] if checks else ''
 
     # @cached(ttl=3, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
     async def get_all_active_checks_by_fil(

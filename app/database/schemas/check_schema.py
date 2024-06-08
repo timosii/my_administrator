@@ -4,8 +4,8 @@ import datetime as dt
 
 class CheckBase(BaseModel):
     fil_: str
-    user_id: int
-    is_task: bool = False
+    mfc_user_id: int
+    is_task: bool
 
 class CheckCreate(CheckBase):
     pass
@@ -17,7 +17,7 @@ class CheckUpdate(BaseModel):
     mo_finish: Optional[dt.datetime] = None
 
 class CheckInDB(CheckBase):
-    id: int
+    check_id: int
     mfc_start: dt.datetime
     mfc_finish: Optional[dt.datetime] = None
     mo_start: Optional[dt.datetime] = None
@@ -27,7 +27,7 @@ class CheckInDB(CheckBase):
         from_attributes = True
 
 class CheckOut(BaseModel):
-    id: int
+    check_id: int
     fil_: str
     mfc_start: dt.datetime
     mfc_finish: dt.datetime
@@ -40,6 +40,17 @@ class CheckOutUnfinished(BaseModel):
     fil_: str
     mfc_start: dt.datetime
     violations_count: int
+
+    def form_card_unfinished_out(self):
+        result = f"""
+<b>Филиал:</b>
+{self.fil_}
+<b>Дата начала проверки:</b>
+{self.mfc_start.strftime('%d.%m.%Y %H:%M')}
+<b>Количество выявленных нарушений:</b>
+{self.violations_count}
+        """
+        return result
 
     class Config:
         from_attributes = True

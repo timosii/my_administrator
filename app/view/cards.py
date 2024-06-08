@@ -49,17 +49,6 @@ class FormCards:
         """
         return result
 
-    @staticmethod
-    def check_card_unfinished(check: CheckOutUnfinished) -> str:
-        result = f"""
-<b>Филиал:</b>
-{check.fil_}
-<b>Дата начала проверки:</b>
-{check.mfc_start.strftime('%d.%m.%Y %H:%M')}
-<b>Количество выявленных нарушений:</b>
-{check.violations_count}
-        """
-        return result
 
     def form_reply(self, violations_out: list[ViolationFoundOut], order: int):
         photo_id = violations_out[order].photo_id                 

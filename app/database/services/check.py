@@ -74,6 +74,10 @@ class CheckService:
     async def get_checks_by_user(self, user_id: int) -> List[CheckInDB]:
         result = await self.db_repository.get_checks_by_user(user_id=user_id)
         return result
+    
+    async def get_mfc_fil_active_checks(self, fil_: str) -> Optional[List[CheckInDB]]:
+        result = await self.db_repository.get_mfc_fil_active_checks(fil_=fil_)
+        return result
 
     async def unfinished_checks_process(
         self,
@@ -88,7 +92,7 @@ class CheckService:
         else:
             for check in checks:
                 check_out = await self.form_check_out_unfinished(check=check)
-                text_mes = await self.form_check_card_unfinished(check=check_out)
+                text_mes = check_out.form_card_unfinished_out()
                 await state.update_data(
                     {
                         f"check_unfinished_{check.id}": check.model_dump_json(),
@@ -108,9 +112,11 @@ class CheckService:
         data = await state.get_data()
         check_obj = CheckInDB(**json.loads(data[f"check_unfinished_{check_id}"]))
 
-        await state.update_data(
-            fil_=check_obj.fil_,
-            check_id=check_id,
+        await state.update_data( #СДЕЛАТЬ ДОБАВЛЕНИЕ ОБЪЕКТА ВО ВНУТРЕННИЙ СЛОВАРЬ! (попробовать)
+            # fil_=check_obj.fil_,
+            check_obj.model_dump(mode='json')
+            # check_id=check_id,
+            # mfc_start=check_obj.mfc_start
         )
         await state.update_data({f"check_unfinished_{check_id}": None})
         await callback.answer(text="Продолжаем проверку")
@@ -152,9 +158,9 @@ class CheckService:
         text_mes = FormCards().check_card(check=check)
         return text_mes
 
-    async def form_check_card_unfinished(
-        self,
-        check: CheckOutUnfinished,
-    ) -> str:
-        text_mes = FormCards().check_card_unfinished(check=check)
-        return text_mes
+    # async def form_check_card_unfinished(
+    #     self,
+    #     check: CheckOutUnfinished,
+    # ) -> str:
+    #     text_mes = check.form_card_out()
+    #     return text_mes
