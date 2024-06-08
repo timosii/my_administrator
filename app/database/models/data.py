@@ -48,9 +48,9 @@ class User(Base):
     created_at: Mapped[datetime_now]
     updated_at: Mapped[updated_at]
 
-    checks: Mapped[list['Check']] = relationship(
-        back_populates = "user"
-    )
+    # checks: Mapped[list['Check']] = relationship(
+    #     back_populates = "user"
+    # )
 
 class ViolationFound(Base):
     __tablename__ = 'violation_found'
@@ -89,9 +89,11 @@ class Check(Base):
     mo_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
     is_task: Mapped[bool] = mapped_column(default=False)
     
-    user: Mapped["User"] = relationship(
-        back_populates="checks",
-    )
+    # user: Mapped["User"] = relationship(
+    #     back_populates="checks",
+    # )
+    mfc_user: Mapped["User"] = relationship('User', foreign_keys=[mfc_user_id])
+    mo_user: Mapped["User"] = relationship('User', foreign_keys=[mo_user_id])
 
     violations: Mapped[list['ViolationFound']] = relationship(
         back_populates="check"

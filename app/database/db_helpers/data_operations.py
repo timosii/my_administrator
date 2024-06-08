@@ -16,7 +16,7 @@ from loguru import logger
 
 async def insert_data_user(user: UserService = UserService()):
     user_test_1 = UserCreate(
-        id=6164463753,
+        user_id=6164463753,
         mo_='ГП 107',
         is_mfc=True,
         last_name='Тестов',
@@ -25,7 +25,7 @@ async def insert_data_user(user: UserService = UserService()):
         post='Аналитик 2.0',
     )
     user_test_2 = UserCreate(
-        id=581145287,
+        user_id=581145287,
         mo_='ГП 107',
         is_mo_performer=True,
         last_name='Тестов',
@@ -35,7 +35,7 @@ async def insert_data_user(user: UserService = UserService()):
     )
 
     user_test_3 = UserCreate(
-        id=255746374,
+        user_id=255746374,
         mo_='ГП 107',
         is_mfc=True,
         last_name='Тестов',
@@ -46,7 +46,7 @@ async def insert_data_user(user: UserService = UserService()):
     )
     
     user_test_4 = UserCreate(
-        id=714806103,
+        user_id=714806103,
         mo_='ГП 212',
         is_mo_performer=True,
         last_name='Куликов',
@@ -56,7 +56,7 @@ async def insert_data_user(user: UserService = UserService()):
     )
 
     user_test_5 = UserCreate(
-        id=364167798,
+        user_id=364167798,
         mo_='ГП 45',
         is_mfc=True,
         last_name='Мискарян',
@@ -66,7 +66,7 @@ async def insert_data_user(user: UserService = UserService()):
     )
 
     user_test_6 = UserCreate(
-        id=905290819,
+        user_id=905290819,
         mo_='ГП 107',
         is_mo_performer=True,
         last_name='Бортников',
@@ -76,7 +76,7 @@ async def insert_data_user(user: UserService = UserService()):
     )
 
     user_test_7 = UserCreate(
-        id=133283796,
+        user_id=133283796,
         mo_='ГП 45',
         is_mo_performer=True,
         last_name='Постолакин',
@@ -86,7 +86,7 @@ async def insert_data_user(user: UserService = UserService()):
     )
 
     user_test_8 = UserCreate(
-        id=360185080,
+        user_id=360185080,
         mo_='ГП 212',
         is_mfc=True,
         last_name='Баум',
@@ -96,7 +96,7 @@ async def insert_data_user(user: UserService = UserService()):
     )
 
     user_test_9 = UserCreate(
-        id=322561217,
+        user_id=322561217,
         mo_='ГП 107',
         is_mfc=True,
         last_name='Варлашин',
