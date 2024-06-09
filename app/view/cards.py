@@ -19,49 +19,18 @@ class FormCards:
     def __init__(self) -> None:
         pass
 
-    @staticmethod
-    def violation_card(violation: ViolationFoundOut) -> str:
-        result = f"""
-<b>Зона:</b>
-{violation.zone}
-<b>Нарушение:</b>
-{violation.violation_name}
-<b>Время выявления нарушения:</b>
-{violation.violation_detected.strftime('%d.%m.%Y %H:%M')}
-
-Комментарий: {violation.comm if violation.comm else 'отсутствует'}
-Время на исправление: {format_timedelta(violation.time_to_correct)}
-        """
-        return result
-
-    @staticmethod
-    def check_card(check: CheckOut) -> str:
-        result = f"""
-<b>Филиал:</b>
-{check.fil_}
-<b>Дата начала проверки:</b>
-{check.mfc_start.strftime('%d.%m.%Y %H:%M')}
-<b>Дата завершения проверки:</b>
-{check.mfc_finish.strftime('%d.%m.%Y %H:%M')}
-<b>Проверка заняла: {format_timedelta(check.mfc_finish - check.mfc_start)} </b>
-<b>Количество нарушений:</b>
-{check.violations_count}
-        """
-        return result
-
-
     def form_reply(self, violations_out: list[ViolationFoundOut], order: int):
-        photo_id = violations_out[order].photo_id                 
-        text_mes = self.violation_card(violation=violations_out[order])
+        photo_id = violations_out[order].photo_id_mfc                
+        text_mes = violations_out[order].violation_card()
         prev_order = order - 1
         next_order = order + 1
         keyboard = MoPerformerKeyboards().get_violation_menu(
-            prev_violation_id=violations_out[prev_order].id,
-            violation_id=violations_out[order].id,
+            prev_violation_id=violations_out[prev_order].violation_found_id,
+            violation_id=violations_out[order].violation_found_id,
             next_violation_id=(
-                violations_out[next_order].id
+                violations_out[next_order].violation_found_id
                 if order != (len(violations_out) - 1)
-                else violations_out[0].id
+                else violations_out[0].violation_found_id
             ),
         )
 

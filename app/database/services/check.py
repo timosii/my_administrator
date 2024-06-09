@@ -14,10 +14,9 @@ from app.database.schemas.check_schema import (
     CheckOut,
     CheckOutUnfinished,
 )
-from app.database.schemas.violation_found_schema import ViolationFoundInDB
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-from app.database.services.violations_found import ViolationFoundService
+# from app.database.services.check import CheckService
 from app.view.cards import FormCards
 from app.keyboards.mfc_part import MfcKeyboards
 from app.handlers.messages import MfcMessages
@@ -71,12 +70,18 @@ class CheckService:
         result = await self.db_repository.get_all_checks()
         return result
 
-    async def get_checks_by_user(self, user_id: int) -> List[CheckInDB]:
-        result = await self.db_repository.get_checks_by_user(user_id=user_id)
+    async def get_checks_by_mfc_user(self, user_id: int) -> List[CheckInDB]:
+        result = await self.db_repository.get_checks_by_mfc_user(user_id=user_id)
         return result
     
     async def get_mfc_fil_active_checks(self, fil_: str) -> Optional[List[CheckInDB]]:
         result = await self.db_repository.get_mfc_fil_active_checks(fil_=fil_)
+        return result
+    
+    async def get_violations_found_count_by_check(self, check_id: int) -> int:
+        result = await self.db_repository.get_violations_found_count_by_check(
+            check_id=check_id
+        )
         return result
 
     async def unfinished_checks_process(
@@ -95,12 +100,12 @@ class CheckService:
                 text_mes = check_out.form_card_unfinished_out()
                 await state.update_data(
                     {
-                        f"check_unfinished_{check.id}": check.model_dump_json(),
+                        f"check_unfinished_{check.check_id}": check.model_dump(mode='json'),
                     }
                 )
                 await message.answer(
                     text=text_mes,
-                    reply_markup=MfcKeyboards().unfinished_check(check_id=check.id),
+                    reply_markup=MfcKeyboards().unfinished_check(check_id=check.check_id),
                 )
 
     async def finish_unfinished_process(
@@ -110,13 +115,10 @@ class CheckService:
         check_id: int,
     ):
         data = await state.get_data()
-        check_obj = CheckInDB(**json.loads(data[f"check_unfinished_{check_id}"]))
+        check_obj = CheckInDB(**data[f"check_unfinished_{check_id}"])
 
-        await state.update_data( #СДЕЛАТЬ ДОБАВЛЕНИЕ ОБЪЕКТА ВО ВНУТРЕННИЙ СЛОВАРЬ! (попробовать)
-            # fil_=check_obj.fil_,
+        await state.update_data( 
             check_obj.model_dump(mode='json')
-            # check_id=check_id,
-            # mfc_start=check_obj.mfc_start
         )
         await state.update_data({f"check_unfinished_{check_id}": None})
         await callback.answer(text="Продолжаем проверку")
@@ -124,15 +126,14 @@ class CheckService:
     async def form_check_out(
         self,
         check: CheckInDB,
-        violation_obj: ViolationFoundService = ViolationFoundService(),
     ) -> CheckOut:
         check_out = CheckOut(
-            id=check.id,
+            check_id=check.check_id,
             fil_=check.fil_,
             mfc_start=check.mfc_start,
             mfc_finish=check.mfc_finish,
-            violations_count=await violation_obj.get_violations_found_count_by_check(
-                check_id=check.id
+            violations_count=await self.get_violations_found_count_by_check(
+                check_id=check.check_id
             ),
         )
         return check_out
@@ -140,23 +141,23 @@ class CheckService:
     async def form_check_out_unfinished(
         self,
         check: CheckInDB,
-        violation_obj: ViolationFoundService = ViolationFoundService(),
+        # check_obj: CheckService=CheckService()
     ) -> CheckOutUnfinished:
         check_out = CheckOutUnfinished(
             fil_=check.fil_,
             mfc_start=check.mfc_start,
-            violations_count=await violation_obj.get_violations_found_count_by_check(
-                check_id=check.id
+            violations_count=await self.get_violations_found_count_by_check(
+                check_id=check.check_id
             ),
         )
         return check_out
 
-    async def form_check_card(
-        self,
-        check: CheckOut,
-    ) -> str:
-        text_mes = FormCards().check_card(check=check)
-        return text_mes
+    # async def form_check_card(
+    #     self,
+    #     check: CheckOut,
+    # ) -> str:
+    #     text_mes = FormCards().check_card(check=check)
+    #     return text_mes
 
     # async def form_check_card_unfinished(
     #     self,

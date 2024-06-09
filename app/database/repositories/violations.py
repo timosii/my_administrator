@@ -14,14 +14,14 @@ class ViolationsRepo:
     def __init__(self):
         self.session_maker = session_maker
 
-    async def get_id_by_name(
+    async def get_dict_id_by_name(
         self,
         violation_name: str,
         zone: str
     ) -> int:
         async with self.session_maker() as session:
             result = await session.execute(
-                select(Violations.id).filter_by(violation_name=violation_name,
+                select(Violations.violation_dict_id).filter_by(violation_name=violation_name,
                                                 zone=zone)
             )
             violation_id = result.scalar_one_or_none()
@@ -29,13 +29,13 @@ class ViolationsRepo:
             return violation_id if violation_id else None       
 
     @cached(ttl=600, cache=Cache.REDIS, namespace='violations', serializer=PickleSerializer())
-    async def get_violation_by_id(
+    async def get_violation_dict_by_id(
         self,
-        violation_id: int
+        violation_dict_id: int
     ) -> ViolationInDB:
         async with self.session_maker() as session:
             result = await session.execute(
-                select(Violations).filter_by(id=violation_id)
+                select(Violations).filter_by(violation_dict_id=violation_dict_id)
             )
             violation = result.scalar_one_or_none()
             logger.info('get dict vio obj by id')

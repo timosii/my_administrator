@@ -21,9 +21,11 @@ class MfcMessages:
     add_comm = 'Напишите и отправьте комментарий'
     photo_added = 'Фото добавлено!'
     comm_added = 'Комментарий добавлен!'
-    continue_check = 'Вы можете продолжить проверку, либо закончить её, нажав "Закончить проверку"'
+    continue_check = 'Вы можете продолжить проверку'
+    notification_saved = 'Уведомление сохранено!'
     cancel_check = 'Возвращаемся в начало ...'
     finish_check = 'Проверка закончена! Все данные были сохранены. Спасибо за участие!'
+    finish_task_zero_violations = 'Создание уведомления отменено, т.к. вы не выбрали ни одного нарушения'
     wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
     check_deleted = 'Проверка успешно удалена!'
     no_unfinished = 'Нет незавершенных проверок'
@@ -83,8 +85,8 @@ class MoPerformerMessages:
     cant_finish = 'Вы не можете закончить проверку, остались неисправленные нарушения!'
     can_continue_or_finish = 'Мы всё сохранили. Спасибо!'
     photo_comm_added = 'Информация сохранена ✅'
-    choose_check_task = 'Вы можете выбрать активные задачи (это уведомления с нарушениями) или полноценные проверки'
-    tasks_work_finish = 'Работа с задачами закончена'
+    choose_check_task = 'Вы можете выбрать активные уведомления или полноценные проверки'
+    tasks_work_finish = 'Работа с уведомлениями закончена'
 
     @staticmethod
     def finish_mes(violation_name: str):
@@ -96,7 +98,7 @@ class MoPerformerMessages:
     
     @staticmethod
     def form_no_tasks_answer(fil_: str):
-        return f'Активных задач для филиала {fil_} нет'
+        return f'Активных уведомлений для филиала {fil_} нет'
 
     @staticmethod
     def correct_mode(text_mes: str) -> str:

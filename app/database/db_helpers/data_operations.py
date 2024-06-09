@@ -103,7 +103,15 @@ async def insert_data_user(user: UserService = UserService()):
         first_name='Тест',
         patronymic='Тестович',
         post='Аналитик 10.0',
-
+    )
+    user_test_10 = UserCreate(
+        user_id=153964237,
+        mo_='ГП 107',
+        is_mfc=True,
+        last_name='Сизов',
+        first_name='Тест',
+        patronymic='Тестович',
+        post='Аналитик 11.0',
     )
     for u in (
         user_test_1,
@@ -114,7 +122,8 @@ async def insert_data_user(user: UserService = UserService()):
         user_test_6,
         user_test_7,
         user_test_8,
-        user_test_9
+        user_test_9,
+        user_test_10
     ):
         await user.add_user(u)    
     logger.info('users added to db')

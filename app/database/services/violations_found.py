@@ -17,6 +17,9 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundInDB,
     ViolationFoundOut,
 )
+from app.database.services.check import CheckService
+from app.database.services.helpers import HelpService
+
 from app.database.schemas.check_schema import CheckUpdate
 from app.handlers.messages import MfcMessages, MoPerformerMessages
 from app.keyboards.mfc_part import MfcKeyboards
@@ -64,10 +67,10 @@ class ViolationFoundService:
         )
 
     async def update_violation(
-        self, violation_id: int, violation_update: ViolationFoundUpdate
+        self, violation_found_id: int, violation_update: ViolationFoundUpdate
     ) -> None:
         result = await self.db_repository.update_violation_found(
-            violation_id=violation_id, violation_update=violation_update
+            violation_found_id=violation_found_id, violation_update=violation_update
         )
         return result
 
@@ -83,12 +86,6 @@ class ViolationFoundService:
 
     async def get_all_violations(self) -> List[ViolationFoundInDB]:
         result = await self.db_repository.get_all_violations_found()
-        return result
-
-    async def get_violations_found_count_by_check(self, check_id: int) -> int:
-        result = await self.db_repository.get_violations_found_count_by_check(
-            check_id=check_id
-        )
         return result
 
     async def get_violations_found_by_check(
@@ -115,14 +112,14 @@ class ViolationFoundService:
             return None
         return result
 
-    async def get_id_by_name(self, violation_name: str, zone: str) -> int:
-        result = await ViolationsRepo().get_id_by_name(
+    async def get_dict_id_by_name(self, violation_name: str, zone: str) -> int:
+        result = await ViolationsRepo().get_dict_id_by_name(
             zone=zone, violation_name=violation_name
         )
         return result
 
-    async def get_violation_by_id(self, violation_id: int) -> Optional[ViolationInDB]:
-        result = await ViolationsRepo().get_violation_by_id(violation_id=violation_id)
+    async def get_violation_dict_by_id(self, violation_dict_id: int) -> Optional[ViolationInDB]:
+        result = await ViolationsRepo().get_violation_dict_by_id(violation_dict_id=violation_dict_id)
         return result if result else None
 
     async def is_violation_already_in_check(
@@ -132,45 +129,52 @@ class ViolationFoundService:
             violation_dict_id=violation_dict_id, check_id=check_id
         )
         return result
+    
+    async def is_violation_already_fixed(
+            self, violation_found_id: int
+    ) -> bool:
+        result = await ViolationFoundRepo().is_violation_already_fixed(
+            violation_found_id=violation_found_id
+        )
+        return result
 
     async def get_violation_performers_by_mo(self, mo: str) -> Optional[List[UserInDB]]:
         performers = await UserRepo().get_user_performer_by_mo(mo=mo)
         return performers if performers else None
 
     async def get_description(self, violation_dict_id: int) -> Optional[str]:
-        result = await ViolationsRepo().get_violation_by_id(
-            violation_id=violation_dict_id,
+        result = await ViolationsRepo().get_violation_dict_by_id(
+            violation_dict_id=violation_dict_id,
         )
         return result.description if result else None
 
     async def send_vio_notification_to_mo_performers(
-        self, callback: CallbackQuery, mo: str, fil_: str, violation: ViolationFoundInDB, is_task: bool
+        self, callback: CallbackQuery, violation: ViolationFoundOut
     ):
-        performers = await self.get_violation_performers_by_mo(mo=mo)
+        performers = await self.get_violation_performers_by_mo(mo=violation.mo)
         if performers:
-            violation_found_out = await self.form_violation_out(violation=violation)
-            res = await self.form_violation_card(violation=violation_found_out)
+            res = violation.violation_card()
             await callback.message.answer(
-                text=f"Оповещение о нарушении отправлено сотрудникам {mo}"
+                text=f"Оповещение о нарушении отправлено сотрудникам {violation.mo}"
             )
             for performer in performers:
-                if violation.photo_id:
+                if violation.photo_id_mfc:
                     await callback.bot.send_photo(
-                        chat_id=performer.id,
-                        photo=violation.photo_id,
-                        caption=f"<b>Зарегистрировано новое нарушение в филиале {fil_}</b>\n{res}",
+                        chat_id=performer.user_id,
+                        photo=violation.photo_id_mfc,
+                        caption=f"<b>Зарегистрировано новое нарушение в филиале {violation.fil_}</b>\n{res}",
                         reply_markup=MfcKeyboards().take_task_to_work(
-                            violation_id=violation.id,
-                            is_task=1 if is_task else 0
+                            violation_id=violation.violation_found_id,
+                            is_task=violation.is_task
                             )
                     )
                 else:
                     await callback.bot.send_message(
                         chat_id=performer.id,
-                        text=f"<b>Зарегистрировано новое нарушение в филиале {fil_}</b>\n{res}",
+                        text=f"<b>Зарегистрировано новое нарушение в филиале {violation.fil_}</b>\n{res}",
                         reply_markup=MfcKeyboards().take_task_to_work(
                             violation_id=violation.id,
-                            is_task=1 if is_task else 0
+                            is_task=violation.is_task
                         )
                     )
         else:
@@ -181,27 +185,20 @@ class ViolationFoundService:
     async def save_violation_process(
         self,
         callback: CallbackQuery,
-        vio_data: dict,
+        violation_found_out: ViolationFoundOut,
     ):
-        violation_name = vio_data["violation_name"]
         await callback.message.edit_text(
-            text=MfcMessages.save_violation(violation=violation_name), reply_markup=None
+            text=MfcMessages.save_violation(violation=violation_found_out.violation_name), reply_markup=None
         )
 
-        vio_obj = ViolationFoundCreate(
-            check_id=vio_data["check_id"],
-            violation_id=vio_data["violation_dict_id"],
-            photo_id=vio_data["photo_id"],
-            comm=vio_data["comm"],
+        vio_found_update = ViolationFoundUpdate(
+            **violation_found_out.model_dump()
         )
-        vio_in_db = await self.add_violation(violation_create=vio_obj)
-        logger.info(f'IS_TASK_IS: {bool(vio_data.get("is_task"))}')
+        await self.update_violation(violation_found_id=violation_found_out.violation_found_id,
+                                    violation_update=vio_found_update)
         await self.send_vio_notification_to_mo_performers(
             callback=callback,
-            mo=vio_data["mo"],
-            fil_=vio_data["fil_"],
-            violation=vio_in_db,
-            is_task=bool(vio_data.get('is_task'))
+            violation=violation_found_out
         )
 
     async def form_task_replies(
@@ -218,22 +215,22 @@ class ViolationFoundService:
                 reply_markup=message.reply_markup,
             )
         else:
-            await state.update_data(fil_=fil_, mo_user_id=message.from_user.id)
+            # await state.update_data(fil_=fil_, mo_user_id=message.from_user.id)
             if not mo_start:
                 await state.update_data(mo_start=dt.datetime.now().isoformat())
             for task in tasks:
                 violation_out = await self.form_violation_out(violation=task)
                 await state.update_data(
-                    {f"vio_{violation_out.id}": violation_out.model_dump_json()}
+                    {f"vio_{violation_out.violation_found_id}": violation_out.model_dump(mode='json')}
                 )
             data = await state.get_data()
             violation_out_objects = sorted(
                 [
-                    ViolationFoundOut(**json.loads(v))
+                    ViolationFoundOut(**v)
                     for k, v in data.items()
                     if (k.startswith("vio_") and v)
                 ],
-                key=lambda x: x.violation_id,
+                key=lambda x: x.violation_dict_id,
             )
 
             reply_obj = FormCards().form_reply(
@@ -262,17 +259,17 @@ class ViolationFoundService:
             for violation in violations:
                 violation_out = await self.form_violation_out(violation=violation)
                 await state.update_data(
-                    {f"vio_{violation_out.id}": violation_out.model_dump_json()}
+                    {f"vio_{violation_out.violation_found_id}": violation_out.model_dump(mode='json')}
                 )
 
             data = await state.get_data()
             violation_out_objects = sorted(
                 [
-                    ViolationFoundOut(**json.loads(v))
+                    ViolationFoundOut(**v)
                     for k, v in data.items()
                     if (k.startswith("vio_") and v)
                 ],
-                key=lambda x: x.violation_id,
+                key=lambda x: x.violation_dict_id,
             )
 
             reply_obj = FormCards().form_reply(
@@ -289,23 +286,31 @@ class ViolationFoundService:
     async def form_violation_out(
         self,
         violation: ViolationFoundInDB,
+        check_obj: CheckService = CheckService(),
+        help_obj: HelpService=HelpService()
     ) -> ViolationFoundOut:
-        vio = await self.get_violation_by_id(violation_id=violation.violation_id)
+        vio = await self.get_violation_dict_by_id(violation_dict_id=violation.violation_dict_id)
+        check = await check_obj.get_check_by_id(check_id=violation.check_id)
+        mo = await help_obj.get_mo_by_fil(fil_=check.fil_)
         vio_found = ViolationFoundOut(
-            id=violation.id,
-            violation_id=violation.violation_id,
+            mo=mo,
+            fil_=check.fil_,
+            is_task=check.is_task,
+            check_id=violation.check_id,
+            violation_found_id=violation.violation_found_id,
+            violation_dict_id=violation.violation_dict_id,
             zone=vio.zone,
             violation_name=vio.violation_name,
             time_to_correct=vio.time_to_correct,
             violation_detected=violation.violation_detected,
-            comm=violation.comm,
-            photo_id=violation.photo_id,
+            comm_mfc=violation.comm_mfc,
+            photo_id_mfc=violation.photo_id_mfc,
         )
         return vio_found
 
-    async def form_violation_card(
-        self,
-        violation: ViolationFoundOut,
-    ) -> str:
-        text_mes = FormCards().violation_card(violation=violation)
-        return text_mes
+    # async def form_violation_card(
+    #     self,
+    #     violation: ViolationFoundOut,
+    # ) -> str:
+    #     text_mes = FormCards().violation_card(violation=violation)
+    #     return text_mes

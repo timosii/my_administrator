@@ -26,7 +26,7 @@ class UserRepo:
 
     @cached(ttl=3600, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer())
     async def get_user_mo(self, user_id: int) -> str:
-        query = select(User.mo_).filter_by(id=user_id)
+        query = select(User.mo_).filter_by(user_id=user_id)
         result = await self._get_scalar(query=query)
         logger.info('get user mo')
         return result
@@ -91,31 +91,31 @@ class UserRepo:
 
     @cached(ttl=600, cache=Cache.REDIS, namespace='user')
     async def is_admin(self, user_id: int) -> bool:
-        query = select(User.is_admin).filter_by(id=user_id, is_archived=False)
+        query = select(User.is_admin).filter_by(user_id=user_id, is_archived=False)
         logger.info('is admin')
         return await self._get_scalar(query=query)
 
     @cached(ttl=600, cache=Cache.REDIS, namespace='user')
     async def is_mfc(self, user_id: int) -> bool:
-        query = select(User.is_mfc).filter_by(id=user_id, is_archived=False)
+        query = select(User.is_mfc).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mfc')
         return await self._get_scalar(query=query)
 
     @cached(ttl=600, cache=Cache.REDIS, namespace='user')
     async def is_mfc_leader(self, user_id: int) -> bool:
-        query = select(User.is_mfc_leader).filter_by(id=user_id, is_archived=False)
+        query = select(User.is_mfc_leader).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mfc leader')
         return await self._get_scalar(query=query)
     
     @cached(ttl=600, cache=Cache.REDIS, namespace='user')
     async def is_mo_performer(self, user_id: int) -> bool:
-        query = select(User.is_mo_performer).filter_by(id=user_id, is_archived=False)
+        query = select(User.is_mo_performer).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mo performer')
         return await self._get_scalar(query=query)
     
     @cached(ttl=600, cache=Cache.REDIS, namespace='user')
     async def is_mo_controler(self, user_id: int) -> bool:
-        query = select(User.is_mo_controler).filter_by(id=user_id, is_archived=False)
+        query = select(User.is_mo_controler).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mo controler')
         return await self._get_scalar(query=query)
 
@@ -126,7 +126,7 @@ class UserRepo:
 
     async def _update_field(self, user_id: int, **kwargs) -> None:
         async with self.session_maker() as session:
-            stmt = update(User).where(User.id == user_id).values(**kwargs)
+            stmt = update(User).where(User.user_id == user_id).values(**kwargs)
             await session.execute(stmt)
             await session.commit()
 
