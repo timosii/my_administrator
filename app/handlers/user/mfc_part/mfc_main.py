@@ -101,14 +101,20 @@ async def delete_unfinished(
     callback: CallbackQuery, state: FSMContext, check_obj: CheckService = CheckService()
 ):
     check_id = int(callback.data.split("_")[-1])
-    await check_obj.delete_check(check_id=check_id)
-    await callback.answer(
-        text=MfcMessages.check_deleted,
-    )
-    await state.update_data({
-        f'check_unfinished_{check_id}': None
-    })
-    await callback.message.delete()
+    result = await check_obj.delete_check_zero_violations(check_id=check_id)
+    if result: 
+        await callback.answer(
+            text=result,
+            show_alert=True
+        )
+    else:    
+        await callback.answer(
+            text=MfcMessages.check_deleted,
+        )
+        await state.update_data({
+            f'check_unfinished_{check_id}': None
+        })
+        await callback.message.delete()
 
 
 @router.callback_query(

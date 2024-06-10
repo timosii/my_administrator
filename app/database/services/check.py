@@ -45,9 +45,15 @@ class CheckService:
         )
         return result
 
-    async def delete_check(self, check_id: int) -> None:
-        result = await self.db_repository.delete_check(check_id=check_id)
-        return result
+    async def delete_check_zero_violations(self, check_id: int) -> None | str:
+        violations_count = await self.get_violations_found_count_by_check(
+                check_id=check_id
+            )
+        if violations_count == 0:
+            result = await self.db_repository.delete_check(check_id=check_id)
+            return result
+        else:
+            return 'Вы не можете удалить проверку, есть зафиксированные нарушения'
 
     async def delete_all_checks(self) -> None:
         result = await self.db_repository.delete_all_checks()

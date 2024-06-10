@@ -82,7 +82,8 @@ class UserRepo:
             query = select(User).where(
                 and_(
                     User.mo_ == mo,
-                    User.is_mo_performer.is_(True)
+                    User.is_mo_performer.is_(True),
+                    User.is_archived.is_not(True)
                 )
             )
             result = await session.execute(query)

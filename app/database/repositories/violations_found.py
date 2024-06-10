@@ -40,11 +40,11 @@ class ViolationFoundRepo:
 
     @cached(ttl=300, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer())
     async def get_violation_found_by_id(
-        self, violation_id: int
+        self, violation_found_id: int
     ) -> Optional[ViolationFoundInDB]:
         async with self.session_maker() as session:
             result = await session.execute(
-                select(ViolationFound).filter_by(violation_found_id=violation_id)
+                select(ViolationFound).filter_by(violation_found_id=violation_found_id)
             )
             violation = result.scalar_one_or_none()
             logger.info('get violation found by id')

@@ -86,7 +86,9 @@ class MoPerformerMessages:
     can_continue_or_finish = 'Мы всё сохранили. Спасибо!'
     photo_comm_added = 'Информация сохранена ✅'
     choose_check_task = 'Вы можете выбрать активные уведомления или полноценные проверки'
-    tasks_work_finish = 'Работа с уведомлениями закончена'
+    tasks_work_finish = 'Работа с уведомлением закончена. Спасибо!'
+    exit_first = 'Сначала выйдете из режима исправления'
+    exit_take = 'Вы вышли из режима исправления нарушения'
 
     @staticmethod
     def finish_mes(violation_name: str):

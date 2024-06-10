@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
 from aiogram.types import CallbackQuery, Message
 from app.database.database import session_maker
 from app.database.repositories.violations_found import ViolationFoundRepo
@@ -52,10 +53,10 @@ class ViolationFoundService:
         return result
 
     async def get_violation_found_by_id(
-        self, violation_id: int
+        self, violation_found_id: int
     ) -> Optional[ViolationFoundInDB]:
         result = await self.db_repository.get_violation_found_by_id(
-            violation_id=violation_id
+            violation_found_id=violation_found_id
         )
         return result
     
@@ -155,7 +156,8 @@ class ViolationFoundService:
         if performers:
             res = violation.violation_card()
             await callback.message.answer(
-                text=f"Оповещение о нарушении отправлено сотрудникам {violation.mo}"
+                text=f"Оповещение о нарушении отправлено сотрудникам {violation.mo}",
+                reply_markup=ReplyKeyboardRemove()
             )
             for performer in performers:
                 if violation.photo_id_mfc:
@@ -212,10 +214,8 @@ class ViolationFoundService:
         if not tasks:
             await message.answer(
                 text=MoPerformerMessages.form_no_tasks_answer(fil_=fil_),
-                reply_markup=message.reply_markup,
             )
         else:
-            # await state.update_data(fil_=fil_, mo_user_id=message.from_user.id)
             if not mo_start:
                 await state.update_data(mo_start=dt.datetime.now().isoformat())
             for task in tasks:
@@ -289,8 +289,8 @@ class ViolationFoundService:
         check_obj: CheckService = CheckService(),
         help_obj: HelpService=HelpService()
     ) -> ViolationFoundOut:
-        vio = await self.get_violation_dict_by_id(violation_dict_id=violation.violation_dict_id)
         check = await check_obj.get_check_by_id(check_id=violation.check_id)
+        vio = await self.get_violation_dict_by_id(violation_dict_id=violation.violation_dict_id)
         mo = await help_obj.get_mo_by_fil(fil_=check.fil_)
         vio_found = ViolationFoundOut(
             mo=mo,
