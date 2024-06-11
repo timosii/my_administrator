@@ -498,7 +498,7 @@ async def finish_check(
     violation_count = await check.get_violations_found_count_by_check(check_id=check_id)
     if data['is_task']:
         if violation_count == 0:
-            await check.delete_check(check_id=check_id)
+            await check.delete_check_zero_violations(check_id=check_id)
             await message.answer(
                 text=MfcMessages.finish_task_zero_violations, reply_markup=ReplyKeyboardRemove()
             )
