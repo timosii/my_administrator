@@ -200,7 +200,7 @@ async def get_violations(
         ],
         key=lambda x: x.violation_dict_id,
     )
-    if len(violation_out_objects) == 1:
+    if len(violation_out_objects) in (0, 1):
         await callback.answer(text=MoPerformerMessages.no_violations_buttons)
         return
 

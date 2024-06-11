@@ -77,7 +77,7 @@ class MoPerformerMessages:
     comm_added = 'Комментарий добавлен!'
     choose_another = 'Вы можете выбрать другое нарушение из списка нарушений'
     no_violations = 'Для этой проверки нарушений нет!'
-    no_violations_buttons = 'Других нарушений нет'
+    no_violations_buttons = 'Больше нарушений нет'
     back_to_checks = 'Возвращаемся к списку проверок...'
     continue_check = 'Загружаю нарушения...'
     wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
