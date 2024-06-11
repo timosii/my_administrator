@@ -278,9 +278,15 @@ class ViolationFoundService:
             photo_id = reply_obj.photo_id
             text_mes = reply_obj.text_mes
             keyboard = reply_obj.keyboard
-            await callback.message.answer_photo(
-                photo=photo_id, caption=text_mes, reply_markup=keyboard
-            )
+            if photo_id:
+                await callback.message.answer_photo(
+                    photo=photo_id, caption=text_mes, reply_markup=keyboard
+                )
+            else:
+                await callback.message.answer(
+                    text=text_mes, reply_markup=keyboard
+                )
+
             await callback.answer()
 
     async def form_violation_out(
