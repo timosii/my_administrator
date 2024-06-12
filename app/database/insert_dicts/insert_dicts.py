@@ -64,9 +64,14 @@ class DictsInsert():
             await session.commit()
 
     def insert_dicts_to_db(self):
-        asyncio.run(self.insert_mos())
-        asyncio.run(self.insert_fils())
-        asyncio.run(self.insert_zones())
-        asyncio.run(self.insert_problems())
-        asyncio.run(self.insert_violations())
+        asyncio.get_event_loop().run_until_complete(self.insert_mos())
+        asyncio.get_event_loop().run_until_complete(self.insert_fils())
+        asyncio.get_event_loop().run_until_complete(self.insert_zones())
+        asyncio.get_event_loop().run_until_complete(self.insert_problems())
+        asyncio.get_event_loop().run_until_complete(self.insert_violations())
+        # asyncio.run(self.insert_mos())
+        # asyncio.run(self.insert_fils())
+        # asyncio.run(self.insert_zones())
+        # asyncio.run(self.insert_problems())
+        # asyncio.run(self.insert_violations())
         

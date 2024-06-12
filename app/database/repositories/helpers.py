@@ -1,5 +1,5 @@
 from aiocache.serializers import PickleSerializer
-import redis.asyncio as redis
+# import redis.asyncio as redis
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func, not_, and_, text

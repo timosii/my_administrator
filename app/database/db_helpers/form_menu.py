@@ -55,24 +55,3 @@ async def get_fils_by_mo(mo: str):
         logger.info('get fils by mo')
         return list(fils)
 
-ZONES = None
-VIOLATIONS = None
-FILIALS = None
-
-async def initialize_constants():
-    global ZONES, VIOLATIONS, FILIALS
-    ZONES = await get_all_zones()
-    VIOLATIONS = await get_all_violations()
-    FILIALS = await get_all_filials()
-
-asyncio.get_event_loop().run_until_complete(initialize_constants())
-# asyncio.run(initialize_constants())
-
-# def get_zones():
-#     return ZONES
-
-# def get_violations():
-#     return VIOLATIONS
-
-# def get_filials():
-#     return FILIALS

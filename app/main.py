@@ -9,10 +9,9 @@ from app.handlers.user.mfc_part import mfc_main, mfc_leader
 from aiogram.types import BotCommand
 from app.middlewares.logging_mw import ErrorLoggingMiddleware, FSMMiddleware
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiogram.client.bot import DefaultBotProperties
 from aiohttp import web
-import nest_asyncio
-
-nest_asyncio.apply()
+from aiocache import cached, Cache
 
 WEBHOOK_HOST = 'https://ample-infinitely-crow.ngrok-free.app' 
 WEBHOOK_PATH = '/webhook'
@@ -32,11 +31,13 @@ async def set_main(bot: Bot):
 
 
 async def on_shutdown(bot: Bot) -> None:
+    cache = Cache(Cache.REDIS)
+    await cache.close()
     logger.info('bot stopped')
-    # await bot.delete_webhook(drop_pending_updates=True)
 
 @logger.catch
 def start_bot() -> None:
+    bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode='HTML'))
     redis = Redis(host='localhost')
     storage = RedisStorage(redis=redis)
     dp = Dispatcher(storage=storage)
@@ -54,7 +55,6 @@ def start_bot() -> None:
     dp.update.middleware(ErrorLoggingMiddleware())
     dp.startup.register(set_main)
     dp.shutdown.register(on_shutdown)
-    bot = Bot(token=settings.BOT_TOKEN, parse_mode='HTML')
     app = web.Application()
     webhook_requests_handler = SimpleRequestHandler(
         dispatcher=dp,

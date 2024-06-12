@@ -1,5 +1,4 @@
 from aiocache.serializers import PickleSerializer
-import redis.asyncio as redis
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func, not_, and_, text
@@ -9,6 +8,7 @@ from app.database.models.data import Check, ViolationFound
 from loguru import logger
 from app.database.schemas.check_schema import CheckCreate, CheckUpdate, CheckInDB
 from aiocache import cached, Cache
+
 
 class CheckRepo:
     def __init__(self):

@@ -85,7 +85,7 @@ class ViolationFoundService:
         result = await self.db_repository.delete_all_violations_found()
         return result
 
-    async def get_all_violations(self) -> List[ViolationFoundInDB]:
+    async def get_all_violations_found(self) -> List[ViolationFoundInDB]:
         result = await self.db_repository.get_all_violations_found()
         return result
 

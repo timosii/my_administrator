@@ -24,7 +24,7 @@ class UserRepo:
             await self.clear_cache()
             return UserInDB.model_validate(new_user)
 
-    # @cached(ttl=3600, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer())
+    @cached(ttl=60, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer())
     async def get_user_mo(self, user_id: int) -> str:
         query = select(User.mo_).filter_by(user_id=user_id)
         result = await self._get_scalar(query=query)
@@ -76,7 +76,7 @@ class UserRepo:
         logger.info('get user count')
         return await self._get_scalar(query=query) or 0
     
-    # @cached(ttl=60, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer())
+    @cached(ttl=60, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer())
     async def get_user_performer_by_mo(self, mo: str) -> Optional[List[UserInDB]]:
         async with self.session_maker() as session:
             query = select(User).where(
@@ -90,31 +90,31 @@ class UserRepo:
             users = result.scalars().all()
             return [UserInDB.model_validate(user) for user in users] if users else None
 
-    # @cached(ttl=600, cache=Cache.REDIS, namespace='user')
+    @cached(ttl=600, cache=Cache.REDIS, namespace='user')
     async def is_admin(self, user_id: int) -> bool:
         query = select(User.is_admin).filter_by(user_id=user_id, is_archived=False)
         logger.info('is admin')
         return await self._get_scalar(query=query)
 
-    # @cached(ttl=600, cache=Cache.REDIS, namespace='user')
+    @cached(ttl=600, cache=Cache.REDIS, namespace='user')
     async def is_mfc(self, user_id: int) -> bool:
         query = select(User.is_mfc).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mfc')
         return await self._get_scalar(query=query)
 
-    # @cached(ttl=600, cache=Cache.REDIS, namespace='user')
+    @cached(ttl=600, cache=Cache.REDIS, namespace='user')
     async def is_mfc_leader(self, user_id: int) -> bool:
         query = select(User.is_mfc_leader).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mfc leader')
         return await self._get_scalar(query=query)
     
-    # @cached(ttl=600, cache=Cache.REDIS, namespace='user')
+    @cached(ttl=600, cache=Cache.REDIS, namespace='user')
     async def is_mo_performer(self, user_id: int) -> bool:
         query = select(User.is_mo_performer).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mo performer')
         return await self._get_scalar(query=query)
     
-    # @cached(ttl=600, cache=Cache.REDIS, namespace='user')
+    @cached(ttl=600, cache=Cache.REDIS, namespace='user')
     async def is_mo_controler(self, user_id: int) -> bool:
         query = select(User.is_mo_controler).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mo controler')

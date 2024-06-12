@@ -14,8 +14,9 @@ from app.handlers.messages import MoPerformerMessages, DefaultMessages
 from app.handlers.states import MoPerformerStates
 from app.filters.mo_filters import MoPerformerFilter
 from app.filters.default import not_back_filter, not_menu_filter
+from app.filters.form_menu import is_in_filials, is_in_violations, is_in_zones
 # from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
-from app.database.db_helpers.form_menu import ZONES, VIOLATIONS, FILIALS
+# from app.database.db_helpers.form_menu import ZONES, VIOLATIONS, FILIALS
 from app.database.services.check import CheckService
 from app.database.services.violations_found import ViolationFoundService
 from app.database.services.users import UserService
@@ -47,8 +48,7 @@ async def cmd_start(
 
 
 @router.message(
-    # lambda message: message.text in get_filials(),
-    lambda message: message.text in FILIALS,
+    is_in_filials,
     StateFilter(MoPerformerStates.mo_performer),
 )
 async def get_checks(

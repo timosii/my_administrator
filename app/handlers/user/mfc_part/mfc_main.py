@@ -12,8 +12,9 @@ from app.handlers.messages import MfcMessages, DefaultMessages
 from app.handlers.states import MfcStates
 from app.filters.mfc_filters import MfcFilter
 from app.filters.default import not_back_filter, not_cancel_filter
+from app.filters.form_menu import is_in_filials, is_in_violations, is_in_zones
 # from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
-from app.database.db_helpers.form_menu import ZONES, VIOLATIONS, FILIALS
+# from app.database.db_helpers.form_menu import ZONES, VIOLATIONS, FILIALS
 from app.database.services.users import UserService
 from app.database.services.check import CheckService
 from app.database.services.violations_found import ViolationFoundService
@@ -46,7 +47,7 @@ async def cmd_start(
 
 
 @router.message(
-    lambda message: message.text in FILIALS, StateFilter(MfcStates.choose_fil)
+    is_in_filials, StateFilter(MfcStates.choose_fil)
 )
 async def choose_fil_handler(
     message: Message,
@@ -75,7 +76,7 @@ async def start_checking(
     await state.update_data(check_in_obj.model_dump(mode='json'))
     await message.answer(
         text=MfcMessages.choose_zone_with_time,
-        reply_markup=MfcKeyboards().choose_zone(),
+        reply_markup=await MfcKeyboards().choose_zone(),
     )
     await state.set_state(MfcStates.choose_zone)
 
@@ -129,7 +130,7 @@ async def finish_unfinished(
         state=state, callback=callback, check_id=check_id
     )
     await callback.message.answer(
-        text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
+        text=MfcMessages.choose_zone, reply_markup=await MfcKeyboards().choose_zone()
     )
     await state.set_state(MfcStates.choose_zone)
 
@@ -151,7 +152,7 @@ async def notification_handler(
     )
     check_in_obj = await check.add_check(check_create=check_obj)
     await message.answer(
-        text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
+        text=MfcMessages.choose_zone, reply_markup=await MfcKeyboards().choose_zone()
     )
     await state.update_data(
         check_in_obj.model_dump(mode='json')
@@ -189,14 +190,14 @@ async def back_command(message: Message, state: FSMContext):
         mo = await UserService().get_user_mo(message.from_user.id)
         await message.answer(
             text=MfcMessages.main_menu,
-            reply_markup=await MfcKeyboards().main_menu(mo=mo),
+            reply_markup=MfcKeyboards().main_menu(),
         )
         await state.set_state(MfcStates.choose_type_checking)
 
     elif current_state == MfcStates.choose_violation:
         await state.set_state(MfcStates.choose_zone)
         await message.answer(
-            text=MfcMessages.choose_zone, reply_markup=MfcKeyboards().choose_zone()
+            text=MfcMessages.choose_zone, reply_markup=await MfcKeyboards().choose_zone()
         )
         await state.update_data(zone=None)
     elif current_state == MfcStates.choose_photo_comm:
@@ -234,7 +235,7 @@ async def back_command(message: Message, state: FSMContext):
 
 
 @router.message(
-    lambda message: message.text in ZONES, StateFilter(MfcStates.choose_zone)
+    is_in_zones, StateFilter(MfcStates.choose_zone)
 )
 async def choose_zone_handler(message: Message, state: FSMContext):
     zone = message.text
@@ -247,7 +248,7 @@ async def choose_zone_handler(message: Message, state: FSMContext):
 
 
 @router.message(
-    lambda message: message.text in VIOLATIONS,
+    is_in_violations,
     StateFilter(MfcStates.choose_violation),
 )
 async def choose_violation_handler(
