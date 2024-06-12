@@ -66,12 +66,13 @@ async def initialize_constants():
     FILIALS = await get_all_filials()
 
 asyncio.get_event_loop().run_until_complete(initialize_constants())
+# asyncio.run(initialize_constants())
 
-def get_zones():
-    return ZONES
+# def get_zones():
+#     return ZONES
 
-def get_violations():
-    return VIOLATIONS
+# def get_violations():
+#     return VIOLATIONS
 
-def get_filials():
-    return FILIALS
+# def get_filials():
+#     return FILIALS

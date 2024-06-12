@@ -12,7 +12,8 @@ from app.handlers.messages import MfcMessages, DefaultMessages
 from app.handlers.states import MfcStates
 from app.filters.mfc_filters import MfcFilter
 from app.filters.default import not_back_filter, not_cancel_filter
-from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
+# from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
+from app.database.db_helpers.form_menu import ZONES, VIOLATIONS, FILIALS
 from app.database.services.users import UserService
 from app.database.services.check import CheckService
 from app.database.services.violations_found import ViolationFoundService
@@ -45,7 +46,7 @@ async def cmd_start(
 
 
 @router.message(
-    lambda message: message.text in get_filials(), StateFilter(MfcStates.choose_fil)
+    lambda message: message.text in FILIALS, StateFilter(MfcStates.choose_fil)
 )
 async def choose_fil_handler(
     message: Message,
@@ -233,7 +234,7 @@ async def back_command(message: Message, state: FSMContext):
 
 
 @router.message(
-    lambda message: message.text in get_zones(), StateFilter(MfcStates.choose_zone)
+    lambda message: message.text in ZONES, StateFilter(MfcStates.choose_zone)
 )
 async def choose_zone_handler(message: Message, state: FSMContext):
     zone = message.text
@@ -246,7 +247,7 @@ async def choose_zone_handler(message: Message, state: FSMContext):
 
 
 @router.message(
-    lambda message: message.text in get_violations(),
+    lambda message: message.text in VIOLATIONS,
     StateFilter(MfcStates.choose_violation),
 )
 async def choose_violation_handler(

@@ -1,7 +1,8 @@
 import asyncio
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
-from app.database.db_helpers.form_menu import get_zone_violations, get_zones, get_fils_by_mo
+# from app.database.db_helpers.form_menu import get_zone_violations, get_zones, get_fils_by_mo
+from app.database.db_helpers.form_menu import get_zone_violations, get_fils_by_mo, ZONES
 
 
 class DefaultKeyboards:
@@ -36,7 +37,7 @@ class MfcKeyboards:
         return self.kb.as_markup(resize_keyboard=True)
 
     def choose_zone(self) -> ReplyKeyboardMarkup:
-        zones = get_zones()
+        zones = ZONES
         buttons = [KeyboardButton(text=zone) for zone in zones]
         self.kb.add(*buttons)
         self.kb.button(text='Закончить проверку')

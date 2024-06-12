@@ -14,7 +14,8 @@ from app.handlers.messages import MoPerformerMessages, DefaultMessages
 from app.handlers.states import MoPerformerStates
 from app.filters.mo_filters import MoPerformerFilter
 from app.filters.default import not_back_filter, not_menu_filter
-from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
+# from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
+from app.database.db_helpers.form_menu import ZONES, VIOLATIONS, FILIALS
 from app.database.services.check import CheckService
 from app.database.services.violations_found import ViolationFoundService
 from app.database.services.users import UserService
@@ -46,7 +47,8 @@ async def cmd_start(
 
 
 @router.message(
-    lambda message: message.text in get_filials(),
+    # lambda message: message.text in get_filials(),
+    lambda message: message.text in FILIALS,
     StateFilter(MoPerformerStates.mo_performer),
 )
 async def get_checks(
@@ -137,9 +139,9 @@ async def take_to_work(
         mo_start=dt.datetime.now().isoformat(),
     )
     text_mes = violation_out.violation_card()
-    # await state.update_data({
-    #     f'vio_{violation_id}': violation_out.model_dump(mode='json')
-    # })
+    await state.update_data({
+        f'vio_{violation_found_id}': violation_out.model_dump(mode='json')
+    })
     await callback.message.answer(
         text=MoPerformerMessages.correct_mode(text_mes=text_mes),
         reply_markup=MoPerformerKeyboards().correct_violation(),
