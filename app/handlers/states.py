@@ -11,6 +11,8 @@ class MfcStates(StatesGroup):
     add_comm = State()
     continue_state = State()
   
+class Feedback(StatesGroup):
+    feedback = State()
 
 class MoPerformerStates(StatesGroup):
     mo_performer = State()

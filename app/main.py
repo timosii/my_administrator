@@ -23,6 +23,10 @@ async def set_main(bot: Bot):
     main_menu_commands = [
         BotCommand(command='/start',
                    description='Начать'),
+        BotCommand(command='/feedback',
+                   description='Обратная связь'),
+        BotCommand(command='/changelog',
+                   description='Что нового?')
     ]
     await bot.set_my_commands(main_menu_commands)
     await bot.set_webhook(WEBHOOK_URL)

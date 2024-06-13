@@ -11,7 +11,16 @@ class DefaultKeyboards:
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
+
+    def feedback_kb(self) -> InlineKeyboardMarkup:
+        self.kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text='Закончить отправку', callback_data='finish_feedback_')
+            ]
+        ])
+        return self.kb
     
+
 
 class DevKeyboards:
     def __init__(self) -> None:

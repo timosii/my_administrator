@@ -1,6 +1,7 @@
 import datetime as dt
 from app.utils.utils import time_determiner, form_greeting
 from app.view.cards import FormCards
+from app.misc.changelog import CHANGELOG
 
 
 class AdminMessages:
@@ -10,6 +11,11 @@ class DefaultMessages:
     start_message = f'{form_greeting()}! Нажмите кнопку, чтобы я узнал вас!'
     something_wrong = 'Что-то пошло не так. Попробуйте ещё раз или начните сначала /start '
     not_good_time = 'Сейчас не лучшее время для этого ...'
+    feedback = 'Вы можете отправить сообщение об ошибке или оставить пожелания по улучшениям.\nПоддерживаются <b>фотографии и текст</b>. Как закончите, нажмите <b>"Закончить отправку"</b>.\nСпасибо за участие, вы очень помогаете проекту!'
+    feedback_answer = 'Принято! Продолжайте отправлять сообщения или фотографии, а когда закончите нажмите "Закончить отправку"'
+    feedback_answer_finish = 'Спасибо, вся информация отправлена разработчикам!\nВы можете продолжить работу с приложением'
+    cancel_feedback = 'Возвращаемся обратно! Вы можете продолжить работу с приложением'
+    send_changelog = CHANGELOG
 
 class MfcMessages:
     start_message = 'Для начала нажмите /start'
