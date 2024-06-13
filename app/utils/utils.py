@@ -1,5 +1,8 @@
 import datetime as dt
+import pytz
 from loguru import logger
+
+
 
 def time_determiner():
     tz = dt.timezone(dt.timedelta(hours=3), name='Europe/Moscow')
@@ -18,6 +21,17 @@ def form_greeting():
     else:
         greeting = 'Добрый вечер'
     return greeting
+
+def to_moscow_time(date: dt.datetime) -> dt.datetime:
+    utc_zone = pytz.utc
+    moscow_zone = pytz.timezone('Europe/Moscow')
+
+    date_utc = date.replace(tzinfo=utc_zone)
+    date_moscow = date_utc.astimezone(moscow_zone)
+    date_moscow_naive = date_moscow.replace(tzinfo=None)
+    
+    return date_moscow_naive
+
 
 def format_timedelta(td: dt.timedelta):
     total_minutes = int(td.total_seconds() // 60)
@@ -73,12 +87,15 @@ def get_index_by_violation_id(objects: list[object], violation_id: int) -> int |
 
 
 if __name__ == '__main__':
-    td1 = dt.timedelta(days=0, hours=0, minutes=5)
-    td2 = dt.timedelta(days=5, hours=1, minutes=50)
-    td3 = dt.timedelta(days=0, hours=0, minutes=30)
-    td4 = dt.timedelta(days=1, hours=0, minutes=0)
+    pass
+    # td1 = dt.timedelta(days=0, hours=0, minutes=5)
+    # td2 = dt.timedelta(days=5, hours=1, minutes=50)
+    # td3 = dt.timedelta(days=0, hours=0, minutes=30)
+    # td4 = dt.timedelta(days=1, hours=0, minutes=0)
 
-    print(format_timedelta(td1))
-    print(format_timedelta(td2))
-    print(format_timedelta(td3))
-    print(format_timedelta(td4))
+    # print(format_timedelta(td1))
+    # print(format_timedelta(td2))
+    # print(format_timedelta(td3))
+    # print(format_timedelta(td4))
+    # time = dt.datetime.now()
+    # print(time_moscow(time))

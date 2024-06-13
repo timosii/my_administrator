@@ -31,9 +31,11 @@ from app.database.schemas.violation_schema import (
 from app.database.schemas.user_schema import UserInDB
 from app.view.cards import FormCards
 from loguru import logger
-import pytz
+from app.utils.utils import to_moscow_time
 
-moscow_tz = pytz.timezone('Europe/Moscow')
+
+
+# moscow_tz = pytz.timezone('Europe/Moscow')
 
 class ViolationFoundService:
     def __init__(self, db_repository: ViolationFoundRepo = ViolationFoundRepo()):
@@ -234,7 +236,6 @@ class ViolationFoundService:
                 ],
                 key=lambda x: x.violation_dict_id,
             )
-
             reply_obj = FormCards().form_reply(
                 violations_out=violation_out_objects, order=0
             )

@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 import datetime as dt
-from app.utils.utils import format_timedelta
+from app.utils.utils import format_timedelta, to_moscow_time
 
 
 class ViolationFoundBase(BaseModel):
@@ -51,7 +51,7 @@ class ViolationFoundOut(ViolationFoundBase):
 <b>Нарушение:</b>
 {self.violation_name}
 <b>Время выявления нарушения:</b>
-{self.violation_detected.strftime('%d.%m.%Y %H:%M')}
+{to_moscow_time(self.violation_detected).strftime('%d.%m.%Y %H:%M')}
 
 Комментарий: {self.comm_mfc if self.comm_mfc else 'отсутствует'}
 Время на исправление: {format_timedelta(self.time_to_correct)}

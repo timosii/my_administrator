@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 import datetime as dt
-from app.utils.utils import format_timedelta
+from app.utils.utils import format_timedelta, to_moscow_time
 
 class CheckBase(BaseModel):
     fil_: str
@@ -39,9 +39,9 @@ class CheckOut(BaseModel):
 <b>Филиал:</b>
 {self.fil_}
 <b>Дата начала проверки:</b>
-{self.mfc_start.strftime('%d.%m.%Y %H:%M')}
+{to_moscow_time(self.mfc_start).strftime('%d.%m.%Y %H:%M')}
 <b>Дата завершения проверки:</b>
-{self.mfc_finish.strftime('%d.%m.%Y %H:%M')}
+{to_moscow_time(self.mfc_finish).strftime('%d.%m.%Y %H:%M')}
 <b>Проверка заняла: {format_timedelta(self.mfc_finish - self.mfc_start)} </b>
 <b>Количество нарушений:</b>
 {self.violations_count}
@@ -61,7 +61,7 @@ class CheckOutUnfinished(BaseModel):
 <b>Филиал:</b>
 {self.fil_}
 <b>Дата начала проверки:</b>
-{self.mfc_start.strftime('%d.%m.%Y %H:%M')}
+{to_moscow_time(self.mfc_start).strftime('%d.%m.%Y %H:%M')}
 <b>Количество выявленных нарушений:</b>
 {self.violations_count}
         """

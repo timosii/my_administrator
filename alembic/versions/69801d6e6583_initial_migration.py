@@ -1,8 +1,8 @@
 """initial migration
 
-Revision ID: f77088b1d275
-Revises: e5746cc984ae
-Create Date: 2024-06-13 02:53:45.853720
+Revision ID: 69801d6e6583
+Revises: f77088b1d275
+Create Date: 2024-06-13 16:38:14.906908
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'f77088b1d275'
+revision: str = '69801d6e6583'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -84,8 +84,8 @@ def upgrade() -> None:
     sa.Column('is_mo_performer', sa.Boolean(), nullable=False),
     sa.Column('is_mo_controler', sa.Boolean(), nullable=False),
     sa.Column('is_archived', sa.Boolean(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text("timezone('Europe/Moscow', now())"), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text("timezone('Europe/Moscow', now())"), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
     sa.CheckConstraint('is_admin OR is_mfc OR is_mfc_leader OR is_mo_performer OR is_mo_controler', name='check_role_logic'),
     sa.ForeignKeyConstraint(['mo_'], ['dicts.mos.mo_'], ),
     sa.PrimaryKeyConstraint('user_id'),
@@ -121,7 +121,7 @@ def upgrade() -> None:
     sa.Column('check_id', sa.BigInteger(), nullable=False),
     sa.Column('fil_', sa.String(length=255), nullable=False),
     sa.Column('mfc_user_id', sa.BigInteger(), nullable=False),
-    sa.Column('mfc_start', sa.DateTime(), server_default=sa.text("timezone('Europe/Moscow', now())"), nullable=False),
+    sa.Column('mfc_start', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
     sa.Column('mfc_finish', sa.DateTime(), nullable=True),
     sa.Column('mo_user_id', sa.BigInteger(), nullable=True),
     sa.Column('mo_start', sa.DateTime(), nullable=True),
@@ -142,7 +142,7 @@ def upgrade() -> None:
     sa.Column('comm_mfc', sa.String(), nullable=True),
     sa.Column('photo_id_mo', sa.String(length=255), nullable=True),
     sa.Column('comm_mo', sa.String(), nullable=True),
-    sa.Column('violation_detected', sa.DateTime(), server_default=sa.text("timezone('Europe/Moscow', now())"), nullable=False),
+    sa.Column('violation_detected', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
     sa.Column('violation_fixed', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['check_id'], ['data.check.check_id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['violation_dict_id'], ['dicts.violations.violation_dict_id'], ),
