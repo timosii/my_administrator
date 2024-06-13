@@ -27,10 +27,12 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundUpdate,
 )
 from app.utils.utils import get_index_by_violation_id
+import pytz
+
 
 router = Router()
 router.message.filter(MoPerformerFilter())
-
+moscow_tz = pytz.timezone('Europe/Moscow')
 
 @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
 async def cmd_start(
@@ -136,7 +138,7 @@ async def take_to_work(
     await state.update_data(
         **violation_out.model_dump(mode="json"),
         is_take=True,
-        mo_start=dt.datetime.now().isoformat(),
+        mo_start=dt.datetime.now(moscow_tz).isoformat(),
     )
     text_mes = violation_out.violation_card()
     await state.update_data({
@@ -177,7 +179,7 @@ async def get_violations(
     violations = await violation_obj.get_violations_found_by_check(check_id=check_id)
     data = await state.get_data()
     if not data.get("mo_start"):
-        await state.update_data(mo_start=dt.datetime.now().isoformat())
+        await state.update_data(mo_start=dt.datetime.now(moscow_tz).isoformat())
 
     await violation_obj.form_violations_replies(
         violations=violations, callback=callback, state=state
@@ -253,7 +255,7 @@ async def process_correct_callback(
     if not data.get('mo_user_id') and not data.get('mo_start'):
         await state.update_data(
             mo_user_id=callback.from_user.id,
-            mo_start=dt.datetime.now().isoformat()
+            mo_start=dt.datetime.now(moscow_tz).isoformat()
         )
 
     text_mes = violation_out.violation_card()
@@ -358,7 +360,7 @@ async def save_violation_found_process(
     vio_upd = ViolationFoundUpdate(
         photo_id_mo=data["photo_id_mo"],
         comm_mo=data["comm_mo"],
-        violation_fixed=dt.datetime.now(),
+        violation_fixed=dt.datetime.now(moscow_tz),
     )
     await violation_obj.update_violation(
         violation_found_id=violation_found_id, violation_update=vio_upd
@@ -370,7 +372,7 @@ async def save_violation_found_process(
         check_upd = CheckUpdate(
             mo_user_id=mo_user_id,
             mo_start=dt.datetime.fromisoformat(data["mo_start"]),
-            mo_finish=dt.datetime.now(),
+            mo_finish=dt.datetime.now(moscow_tz),
         )
         await check_obj.update_check(check_id=check_id, check_update=check_upd)
         await state.update_data(mo_start=None, check_id=None)
@@ -536,7 +538,7 @@ async def correct_vio_process_finish(
     check_upd = CheckUpdate(
         mo_user_id=data["mo_user_id"],
         mo_start=dt.datetime.fromisoformat(data["mo_start"]),
-        mo_finish=dt.datetime.now(),
+        mo_finish=dt.datetime.now(moscow_tz),
     )
     check_id = data["check_id"]
     await check_obj.update_check(check_id=check_id, check_update=check_upd)

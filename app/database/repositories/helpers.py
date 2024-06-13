@@ -10,13 +10,15 @@ from app.database.models.dicts import Mos, Filials
 from loguru import logger
 from app.database.schemas.check_schema import CheckCreate, CheckUpdate, CheckInDB
 from aiocache import cached, Cache
+from app.config import settings
+
 
 class HelpRepo:
     def __init__(self):
         self.session_maker = session_maker
-        self.cache = Cache(Cache.REDIS, namespace='helpers', serializer=PickleSerializer())
+        self.cache = Cache(Cache.REDIS, namespace='helpers', serializer=PickleSerializer(),endpoint=settings.REDIS_HOST)
     
-    @cached(ttl=3600, cache=Cache.REDIS, namespace='helpers', serializer=PickleSerializer())
+    @cached(ttl=3600, cache=Cache.REDIS, namespace='helpers', serializer=PickleSerializer(),endpoint=settings.REDIS_HOST)
     async def get_mo_by_fil(self, fil_: str):
         query = select(Filials.mo_).where(
             and_(

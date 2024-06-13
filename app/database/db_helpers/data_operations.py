@@ -15,117 +15,106 @@ from loguru import logger
 
 
 async def insert_data_user(user: UserService = UserService()):
-    user_test_1 = UserCreate(
-        user_id=6164463753,
-        mo_='ГП 107',
-        is_mfc=True,
-        last_name='Тестов',
-        first_name='Тест',
-        patronymic='Тестович',
-        post='Аналитик 2.0',
-    )
-    user_test_2 = UserCreate(
-        user_id=581145287,
-        mo_='ГП 107',
-        is_mo_performer=True,
-        last_name='Тестов',
-        first_name='Тест',
-        patronymic='Тестович',
-        post='Аналитик 3.0',
-    )
+    user_tests = [
+        UserCreate(
+            user_id=6164463753,
+            mo_='ГП 107',
+            is_mfc=True,
+            last_name='Тестов',
+            first_name='Тест',
+            patronymic='Тестович',
+            post='Аналитик 2.0',
+        ),
+        UserCreate(
+            user_id=581145287,
+            mo_='ГП 107',
+            is_mo_performer=True,
+            last_name='Тестов',
+            first_name='Тест',
+            patronymic='Тестович',
+            post='Аналитик 3.0',
+        ),
+        UserCreate(
+            user_id=255746374,
+            mo_='ГП 107',
+            is_mfc=True,
+            last_name='Тестов',
+            first_name='Тест',
+            patronymic='Тестович',
+            post='Аналитик 4.0',
+        ),
+        UserCreate(
+            user_id=714806103,
+            mo_='ГП 212',
+            is_mfc=True,
+            last_name='Куликов',
+            first_name='Тест',
+            patronymic='Тестович',
+            post='Аналитик 5.0',
+        ),
+        UserCreate(
+            user_id=364167798,
+            mo_='ГП 45',
+            is_mfc=True,
+            last_name='Мискарян',
+            first_name='Тест',
+            patronymic='Тестович',
+            post='Аналитик 6.0',
+        ),
+        UserCreate(
+            user_id=905290819,
+            mo_='ГП 107',
+            is_mfc=True,
+            last_name='Бортников',
+            first_name='Тест',
+            patronymic='Тестович',
+            post='Аналитик 7.0',
+        ),
+        UserCreate(
+            user_id=133283796,
+            mo_='ГП 45',
+            is_mfc=True,
+            last_name='Постолакин',
+            first_name='Тест',
+            patronymic='Тестович',
+            post='Аналитик 8.0',
+        ),
+        UserCreate(
+            user_id=360185080,
+            mo_='ГП 212',
+            is_mfc=True,
+            last_name='Баум',
+            first_name='Тест',
+            patronymic='Тестович',
+            post='Аналитик 9.0',
+        ),
+        UserCreate(
+            user_id=322561217,
+            mo_='ГП 107',
+            is_mfc=True,
+            last_name='Варлашин',
+            first_name='Тест',
+            patronymic='Тестович',
+            post='Аналитик 10.0',
+        ),
+        UserCreate(
+            user_id=153964237,
+            mo_='ГП 107',
+            is_mfc=True,
+            last_name='Сизов',
+            first_name='Тест',
+            patronymic='Тестович',
+            post='Аналитик 11.0',
+        ),
+    ]
 
-    user_test_3 = UserCreate(
-        user_id=255746374,
-        mo_='ГП 107',
-        is_mfc=True,
-        last_name='Тестов',
-        first_name='Тест',
-        patronymic='Тестович',
-        post='Аналитик 4.0',
-
-    )
+    for u in user_tests:
+        existing_user = await user.user_exists(u.user_id)
+        if not existing_user:
+            await user.add_user(u)    
+        else:
+            logger.info(f'User with id {u.user_id} already exists in db')
     
-    user_test_4 = UserCreate(
-        user_id=714806103,
-        mo_='ГП 212',
-        is_mo_performer=True,
-        last_name='Куликов',
-        first_name='Тест',
-        patronymic='Тестович',
-        post='Аналитик 5.0',
-    )
-
-    user_test_5 = UserCreate(
-        user_id=364167798,
-        mo_='ГП 45',
-        is_mfc=True,
-        last_name='Мискарян',
-        first_name='Тест',
-        patronymic='Тестович',
-        post='Аналитик 6.0',
-    )
-
-    user_test_6 = UserCreate(
-        user_id=905290819,
-        mo_='ГП 107',
-        is_mo_performer=True,
-        last_name='Бортников',
-        first_name='Тест',
-        patronymic='Тестович',
-        post='Аналитик 7.0',
-    )
-
-    user_test_7 = UserCreate(
-        user_id=133283796,
-        mo_='ГП 45',
-        is_mo_performer=True,
-        last_name='Постолакин',
-        first_name='Тест',
-        patronymic='Тестович',
-        post='Аналитик 8.0',
-    )
-
-    user_test_8 = UserCreate(
-        user_id=360185080,
-        mo_='ГП 212',
-        is_mfc=True,
-        last_name='Баум',
-        first_name='Тест',
-        patronymic='Тестович',
-        post='Аналитик 9.0',
-    )
-
-    user_test_9 = UserCreate(
-        user_id=322561217,
-        mo_='ГП 107',
-        is_mfc=True,
-        last_name='Варлашин',
-        first_name='Тест',
-        patronymic='Тестович',
-        post='Аналитик 10.0',
-    )
-    user_test_10 = UserCreate(
-        user_id=153964237,
-        mo_='ГП 107',
-        is_mfc=True,
-        last_name='Сизов',
-        first_name='Тест',
-        patronymic='Тестович',
-        post='Аналитик 11.0',
-    )
-    for u in (
-        user_test_1,
-        user_test_2,
-        user_test_3,
-        user_test_4,
-        user_test_5,
-        user_test_6,
-        user_test_7,
-        user_test_8,
-        user_test_9,
-        user_test_10
-    ):
-        await user.add_user(u)    
     logger.info('users added to db')
 
 

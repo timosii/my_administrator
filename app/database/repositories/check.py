@@ -1,19 +1,18 @@
 from aiocache.serializers import PickleSerializer
-from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func, not_, and_, text
-from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_maker
 from app.database.models.data import Check, ViolationFound
 from loguru import logger
 from app.database.schemas.check_schema import CheckCreate, CheckUpdate, CheckInDB
 from aiocache import cached, Cache
+from app.config import settings
 
 
 class CheckRepo:
     def __init__(self):
         self.session_maker = session_maker
-        self.cache = Cache(Cache.REDIS, namespace='check', serializer=PickleSerializer())
+        self.cache = Cache(Cache.REDIS, namespace='check', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
     
     async def add_check(self, check_create: CheckCreate) -> CheckInDB:
         async with self.session_maker() as session:
@@ -25,12 +24,12 @@ class CheckRepo:
             await self.clear_cache()
             return CheckInDB.model_validate(new_check)
     
-    @cached(ttl=300, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
+    @cached(ttl=300, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
     async def check_exists(self, check_id: int) -> bool:
         query = select(Check.check_id).filter_by(check_id=check_id)
         return await self._get_scalar(query=query)
 
-    @cached(ttl=300, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
+    @cached(ttl=300, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer(),endpoint=settings.REDIS_HOST)
     async def get_check_by_id(self, check_id: int) -> Optional[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check).filter_by(check_id=check_id))
@@ -63,7 +62,7 @@ class CheckRepo:
             logger.info('ALL checks deleted')
             await self.clear_cache()
 
-    @cached(ttl=10, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
+    @cached(ttl=10, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
     async def get_all_checks(self) -> List[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check))
@@ -86,7 +85,7 @@ class CheckRepo:
             return [CheckInDB.model_validate(check) for check in checks] if checks else ''
 
 
-    @cached(ttl=10, cache=Cache.REDIS, namespace='violation_found')
+    @cached(ttl=10, cache=Cache.REDIS, namespace='violation_found', endpoint=settings.REDIS_HOST)
     async def get_violations_found_count_by_check(self, check_id: int) -> int:
         query = select(func.count()).select_from(ViolationFound).where(
             and_(
@@ -100,7 +99,7 @@ class CheckRepo:
             or 0
         )
 
-    # @cached(ttl=3, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
+    # @cached(ttl=3, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer(),endpoint=settings.REDIS_HOST)
     async def get_all_active_checks_by_fil(
         self, fil_: str
     ) -> List[CheckInDB] | str:
@@ -122,13 +121,13 @@ class CheckRepo:
                 else ''
             )
         
-    @cached(ttl=10, cache=Cache.REDIS, namespace='check')
+    @cached(ttl=10, cache=Cache.REDIS, namespace='check', endpoint=settings.REDIS_HOST)
     async def get_checks_count(self) -> int:
         query = select(func.count()).select_from(Check)
         logger.info('get checks count')
         return await self._get_scalar(query=query) or 0
 
-    @cached(ttl=10, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer())
+    @cached(ttl=10, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
     async def get_checks_by_mfc_user(self, user_id: int) -> List[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check).filter_by(mfc_user_id=user_id))

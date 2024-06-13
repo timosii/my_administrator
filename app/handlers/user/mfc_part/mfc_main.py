@@ -25,11 +25,12 @@ from app.database.schemas.violation_found_schema import (
 )
 from loguru import logger
 from aiogram.exceptions import TelegramBadRequest
+import pytz
 
 
 router = Router()
 router.message.filter(MfcFilter())
-
+moscow_tz = pytz.timezone('Europe/Moscow')
 
 @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
 async def cmd_start(
@@ -265,7 +266,7 @@ async def choose_violation_handler(
     )
     await state.update_data(
         violation_dict_id=violation_dict_id,
-        # violation_detected=dt.datetime.now().isoformat()
+        # violation_detected=dt.datetime.now(moscow_tz).isoformat()
     )
     violation_create_obj = ViolationFoundCreate(
         **(await state.get_data()),
@@ -461,7 +462,7 @@ async def save_violation(
     await callback.answer(text=MfcMessages.violation_saved, show_alert=True)
     if vio_data.get("is_task"):
         check_id = vio_data["check_id"]
-        check_upd = CheckUpdate(mfc_finish=dt.datetime.now())
+        check_upd = CheckUpdate(mfc_finish=dt.datetime.now(moscow_tz))
         await check.update_check(check_id=check_id, check_update=check_upd)
         await state.clear()
         return
@@ -513,7 +514,7 @@ async def finish_check(
             await state.clear()
             return
 
-    check_upd = CheckUpdate(mfc_finish=dt.datetime.now())
+    check_upd = CheckUpdate(mfc_finish=dt.datetime.now(moscow_tz))
     await check.update_check(check_id=check_id, check_update=check_upd)
     await state.clear()
     await message.answer(

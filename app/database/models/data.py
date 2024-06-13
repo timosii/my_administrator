@@ -3,7 +3,8 @@ import enum
 from typing import Optional, Annotated
 from sqlalchemy import (
     ForeignKey,
-    CheckConstraint
+    CheckConstraint,
+    TIMESTAMP
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.database import (
@@ -15,8 +16,10 @@ from app.database.database import (
     bigint_pk,
     bigint_pk_tg,
     bigint,
-    str_pk
+    str_pk,
 )
+from sqlalchemy.types import DateTime
+
 
 class User(Base):
     __tablename__ = 'user'

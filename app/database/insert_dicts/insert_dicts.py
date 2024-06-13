@@ -10,6 +10,7 @@ from app.database.models.dicts import (
     Violations,
     ProblemBlocs
 )
+from sqlalchemy import select
 
 class DictsInsert():
     def __init__(self,
@@ -34,34 +35,44 @@ class DictsInsert():
 
     async def insert_mos(self):
         async with session_maker() as session:
-            mos = [Mos(**row) for _, row in self.dfs['mos_dict'].iterrows()]
-            session.add_all(mos)
-            await session.commit()
+            result = await session.execute(select(Mos).limit(1))
+            if not result.scalar():
+                mos = [Mos(**row) for _, row in self.dfs['mos_dict'].iterrows()]
+                session.add_all(mos)
+                await session.commit()
 
     async def insert_fils(self):
         async with session_maker() as session:
-            fils = [Filials(**row) for _, row in self.dfs['fils_dict'].iterrows()]
-            session.add_all(fils)
-            await session.commit()  
+            result = await session.execute(select(Filials).limit(1))
+            if not result.scalar():
+                fils = [Filials(**row) for _, row in self.dfs['fils_dict'].iterrows()]
+                session.add_all(fils)
+                await session.commit()  
 
     async def insert_zones(self):
         async with session_maker() as session:
-            zones = [Zones(**row) for _, row in self.dfs['zones_dict'].iterrows()]
-            session.add_all(zones)
-            await session.commit()
+            result = await session.execute(select(Zones).limit(1))
+            if not result.scalar():
+                zones = [Zones(**row) for _, row in self.dfs['zones_dict'].iterrows()]
+                session.add_all(zones)
+                await session.commit()
 
     async def insert_problems(self):
         async with session_maker() as session:
-            problems = [ProblemBlocs(**row) for _, row in self.dfs['problems_dict'].iterrows()]
-            session.add_all(problems)
-            await session.commit()
+            result = await session.execute(select(ProblemBlocs).limit(1))
+            if not result.scalar():
+                problems = [ProblemBlocs(**row) for _, row in self.dfs['problems_dict'].iterrows()]
+                session.add_all(problems)
+                await session.commit()
 
     async def insert_violations(self):
         self.dfs['violations_dict']['time_to_correct'] = pd.to_timedelta(self.dfs['violations_dict']['time_to_correct']).astype(str)
         async with session_maker() as session:
-            violations = [Violations(**row) for _, row in self.dfs['violations_dict'].iterrows()]
-            session.add_all(violations)
-            await session.commit()
+            result = await session.execute(select(Violations).limit(1))
+            if not result.scalar():
+                violations = [Violations(**row) for _, row in self.dfs['violations_dict'].iterrows()]
+                session.add_all(violations)
+                await session.commit()
 
     def insert_dicts_to_db(self):
         asyncio.get_event_loop().run_until_complete(self.insert_mos())

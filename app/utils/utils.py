@@ -19,7 +19,7 @@ def form_greeting():
         greeting = 'Добрый вечер'
     return greeting
 
-def format_timedelta(td):
+def format_timedelta(td: dt.timedelta):
     total_minutes = int(td.total_seconds() // 60)
     hours, minutes = divmod(total_minutes, 60)
     days, hours = divmod(hours, 24)

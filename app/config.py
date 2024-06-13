@@ -13,6 +13,8 @@ class Settings:
     DB_HOST: Final = os.getenv('POSTGRES_HOST', 'need to define')
     DB_PORT: Final = os.getenv('POSTGRES_PORT', 'need to define')
     DB_NAME: Final = os.getenv('POSTGRES_DB', 'need to define')
+    REDIS_HOST: Final = os.getenv('REDIS_HOST', 'need to define')
+    NGROK_HOST: Final = os.getenv('NGROK_HOST', 'need to define')
 
     @property
     def url_constructor(self):

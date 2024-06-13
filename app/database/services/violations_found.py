@@ -31,7 +31,9 @@ from app.database.schemas.violation_schema import (
 from app.database.schemas.user_schema import UserInDB
 from app.view.cards import FormCards
 from loguru import logger
+import pytz
 
+moscow_tz = pytz.timezone('Europe/Moscow')
 
 class ViolationFoundService:
     def __init__(self, db_repository: ViolationFoundRepo = ViolationFoundRepo()):

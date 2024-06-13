@@ -11,12 +11,11 @@ from app.middlewares.logging_mw import ErrorLoggingMiddleware, FSMMiddleware
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiogram.client.bot import DefaultBotProperties
 from aiohttp import web
-from aiocache import cached, Cache
 
 WEBHOOK_HOST = 'https://ample-infinitely-crow.ngrok-free.app' 
 WEBHOOK_PATH = '/webhook'
 WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
-WEBAPP_HOST = '127.0.0.1'
+WEBAPP_HOST = settings.NGROK_HOST
 WEBAPP_PORT = 8080
 
 
@@ -30,15 +29,13 @@ async def set_main(bot: Bot):
     logger.info('bot started')
 
 
-async def on_shutdown(bot: Bot) -> None:
-    cache = Cache(Cache.REDIS)
-    await cache.close()
+async def on_shutdown() -> None:
     logger.info('bot stopped')
 
 @logger.catch
 def start_bot() -> None:
     bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode='HTML'))
-    redis = Redis(host='localhost')
+    redis = Redis(host=settings.REDIS_HOST)
     storage = RedisStorage(redis=redis)
     dp = Dispatcher(storage=storage)
     dp.include_routers(

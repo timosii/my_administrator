@@ -8,6 +8,7 @@ from app.database.schemas.violation_schema import (
 )
 from loguru import logger
 from aiocache import cached, Cache
+from app.config import settings
 
 
 class ViolationsRepo:
@@ -28,7 +29,7 @@ class ViolationsRepo:
             logger.info('get dict vio id by name and zone')
             return violation_id if violation_id else None       
 
-    @cached(ttl=600, cache=Cache.REDIS, namespace='violations', serializer=PickleSerializer())
+    @cached(ttl=600, cache=Cache.REDIS, namespace='violations', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
     async def get_violation_dict_by_id(
         self,
         violation_dict_id: int

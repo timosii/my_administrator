@@ -8,13 +8,18 @@ from sqlalchemy import (
     String,
     BigInteger,
     func,
+    DateTime
 )
 from sqlalchemy.orm import mapped_column
+import pytz
+
 
 engine = create_async_engine(
     url= settings.url_constructor,
     # echo=True
 )
+
+moscow_tz = pytz.timezone('Europe/Moscow') 
 
 session_maker = async_sessionmaker(engine)
 
@@ -43,8 +48,9 @@ str_255 = Annotated[str, mapped_column(
 datetime_now = Annotated[dt.datetime, mapped_column(server_default=func.timezone('Europe/Moscow', func.now()))]
 updated_at = Annotated[dt.datetime, mapped_column(
         server_default=func.timezone('Europe/Moscow', func.now()),
-        onupdate=dt.datetime.now,
+        onupdate=func.timezone('Europe/Moscow', func.now()),
     )]
+
 
 class Base(DeclarativeBase):
     repr_cols_num = 3
