@@ -7,7 +7,7 @@ FROM python:3.10-slim
 WORKDIR /code
 COPY --from=requirements-stage /tmp/requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
-COPY ./app /code/app
+# COPY ./app /code/app
 COPY ./alembic /code/alembic
 COPY ./alembic.ini /code
 COPY ./run.py /code
