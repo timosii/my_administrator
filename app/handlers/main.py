@@ -4,7 +4,7 @@ from app.handlers.user import register_users_handlers
 from app.handlers.admin import register_admin_handlers
 from app.handlers.other import register_other_handlers
 
-
+# перенести регистрацию роутеров сюда (?)
 # def register_all_handlers(dp: Dispatcher) -> None:
 #     handlers = (
 #         register_admin_handlers,

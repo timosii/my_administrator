@@ -32,7 +32,6 @@ import pytz
 
 router = Router()
 router.message.filter(MoPerformerFilter())
-# moscow_tz = pytz.timezone('Europe/Moscow')
 
 @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
 async def cmd_start(
@@ -83,9 +82,6 @@ async def get_active_violations(
     else:
         for check in checks:
             check_out = await check_obj.form_check_out(check=check)
-            # await state.update_data(
-            #     {f"check_{check_out.check_id}": check_out.model_dump(mode='json')}
-            # )
             text_mes = check_out.form_card_check_out()
             keyboard = MoPerformerKeyboards().get_under_check(check_id=check.check_id)
             await message.answer(text=text_mes, reply_markup=keyboard)

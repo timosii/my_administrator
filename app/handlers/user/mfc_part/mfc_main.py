@@ -11,7 +11,7 @@ from app.keyboards.default import DefaultKeyboards
 from app.handlers.messages import MfcMessages, DefaultMessages
 from app.handlers.states import MfcStates
 from app.filters.mfc_filters import MfcFilter
-from app.filters.default import not_back_filter, not_cancel_filter
+from app.filters.default import not_back_filter, not_cancel_filter, not_buttons_filter
 from app.filters.form_menu import is_in_filials, is_in_violations, is_in_zones
 # from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
 # from app.database.db_helpers.form_menu import ZONES, VIOLATIONS, FILIALS
@@ -207,10 +207,11 @@ async def back_command(message: Message, state: FSMContext):
         await state.set_state(MfcStates.choose_violation)
         data = await state.get_data()
         zone = data["zone"]
+        violations_completed = data.get('violations_completed', [])
         await state.update_data(violation_name=None, violation_dict_id=None)
         await message.answer(
             text=MfcMessages.choose_violation(zone=zone),
-            reply_markup=await MfcKeyboards().choose_violation(zone=zone),
+            reply_markup=await MfcKeyboards().choose_violation(zone=zone, completed_violations=violations_completed),
         )
 
     elif current_state in (
@@ -241,12 +242,14 @@ async def back_command(message: Message, state: FSMContext):
     is_in_zones, StateFilter(MfcStates.choose_zone)
 )
 async def choose_zone_handler(message: Message, state: FSMContext):
-    zone = message.text
+    zone = ' '.join(message.text.split()[1:])
+    data = await state.get_data()
+    violations_completed = data.get('violations_completed', [])
     await message.answer(
         text=MfcMessages.choose_violation(zone=zone),
-        reply_markup=await MfcKeyboards().choose_violation(zone=zone),
+        reply_markup=await MfcKeyboards().choose_violation(zone=zone, completed_violations=violations_completed),
     )
-    await state.update_data(zone=message.text)
+    await state.update_data(zone=zone)
     await state.set_state(MfcStates.choose_violation)
 
 
@@ -260,6 +263,9 @@ async def choose_violation_handler(
     violation_obj: ViolationFoundService = ViolationFoundService(),
 ):
     violation_name = message.text
+    if '✅' in violation_name:
+        violation_name = message.text.split('✅')[-1].strip()
+
     data = await state.get_data()
     zone = data["zone"]
     violation_dict_id = await violation_obj.get_dict_id_by_name(
@@ -268,7 +274,6 @@ async def choose_violation_handler(
     )
     await state.update_data(
         violation_dict_id=violation_dict_id,
-        # violation_detected=to_moscow_time(dt.datetime.now()).isoformat()
     )
     violation_create_obj = ViolationFoundCreate(
         **(await state.get_data()),
@@ -301,6 +306,21 @@ async def choose_violation_handler(
         reply_markup=MfcKeyboards().get_description(violation_id=violation_dict_id),
     )
     await state.set_state(MfcStates.choose_photo_comm)
+
+
+@router.message(
+    F.text.lower() == '⬅️ к выбору зоны',
+    StateFilter(MfcStates.choose_violation),
+)
+async def to_zone_choose(
+    message: Message,
+    state: FSMContext,
+):
+    await state.set_state(MfcStates.choose_zone)
+    await message.answer(
+        text=MfcMessages.choose_zone, reply_markup=await MfcKeyboards().choose_zone()
+    )
+    await state.update_data(zone=None)
 
 
 @router.callback_query(F.data.startswith("description_"), ~StateFilter(default_state))
@@ -362,7 +382,7 @@ async def add_photo_handler_(message: Message, state: FSMContext):
         await state.set_state(MfcStates.choose_photo_comm)
 
 
-@router.message(F.text, not_cancel_filter, StateFilter(MfcStates.add_comm))
+@router.message(F.text, not_cancel_filter, not_back_filter, not_buttons_filter, StateFilter(MfcStates.add_comm))
 async def add_comm_handler(message: Message, state: FSMContext):
     comm_mfc = message.text
     data = await state.get_data()
@@ -427,6 +447,7 @@ async def cancel_adding_vio(
     await state.set_state(MfcStates.choose_violation)
     data = await state.get_data()
     zone = data["zone"]
+    violations_completed = data.get('violations_completed', [])
     await violation_obj.delete_violation(data['violation_found_id'])
     await state.update_data(
         time_to_correct=None,
@@ -436,14 +457,12 @@ async def cancel_adding_vio(
         violation_dict_id=None)
     await message.answer(
         text=MfcMessages.choose_violation(zone=zone),
-        reply_markup=await MfcKeyboards().choose_violation(zone=zone),
+        reply_markup=await MfcKeyboards().choose_violation(zone=zone, completed_violations=violations_completed),
     )
-
 
 ################
 # finish_check #
 ################
-
 
 @router.callback_query(F.data == "save_and_go", StateFilter(MfcStates.continue_state))
 async def save_violation(
@@ -462,6 +481,10 @@ async def save_violation(
     )
 
     await callback.answer(text=MfcMessages.violation_saved, show_alert=True)
+    violations_completed = vio_data.get('violations_completed', [])
+    violations_completed.append(violation_found_obj.violation_name)
+    await state.update_data(violations_completed=violations_completed)
+
     if vio_data.get("is_task"):
         check_id = vio_data["check_id"]
         check_upd = CheckUpdate(mfc_finish=dt.datetime.now())
@@ -472,12 +495,10 @@ async def save_violation(
     await callback.message.answer(
         text=MfcMessages.continue_check,
     )
-
     await callback.message.answer(
         text=MfcMessages.choose_violation(zone=vio_data['zone']),
-        reply_markup=await MfcKeyboards().choose_violation(zone=vio_data['zone']),
+        reply_markup=await MfcKeyboards().choose_violation(zone=vio_data['zone'], completed_violations=violations_completed),
     )
-
     await state.update_data(
         {
             'violation_detected': None,
@@ -493,7 +514,7 @@ async def save_violation(
 
 
 @router.message(
-    F.text.lower() == "закончить проверку", StateFilter(MfcStates.choose_zone)
+    F.text.lower() == "⛔️ закончить проверку", StateFilter(MfcStates.choose_zone)
 )
 async def finish_check(
     message: Message, state: FSMContext, check: CheckService = CheckService()

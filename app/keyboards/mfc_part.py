@@ -1,6 +1,8 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from app.database.db_helpers.form_menu import get_zone_violations, get_fils_by_mo, get_all_zones
+from typing import Optional
+from app.misc.menu_beautify import ICONS_MAPPING
 
 class DefaultKeyboards:
     def __init__(self) -> None:
@@ -35,17 +37,17 @@ class MfcKeyboards:
 
     async def choose_zone(self) -> ReplyKeyboardMarkup:
         zones = await get_all_zones()
-        buttons = [KeyboardButton(text=zone) for zone in zones]
+        buttons = [KeyboardButton(text=f'{ICONS_MAPPING[zone]} {zone}') for zone in zones]
         self.kb.add(*buttons)
-        self.kb.button(text='Закончить проверку')
+        self.kb.button(text='⛔️ Закончить проверку')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    async def choose_violation(self, zone: str) -> ReplyKeyboardMarkup:
+    async def choose_violation(self, zone: str, completed_violations: Optional[list]=None) -> ReplyKeyboardMarkup:
         violations = await get_zone_violations(zone=zone)
-        buttons = [KeyboardButton(text=violation) for violation in violations]
+        buttons = [KeyboardButton(text=f'✅ {violation}' if violation in completed_violations else f'{violation}') for violation in violations]
+        self.kb.button(text='⬅️ К выбору зоны')
         self.kb.add(*buttons)
-        self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 

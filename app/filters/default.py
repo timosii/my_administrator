@@ -13,5 +13,31 @@ async def not_menu_filter(message: Message) -> bool:
     res = message.text.lower() not in menu
     return res
 
+
+async def not_buttons_filter(message: Message) -> bool:
+    buttons = [
+        'Добавить пользователя',
+        'Удалить пользователя',
+        'Посмотреть пользователей',
+        'Посмотреть отчеты',
+        'Пройти авторизацию',
+        'Назад',
+        'Проверить незавершенные проверки',
+        'Добавить уведомление о нарушении',
+        'Начать проверку',
+        '⛔️ Закончить проверку',
+        '⬅️ К выбору зоны',
+        'Отменить',
+        'Добавить пользователя',
+        'Посмотреть отчет о работе сотрудников МФЦ',
+        'Активные уведомления',
+        'Активные проверки',
+        'Вернуться в меню',
+        'Написать комментарий',
+        'Загрузить фото',
+    ]
+    res = message.text not in buttons
+    return res
+
 async def not_cancel_filter(message: Message) -> bool:
     return message.text.lower() != 'отменить'

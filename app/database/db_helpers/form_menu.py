@@ -32,7 +32,7 @@ async def get_zone_violations(zone: str):
         return list(violations)
 
 @cached(ttl=60, cache=Cache.REDIS, namespace='dicts_info', endpoint=settings.REDIS_HOST)
-async def get_all_violations():
+async def get_all_violations() -> list[str]:
     async with session_maker() as session:
         query = select(Violations.violation_name)
         result = await session.execute(query)
@@ -57,4 +57,3 @@ async def get_fils_by_mo(mo: str):
         fils = result.scalars()
         logger.info('get fils by mo')
         return list(fils)
-

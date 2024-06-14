@@ -10,7 +10,7 @@ from app.keyboards.default import DefaultKeyboards
 from app.handlers.messages import DefaultMessages
 from app.handlers.states import MfcStates, Feedback
 from app.filters.mfc_filters import MfcFilter
-from app.filters.default import not_back_filter, not_cancel_filter, not_menu_filter
+from app.filters.default import not_back_filter, not_cancel_filter, not_menu_filter, not_buttons_filter
 from loguru import logger
 from app.config import settings
 from app.misc.changelog import CHANGELOG
@@ -30,7 +30,6 @@ async def cmd_start(message: Message, state: FSMContext):
 @router.message(Command("feedback"))
 async def get_feedback(message: Message, state: FSMContext):
     current_state = await state.get_state()
-    logger.info(f'STATE IS: {current_state}')
     await message.answer(
         text=DefaultMessages.feedback,
         reply_markup=DefaultKeyboards().feedback_kb()
@@ -44,12 +43,13 @@ async def get_feedback(message: Message, state: FSMContext):
                 not_menu_filter,
                 not_back_filter,
                 not_cancel_filter,
+                not_buttons_filter,
                 StateFilter(Feedback.feedback))
 async def take_feedback(message: Message, state: FSMContext, bot: Bot):
     res = message.text
     await bot.send_message(
         chat_id=settings.DEV_ID,
-        text=f'{message.from_user.id} {message.from_user.username} хочет сказать:\n{res}'
+        text=f'#feedback\n{message.from_user.id} {message.from_user.username} хочет сказать:\n{res}'
     )
     await message.answer(
         text=DefaultMessages.feedback_answer,
