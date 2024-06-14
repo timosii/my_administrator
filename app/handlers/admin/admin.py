@@ -14,8 +14,16 @@ router = Router()
 router.message.filter(AdminFilter())
 
 
-@router.message(F.text.lower() == 'пройти авторизацию',
-                StateFilter(default_state))
+# @router.message(F.text.lower() == 'пройти авторизацию',
+#                 StateFilter(default_state))
+# async def cmd_start(message: Message, state: FSMContext):
+#     await message.answer(
+#         text=AdminMessages.start_message,
+#         reply_markup=AdminKeyboards().main_menu()
+#     )
+#     await state.set_state(AdminStates.admin)
+
+@router.message(Command('start'))
 async def cmd_start(message: Message, state: FSMContext):
     await message.answer(
         text=AdminMessages.start_message,
@@ -23,10 +31,10 @@ async def cmd_start(message: Message, state: FSMContext):
     )
     await state.set_state(AdminStates.admin)
 
-@router.message(F.text.lower() == "назад", StateFilter(AdminStates.admin))
-async def back_command(message: Message, state: FSMContext):
-    await state.clear()
-    await message.answer(
-            text=DefaultMessages.start_message,
-            reply_markup=DefaultKeyboards().get_authorization()
-        )
+# @router.message(F.text.lower() == "назад", StateFilter(AdminStates.admin))
+# async def back_command(message: Message, state: FSMContext):
+#     await state.clear()
+#     await message.answer(
+#             text=DefaultMessages.start_message,
+#             reply_markup=DefaultKeyboards().get_authorization()
+#         )

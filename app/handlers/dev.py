@@ -31,8 +31,8 @@ async def hard_reset(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     state_after = await state.get_state()
     await callback.message.answer(
-        text=f'Состояние сброшено с {state_before} на {state_after}\nВы можете авторизоваться',
-        reply_markup=DefaultKeyboards().get_authorization()
+        text=f'Состояние сброшено с {state_before} на {state_after}\nВы можете начать заново',
+        # reply_markup=DefaultKeyboards().get_authorization()
     )
     await callback.answer()
 

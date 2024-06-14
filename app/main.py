@@ -22,7 +22,7 @@ WEBAPP_PORT = 8080
 async def set_main(bot: Bot):
     main_menu_commands = [
         BotCommand(command='/start',
-                   description='Начать'),
+                   description='Начать сначала'),
         BotCommand(command='/feedback',
                    description='Обратная связь'),
         BotCommand(command='/changelog',

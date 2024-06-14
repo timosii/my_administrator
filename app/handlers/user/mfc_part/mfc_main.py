@@ -34,7 +34,21 @@ router = Router()
 router.message.filter(MfcFilter())
 # moscow_tz = pytz.timezone('Europe/Moscow')
 
-@router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
+# @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
+# async def cmd_start(
+#     message: Message, state: FSMContext, user_obj: UserService = UserService()
+# ):
+#     user = message.from_user
+#     mo = await user_obj.get_user_mo(user_id=user.id)
+#     await state.update_data(mfc_user_id=user.id, mo=mo)
+#     logger.info("User {0} {1} passed authorization".format(user.id, user.username))
+#     await message.answer(
+#         text=MfcMessages.welcome_message,
+#         reply_markup=await MfcKeyboards().choose_fil(mo=mo),
+#     )
+#     await state.set_state(MfcStates.choose_fil)
+
+@router.message(Command('start'))
 async def cmd_start(
     message: Message, state: FSMContext, user_obj: UserService = UserService()
 ):
@@ -47,6 +61,7 @@ async def cmd_start(
         reply_markup=await MfcKeyboards().choose_fil(mo=mo),
     )
     await state.set_state(MfcStates.choose_fil)
+
 
 
 @router.message(
@@ -533,7 +548,8 @@ async def finish_check(
         else:
             await message.answer(
                 text=MfcMessages.notification_saved,
-                reply_markup=DefaultKeyboards().get_authorization())
+                # reply_markup=DefaultKeyboards().get_authorization()
+                )
             await state.clear()
             return
 
@@ -545,13 +561,13 @@ async def finish_check(
     )
 
 
-@router.message(Command("start"))
-async def finish_process(message: Message, state: FSMContext):
-    await state.clear()
-    await message.answer(
-        text=DefaultMessages.start_message,
-        reply_markup=DefaultKeyboards().get_authorization(),
-    )
+# @router.message(Command("start"))
+# async def finish_process(message: Message, state: FSMContext):
+#     await state.clear()
+#     await message.answer(
+#         text=DefaultMessages.start_message,
+#         # reply_markup=DefaultKeyboards().get_authorization(),
+#     )
 
 
 @router.message(Command("finish"))

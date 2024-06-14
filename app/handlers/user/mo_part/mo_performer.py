@@ -33,7 +33,21 @@ import pytz
 router = Router()
 router.message.filter(MoPerformerFilter())
 
-@router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
+# @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
+# async def cmd_start(
+#     message: Message, state: FSMContext, user_obj: UserService = UserService()
+# ):
+#     user = message.from_user
+#     mo = await user_obj.get_user_mo(user_id=user.id)
+#     logger.info("User {0} {1} passed authorization".format(user.id, user.username))
+#     await state.update_data(mo_user_id=user.id, mo=mo)
+#     await message.answer(
+#         text=MoPerformerMessages.start_message,
+#         reply_markup=await MoPerformerKeyboards().choose_fil(mo=mo),
+#     )
+#     await state.set_state(MoPerformerStates.mo_performer)
+
+@router.message(Command('start'))
 async def cmd_start(
     message: Message, state: FSMContext, user_obj: UserService = UserService()
 ):
@@ -46,6 +60,18 @@ async def cmd_start(
         reply_markup=await MoPerformerKeyboards().choose_fil(mo=mo),
     )
     await state.set_state(MoPerformerStates.mo_performer)
+
+
+# @router.message(Command('start'), ~StateFilter(default_state))
+# async def cmd_start(
+#     message: Message, state: FSMContext, user_obj: UserService = UserService()
+# ):
+#     await message.answer(
+#         text=MoPerformerMessages.start_message,
+#         reply_markup=await MoPerformerKeyboards().choose_fil(mo=mo),
+#     )
+#     await state.set_state(MoPerformerStates.mo_performer)
+
 
 
 @router.message(
@@ -560,13 +586,13 @@ async def correct_vio_process_finish(
             await message.answer(text=text_mes, reply_markup=keyboard)
 
 
-@router.message(Command("start"))
-async def finish_process(message: Message, state: FSMContext):
-    await state.clear()
-    await message.answer(
-        text=DefaultMessages.start_message,
-        reply_markup=DefaultKeyboards().get_authorization(),
-    )
+# @router.message(Command("start"))
+# async def finish_process(message: Message, state: FSMContext):
+#     await state.clear()
+#     await message.answer(
+#         text=DefaultMessages.start_message,
+#         reply_markup=DefaultKeyboards().get_authorization(),
+#     )
 
 
 ##############
