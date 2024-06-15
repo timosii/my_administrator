@@ -84,7 +84,7 @@ class MfcLeaderMessages:
     start_message = f"{form_greeting()}, куратор МФЦ!"
 
 class MoPerformerMessages:
-    start_message = f"{form_greeting()}, исполнитель МО! Выберите филиал:"
+    start_message = f"{form_greeting()}, исполнитель МО! Вы можете выбрать активные уведомления или полноценные проверки"
     choose_fil = 'Выберите филиал:'
     add_photo = 'Отправьте фотографию. Она будет сохранена в качестве фотофиксации исправления нарушения.'
     add_comm = 'Напишите и отправьте текст. Он будет сохранен в качестве комментария к нарушению.'

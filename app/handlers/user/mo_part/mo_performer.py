@@ -14,9 +14,6 @@ from app.handlers.messages import MoPerformerMessages, DefaultMessages
 from app.handlers.states import MoPerformerStates
 from app.filters.mo_filters import MoPerformerFilter
 from app.filters.default import not_constants
-from app.filters.form_menu import IsInFilials, IsInViolations, IsInZones
-# from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
-# from app.database.db_helpers.form_menu import ZONES, VIOLATIONS, FILIALS
 from app.database.services.check import CheckService
 from app.database.services.violations_found import ViolationFoundService
 from app.database.services.users import UserService
@@ -26,9 +23,7 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundOut,
     ViolationFoundUpdate,
 )
-from app.utils.utils import get_index_by_violation_id, to_moscow_time
-import pytz
-
+from app.utils.utils import get_index_by_violation_id
 
 router = Router()
 router.message.filter(MoPerformerFilter())
@@ -40,29 +35,18 @@ async def cmd_start(
 ):
     user = message.from_user
     mo = await user_obj.get_user_mo(user_id=user.id)
+    fil_ = await user_obj.get_user_fil(user_id=user.id)
     logger.info("User {0} {1} passed authorization".format(user.id, user.username))
     await state.clear()
-    await state.update_data(mo_user_id=user.id, mo=mo)
+    await state.update_data(mo_user_id=user.id,
+                            mo=mo,
+                            fil_=fil_
+                            )
     await message.answer(
         text=MoPerformerMessages.start_message,
-        reply_markup=await MoPerformerKeyboards().choose_fil(mo=mo),
-    )
-    await state.set_state(MoPerformerStates.mo_performer)
-
-@router.message(
-    IsInFilials(),
-    StateFilter(MoPerformerStates.mo_performer),
-)
-async def get_checks(
-    message: Message,
-    state: FSMContext,
-):
-    fil_ = message.text
-    await state.update_data(fil_=fil_)
-    await message.answer(
-        text=MoPerformerMessages.choose_check_task,
         reply_markup=MoPerformerKeyboards().check_or_tasks(),
     )
+    await state.set_state(MoPerformerStates.mo_performer)
 
 
 @router.message(
@@ -87,7 +71,6 @@ async def get_active_violations(
             keyboard = MoPerformerKeyboards().get_under_check(check_id=check.check_id)
             await message.answer(text=text_mes, reply_markup=keyboard)
 
-
 @router.message(
     F.text.lower() == "активные уведомления",
     StateFilter(MoPerformerStates.mo_performer),
@@ -107,7 +90,6 @@ async def get_active_tasks(
         mo_start=data.get("mo_start"),
         tasks=tasks,
     )
-
 
 @router.callback_query(
     F.data.startswith("take_"), 
@@ -182,7 +164,6 @@ async def get_violations(
     await violation_obj.form_violations_replies(
         violations=violations, callback=callback, state=state
     )
-
 
 @router.callback_query(
     F.data.startswith("next_") | F.data.startswith("prev_"),
@@ -302,7 +283,6 @@ async def add_photo_handler(
 )
 async def add_text_wrong(
     message: Message,
-    state: FSMContext,
 ):
     await message.answer(
         text='Добавьте фотографию и комментарий к нарушению в качестве подписи к фото'
@@ -512,15 +492,6 @@ async def correct_vio_process_finish(
             await message.answer(text=text_mes, reply_markup=keyboard)
 
 
-# @router.message(Command("start"))
-# async def finish_process(message: Message, state: FSMContext):
-#     await state.clear()
-#     await message.answer(
-#         text=DefaultMessages.start_message,
-#         reply_markup=DefaultKeyboards().get_authorization(),
-#     )
-
-
 ##############
 # back_logic #
 ##############
@@ -530,19 +501,26 @@ async def correct_vio_process_finish(
 async def back_command(
     message: Message,
     state: FSMContext,
+    user_obj: UserService=UserService()
 ):
     current_state = await state.get_state()
     if current_state == MoPerformerStates.mo_performer:
         await state.clear()
+        user = message.from_user
+        mo = await user_obj.get_user_mo(user_id=user.id)
+        fil_ = await user_obj.get_user_fil(user_id=user.id)
+        await state.clear()
+        await state.update_data(mo_user_id=user.id,
+                                mo=mo,
+                                fil_=fil_
+                                )
         await message.answer(
             text=MoPerformerMessages.start_message,
-            reply_markup=MoPerformerKeyboards().main_menu(),
+            reply_markup=MoPerformerKeyboards().check_or_tasks()
         )
 
     elif current_state in (
         MoPerformerStates.correct_violation,
-        # MoPerformerStates.add_comm,
-        # MoPerformerStates.add_photo,
     ):
         data = await state.get_data()
         if data.get("is_take"):

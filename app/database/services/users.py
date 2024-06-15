@@ -23,13 +23,11 @@ class UserService:
         result = await self.db_repository.add_user(user_create=user_create)
         return result
         
-    # async def get_user_mo(self, user_id: int) -> str:
-    #     result = await self.db_repository.get_user_mo(user_id=user_id)
-    #     return result
-    async def get_user_mo(self,
-                          message: Message,
-                          state: FSMContext) -> str:
+    async def get_user_mo(self, user_id: int) -> str:
+        result = await self.db_repository.get_user_mo(user_id=user_id)
+        return result
 
+    async def get_user_fil(self, user_id: int) -> str:
         result = await self.db_repository.get_user_mo(user_id=user_id)
         return result
 

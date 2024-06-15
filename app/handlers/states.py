@@ -17,10 +17,7 @@ class Feedback(StatesGroup):
 class MoPerformerStates(StatesGroup):
     mo_performer = State()
     correct_violation = State()
-    # add_photo = State()
-    # add_comm = State()
     save_vio_update = State()
-
 
 class MoControlerStates(StatesGroup):
     mo_controler = State()

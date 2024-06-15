@@ -11,7 +11,7 @@ from app.keyboards.default import DefaultKeyboards
 from app.handlers.messages import MfcMessages, DefaultMessages
 from app.handlers.states import MfcStates
 from app.filters.mfc_filters import MfcFilter
-from app.filters.default import not_constants
+from app.filters.default import not_constants, is_digit
 from app.filters.form_menu import IsInFilials, IsInViolations, IsInZones, IsInMos
 # from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
 # from app.database.db_helpers.form_menu import ZONES, VIOLATIONS, FILIALS
@@ -44,12 +44,11 @@ async def cmd_start(
         reply_markup=ReplyKeyboardRemove()
     )
     await state.set_state(MfcStates.choose_mo)
-    # mo = await user_obj.get_user_mo()
    
 
 @router.message(
     F.text, # Добавить фильтр на числа (!)
-    not_constants,
+    is_digit,
     StateFilter(MfcStates.choose_mo)
 )
 async def choose_mo(message: Message,
@@ -253,6 +252,7 @@ async def notification_handler(
 @router.message(F.text.lower() == "назад")
 async def back_command(message: Message, state: FSMContext):
     current_state = await state.get_state()
+    data = await state.get_data()
     if current_state == MfcStates.choose_fil:
         await state.clear()
         await state.update_data(mfc_user_id=message.from_user.id)
@@ -274,7 +274,8 @@ async def back_command(message: Message, state: FSMContext):
         await state.set_state(MfcStates.choose_fil)
 
     elif current_state == MfcStates.choose_zone:
-        mo = await UserService().get_user_mo(message.from_user.id)
+        mo = data['mo']
+
         await message.answer(
             text=MfcMessages.main_menu,
             reply_markup=MfcKeyboards().main_menu(),

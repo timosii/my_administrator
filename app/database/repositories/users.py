@@ -27,11 +27,18 @@ class UserRepo:
             await self.clear_cache()
             return UserInDB.model_validate(new_user)
 
-    @cached(ttl=60, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=600, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
     async def get_user_mo(self, user_id: int) -> str:
         query = select(User.mo_).filter_by(user_id=user_id)
         result = await self._get_scalar(query=query)
         logger.info('get user mo')
+        return result
+    
+    @cached(ttl=600, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    async def get_user_fil(self, user_id: int) -> str:
+        query = select(User.fil_).filter_by(user_id=user_id)
+        result = await self._get_scalar(query=query)
+        logger.info('get user fil')
         return result
 
     async def user_exists(self, user_id: int) -> bool:

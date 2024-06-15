@@ -17,12 +17,12 @@ class MoPerformerKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
     
-    async def choose_fil(self, mo: str) -> ReplyKeyboardMarkup:
-        fils = await get_fils_by_mo(mo=mo)
-        buttons = [KeyboardButton(text=fil) for fil in fils]
-        self.kb.add(*buttons)
-        self.kb.adjust(1)
-        return self.kb.as_markup(resize_keyboard=True)
+    # async def choose_fil(self, mo: str) -> ReplyKeyboardMarkup:
+    #     fils = await get_fils_by_mo(mo=mo)
+    #     buttons = [KeyboardButton(text=fil) for fil in fils]
+    #     self.kb.add(*buttons)
+    #     self.kb.adjust(1)
+    #     return self.kb.as_markup(resize_keyboard=True)
     
     def back_to_violations(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Продолжить проверку')

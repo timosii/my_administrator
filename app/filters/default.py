@@ -45,3 +45,6 @@ async def not_constants(message: Message) -> bool:
     if not message.text:
         return False
     return (await not_cancel_filter(message=message)) & (await not_buttons_filter(message=message)) & (await not_menu_filter(message=message)) & (await not_back_filter(message=message))
+
+async def is_digit(message: Message) -> bool:
+    return message.text.isdigit()
