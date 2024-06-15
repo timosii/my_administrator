@@ -2,17 +2,11 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardBut
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from app.database.db_helpers.form_menu import get_zone_violations, get_fils_by_mo, get_all_zones
 from typing import Optional
-from app.misc.menu_beautify import ICONS_MAPPING
+from app.view.menu_beautify import ICONS_MAPPING
 
 class DefaultKeyboards:
     def __init__(self) -> None:
         self.kb = ReplyKeyboardBuilder()
-
-    # def get_authorization(self) -> ReplyKeyboardMarkup:
-    #     self.kb.button(text='Пройти авторизацию')
-    #     self.kb.button(text='Назад')
-    #     self.kb.adjust(1)
-    #     return self.kb.as_markup(resize_keyboard=True)
 
 
 class MfcKeyboards:

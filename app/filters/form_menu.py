@@ -2,7 +2,7 @@ from aiogram.filters import BaseFilter
 from aiogram.types import Message
 from app.database.db_helpers.form_menu import get_all_zones, get_all_violations, get_all_filials
 from loguru import logger
-from app.misc.menu_beautify import ICONS_MAPPING
+from app.view.menu_beautify import ICONS_MAPPING
 
 
 class IsInFilials(BaseFilter): 

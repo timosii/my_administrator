@@ -50,8 +50,3 @@ async def data_fsm(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(f'{current_data}')
     await callback.answer()
 
-@router.message(Command("changelog"))
-async def changelog(message: Message, state: FSMContext):
-    await message.answer(
-        text=DefaultMessages.send_changelog,
-    )

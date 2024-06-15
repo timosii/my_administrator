@@ -2,7 +2,7 @@ from loguru import logger
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage, Redis
 from app.config import settings
-from app.handlers import default, dev
+from app.handlers import default, dev, additional
 from app.handlers.admin import admin
 from app.handlers.user.mo_part import mo_controler, mo_performer
 from app.handlers.user.mfc_part import mfc_main, mfc_leader
@@ -37,14 +37,15 @@ async def set_main(bot: Bot):
 async def on_shutdown() -> None:
     logger.info('bot stopped')
 
-@logger.catch
-def start_bot() -> None:
+
+def all_register():
     bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode='HTML'))
     redis = Redis(host=settings.REDIS_HOST)
     storage = RedisStorage(redis=redis)
     dp = Dispatcher(storage=storage)
     dp.include_routers(
         admin.router,
+        additional.router,
         dev.router,
         mfc_leader.router,
         mfc_main.router,
@@ -56,6 +57,12 @@ def start_bot() -> None:
     dp.update.middleware(ErrorLoggingMiddleware())
     dp.startup.register(set_main)
     dp.shutdown.register(on_shutdown)
+    return bot, dp
+
+
+@logger.catch
+def start_bot() -> None:
+    bot, dp = all_register()
     app = web.Application()
     webhook_requests_handler = SimpleRequestHandler(
         dispatcher=dp,
@@ -67,22 +74,6 @@ def start_bot() -> None:
 
 @logger.catch
 async def start_local() -> None:
-    bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode='HTML'))
-    redis = Redis(host=settings.REDIS_HOST)
-    storage = RedisStorage(redis=redis)
-    dp = Dispatcher(storage=storage)
-    dp.include_routers(
-        admin.router,
-        dev.router,
-        mfc_leader.router,
-        mfc_main.router,
-        mo_performer.router,
-        mo_controler.router,
-        default.router,
-    )
+    bot, dp = all_register()
     await bot.delete_webhook(drop_pending_updates=True)
-    dp.update.middleware(FSMMiddleware())
-    dp.update.middleware(ErrorLoggingMiddleware())
-    dp.startup.register(set_main)
-    dp.shutdown.register(on_shutdown)
     await dp.start_polling(bot)

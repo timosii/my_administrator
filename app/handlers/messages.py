@@ -1,7 +1,7 @@
 import datetime as dt
 from app.utils.utils import time_determiner, form_greeting
 from app.view.cards import FormCards
-from app.misc.changelog import CHANGELOG
+from app.view.changelog import CHANGELOG
 
 
 class AdminMessages:
