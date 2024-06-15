@@ -17,15 +17,14 @@ from app.misc.changelog import CHANGELOG
 
 router = Router() 
 
-# @router.message(
-#     or_f(Command("start"),F.text.lower() == "назад"),
-#     StateFilter(default_state)
-# )
-# async def cmd_start(message: Message, state: FSMContext):
-#     await message.answer(
-#         text=DefaultMessages.start_message,
-#         reply_markup=DefaultKeyboards().get_authorization()
-#     )
+@router.message(
+    or_f(Command("start"),F.text.lower() == "назад"),
+    StateFilter(default_state)
+)
+async def cmd_start(message: Message, state: FSMContext):
+    await message.answer(
+        text=DefaultMessages.start_message,
+    )
 
 @router.message(Command("feedback"))
 async def get_feedback(message: Message, state: FSMContext):
