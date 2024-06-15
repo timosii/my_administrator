@@ -18,7 +18,7 @@ async def insert_data_user(user: UserService = UserService()):
     user_tests = [
         UserCreate(
             user_id=6164463753,
-            mo_='ГП 107',
+            # mo_='ГП 107',
             is_mfc=True,
             last_name='Тестов',
             first_name='Тест',
@@ -28,6 +28,7 @@ async def insert_data_user(user: UserService = UserService()):
         UserCreate(
             user_id=581145287,
             mo_='ГП 107',
+            fil_='ГП 107',
             is_mo_performer=True,
             last_name='Тестов',
             first_name='Тест',
@@ -36,7 +37,7 @@ async def insert_data_user(user: UserService = UserService()):
         ),
         UserCreate(
             user_id=255746374,
-            mo_='ГП 107',
+            # mo_='ГП 107',
             is_mfc=True,
             last_name='Тестов',
             first_name='Тест',
@@ -45,7 +46,7 @@ async def insert_data_user(user: UserService = UserService()):
         ),
         UserCreate(
             user_id=714806103,
-            mo_='ГП 212',
+            # mo_='ГП 212',
             is_mfc=True,
             last_name='Куликов',
             first_name='Тест',
@@ -54,7 +55,7 @@ async def insert_data_user(user: UserService = UserService()):
         ),
         UserCreate(
             user_id=364167798,
-            mo_='ГП 45',
+            # mo_='ГП 45',
             is_mfc=True,
             last_name='Мискарян',
             first_name='Тест',
@@ -63,7 +64,7 @@ async def insert_data_user(user: UserService = UserService()):
         ),
         UserCreate(
             user_id=905290819,
-            mo_='ГП 107',
+            # mo_='ГП 107',
             is_mfc=True,
             last_name='Бортников',
             first_name='Тест',
@@ -72,7 +73,7 @@ async def insert_data_user(user: UserService = UserService()):
         ),
         UserCreate(
             user_id=133283796,
-            mo_='ГП 45',
+            # mo_='ГП 45',
             is_mfc=True,
             last_name='Постолакин',
             first_name='Тест',
@@ -81,7 +82,7 @@ async def insert_data_user(user: UserService = UserService()):
         ),
         UserCreate(
             user_id=360185080,
-            mo_='ГП 212',
+            # mo_='ГП 212',
             is_mfc=True,
             last_name='Баум',
             first_name='Тест',
@@ -90,7 +91,7 @@ async def insert_data_user(user: UserService = UserService()):
         ),
         UserCreate(
             user_id=322561217,
-            mo_='ГП 107',
+            # mo_='ГП 107',
             is_mfc=True,
             last_name='Варлашин',
             first_name='Тест',
@@ -99,7 +100,7 @@ async def insert_data_user(user: UserService = UserService()):
         ),
         UserCreate(
             user_id=153964237,
-            mo_='ГП 107',
+            # mo_='ГП 107',
             is_mfc=True,
             last_name='Сизов',
             first_name='Тест',
@@ -108,7 +109,7 @@ async def insert_data_user(user: UserService = UserService()):
         ),
         UserCreate(
             user_id=779416588,
-            mo_='ГП 107',
+            # mo_='ГП 107',
             is_mfc=True,
             last_name='Бортникова',
             first_name='Соня',

@@ -1,4 +1,10 @@
 from pydantic import BaseModel
+from aiogram.types import Message
+from app.keyboards.mfc_part import MfcKeyboards
+from app.keyboards.default import DefaultKeyboards
+from app.handlers.messages import MfcMessages, DefaultMessages
+from aiogram.fsm.context import FSMContext
+from app.handlers.states import MfcStates
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,7 +23,13 @@ class UserService:
         result = await self.db_repository.add_user(user_create=user_create)
         return result
         
-    async def get_user_mo(self, user_id: int) -> str:
+    # async def get_user_mo(self, user_id: int) -> str:
+    #     result = await self.db_repository.get_user_mo(user_id=user_id)
+    #     return result
+    async def get_user_mo(self,
+                          message: Message,
+                          state: FSMContext) -> str:
+
         result = await self.db_repository.get_user_mo(user_id=user_id)
         return result
 

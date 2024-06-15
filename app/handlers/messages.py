@@ -19,7 +19,8 @@ class DefaultMessages:
 
 class MfcMessages:
     start_message = 'Для начала нажмите /start'
-    welcome_message = f'{form_greeting()}, исполнитель МФЦ!\nВыберите филиал проверки:'
+    welcome_message = f'{form_greeting()}, исполнитель МФЦ!\nВведите номер поликлиники для проверки:'
+    wrong_type='Чтобы начать, нам нужно определиться с поликлиникой! Введите <b>число</b>'
     main_menu = 'Выберите, что хотите сделать'
     choose_zone_with_time = f'Вы начали проверку {time_determiner()}. Выберите зону нарушения: '
     choose_zone = 'Выберите зону нарушения:'
@@ -41,6 +42,9 @@ class MfcMessages:
     notification_add = 'Выберите филиал, где проблема обнаружена'
     problem_detection = 'Вы обнаружили проблему ☑️'
     violation_saved = 'Информация сохранена ✅'
+    does_not_find = 'Мы не нашли вашу поликлинику. Пожалуйста, попробуйте ещё раз или обратитесь к администратору'
+    choose_mo_additional='Пожалуйста, выберите MO из предложенных вариантов'
+    
 
     @staticmethod
     def choose_violation(zone: str) -> str:
@@ -69,7 +73,12 @@ class MfcMessages:
     @staticmethod
     def notification_final(mo: str) -> str:
         message = f'Уведомление отправлено в {mo}. Спасибо!'
-        return message   
+        return message
+    
+    @staticmethod
+    def choose_fil(mo: str) -> str:
+        result = f'Ваша поликлиника: {mo}, пожалуйста выберите филиал проверки'
+        return result
     
 class MfcLeaderMessages:
     start_message = f"{form_greeting()}, куратор МФЦ!"

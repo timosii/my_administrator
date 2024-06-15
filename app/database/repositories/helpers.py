@@ -29,6 +29,20 @@ class HelpRepo:
         return (
             await self._get_scalar(query=query)
         )
+    
+    async def mo_define_by_num(self, num: str):
+        async with self.session_maker() as session:
+            result = await session.execute(
+                select(Mos.mo_).where(
+                    and_(
+                        func.split_part(Mos.mo_, ' ', 2) == num
+                        )
+                    )
+                )
+            logger.info('mo_define_by_num')
+            res = result.scalars().all()
+            logger.info(res)
+            return res
 
     async def _get_scalar(self, query) -> any:
         async with self.session_maker() as session:

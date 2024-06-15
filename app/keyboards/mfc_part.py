@@ -28,6 +28,13 @@ class MfcKeyboards:
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
+    
+    async def choose_mo(self, mos: list[str]) -> ReplyKeyboardMarkup:
+        buttons = [KeyboardButton(text=mo) for mo in mos]
+        self.kb.add(*buttons)
+        self.kb.button(text='Назад')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
 
     async def choose_zone(self) -> ReplyKeyboardMarkup:
         zones = await get_all_zones()
@@ -45,7 +52,7 @@ class MfcKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def choose_photo_comm(self) -> ReplyKeyboardMarkup:
+    def add_content(self) -> ReplyKeyboardMarkup:
         buttons = [KeyboardButton(text=s) for s in ['Загрузить фото', 'Написать комментарий']]
         self.kb.add(*buttons)
         self.kb.button(text='Отменить')

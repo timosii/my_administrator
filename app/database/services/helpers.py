@@ -15,4 +15,11 @@ class HelpService:
 
     async def get_mo_by_fil(self, fil_: str):
         return await self.db_repository.get_mo_by_fil(fil_=fil_)
+    
+    async def mo_define_by_num(self, num: str) -> list[str] | None:
+        mos = await self.db_repository.mo_define_by_num(num=num)
+        return mos
+
+
+
 

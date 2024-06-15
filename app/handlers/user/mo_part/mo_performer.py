@@ -312,14 +312,13 @@ async def add_text_wrong(
         ~F.text & ~F.photo,
         StateFilter(MoPerformerStates.correct_violation)
         )
-async def wrong_choose_photo_comm(
+async def wrong_add_content(
     message: Message,
     state: FSMContext
 ):
     await message.answer(
         text='Поддерживается только фото и текст (в качестве подписи к фото)'
     )
-
 
 @router.callback_query(
     F.data.startswith("save_"),

@@ -2,13 +2,13 @@ from aiogram.fsm.state import State, StatesGroup
 
 
 class MfcStates(StatesGroup):
+    choose_mo=State()
+    choose_mo_additional=State()
     choose_fil= State()
     choose_type_checking = State()
     choose_zone = State()
     choose_violation = State()
-    choose_photo_comm = State()
-    # add_photo = State()
-    # add_comm = State()
+    add_content = State()
     continue_state = State()
   
 class Feedback(StatesGroup):

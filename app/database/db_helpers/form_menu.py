@@ -5,7 +5,8 @@ from app.database.database import engine, session_maker, Base
 from app.database.models.dicts import (
     Zones,
     Violations,
-    Filials
+    Filials,
+    Mos
 )
 from loguru import logger
 from aiocache import cached, Cache
@@ -48,6 +49,15 @@ async def get_all_filials():
         filials = result.scalars().all()
         logger.info('get all filials')
         return filials
+    
+@cached(ttl=60, cache=Cache.REDIS, namespace='dicts_info', endpoint=settings.REDIS_HOST)
+async def get_all_mos():
+    async with session_maker() as session:
+        query = select(Mos.mo_)
+        result = await session.execute(query)
+        mos = result.scalars().all()
+        logger.info('get all mos')
+        return mos
 
 @cached(ttl=60, cache=Cache.REDIS, namespace='dicts_info', endpoint=settings.REDIS_HOST)
 async def get_fils_by_mo(mo: str):

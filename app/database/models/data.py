@@ -30,7 +30,10 @@ class User(Base):
 
     user_id: Mapped[bigint_pk_tg]
 
-    mo_: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_"))
+    mo_: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_"), nullable=True)
+    fil_: Mapped[str_255] = mapped_column(ForeignKey("dicts.filials.fil_"), nullable=True)
+    
+    department: Mapped[str_255] = mapped_column(nullable=True)
     last_name: Mapped[str_255]
     first_name: Mapped[str_255]
     patronymic: Mapped[str_255]

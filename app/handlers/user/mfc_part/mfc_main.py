@@ -12,12 +12,13 @@ from app.handlers.messages import MfcMessages, DefaultMessages
 from app.handlers.states import MfcStates
 from app.filters.mfc_filters import MfcFilter
 from app.filters.default import not_constants
-from app.filters.form_menu import IsInFilials, IsInViolations, IsInZones
+from app.filters.form_menu import IsInFilials, IsInViolations, IsInZones, IsInMos
 # from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
 # from app.database.db_helpers.form_menu import ZONES, VIOLATIONS, FILIALS
 from app.database.services.users import UserService
 from app.database.services.check import CheckService
 from app.database.services.violations_found import ViolationFoundService
+from app.database.services.helpers import HelpService
 from app.database.schemas.check_schema import CheckCreate, CheckInDB, CheckUpdate
 from app.database.schemas.violation_found_schema import (
     ViolationFoundCreate,
@@ -32,22 +33,107 @@ router.message.filter(MfcFilter())
 
 @router.message(Command('start'))
 async def cmd_start(
-    message: Message, state: FSMContext, user_obj: UserService = UserService()
+    message: Message, state: FSMContext
 ):
     user = message.from_user
-    mo = await user_obj.get_user_mo(user_id=user.id)
-    await state.clear()
-    await state.update_data(mfc_user_id=user.id, mo=mo)
     logger.info("User {0} {1} passed authorization".format(user.id, user.username))
+    await state.clear()
+    await state.update_data(mfc_user_id=user.id)
     await message.answer(
         text=MfcMessages.welcome_message,
-        reply_markup=await MfcKeyboards().choose_fil(mo=mo),
+        reply_markup=ReplyKeyboardRemove()
     )
-    await state.set_state(MfcStates.choose_fil)
-
+    await state.set_state(MfcStates.choose_mo)
+    # mo = await user_obj.get_user_mo()
+   
 
 @router.message(
-    IsInFilials(), StateFilter(MfcStates.choose_fil)
+    F.text, # Добавить фильтр на числа (!)
+    not_constants,
+    StateFilter(MfcStates.choose_mo)
+)
+async def choose_mo(message: Message,
+                    state: FSMContext,
+                    helper: HelpService=HelpService()
+                    ):
+    num = message.text
+    mos = await helper.mo_define_by_num(num=num)
+    logger.info(f"MO: {mos}")
+    if not mos:
+        await message.answer(
+            text=MfcMessages.does_not_find
+        )
+        return
+    elif len(mos) > 1:
+        await message.answer(
+            text=MfcMessages.choose_mo_additional,
+            reply_markup=await MfcKeyboards().choose_mo(mos=mos),
+        )
+        await state.set_state(MfcStates.choose_mo_additional)
+
+    else: # len(mos) == 1
+        mo = mos[0]
+        await message.answer(
+            text=MfcMessages.choose_fil(mo=mo),
+            reply_markup=await MfcKeyboards().choose_fil(mo=mo),
+        )
+        await state.update_data(mo=mo)
+        await state.set_state(MfcStates.choose_fil)
+
+@router.message(
+    IsInMos(),
+    StateFilter(MfcStates.choose_mo_additional)
+)
+async def choose_mos_additional(message: Message, state: FSMContext):
+    mo = message.text
+    await message.answer(
+        text=MfcMessages.choose_fil(mo=mo),
+        reply_markup=await MfcKeyboards().choose_fil(mo=mo),
+    )
+    await state.update_data(mo=mo)
+    await state.set_state(MfcStates.choose_fil)
+
+@router.message(
+    ~IsInMos(),
+    F.text,
+    not_constants,
+    StateFilter(MfcStates.choose_mo_additional)
+)
+async def wrong_choose_mos_additional(message: Message):
+    await message.answer(
+        text=MfcMessages.choose_mo_additional,
+        reply_markup=message.reply_markup
+    )
+
+@router.message(
+    F.text.lower() == 'назад',
+    StateFilter(MfcStates.choose_mo_additional)
+)
+async def back_choose_mos_additional(
+    message: Message,
+    state: FSMContext
+    ):
+    await message.answer(
+        text=MfcMessages.welcome_message,
+        reply_markup=ReplyKeyboardRemove()
+    )
+    await state.set_state(MfcStates.choose_mo)
+    
+
+@router.message(
+    ~F.text,
+    StateFilter(MfcStates.choose_mo_additional),
+    StateFilter(MfcStates.choose_mo),
+    StateFilter(MfcStates.choose_fil)
+)
+async def wrong_type(message: Message):
+    await message.answer(
+        text=MfcMessages.wrong_type
+        )
+
+@router.message(
+    IsInFilials(),
+    StateFilter(MfcStates.choose_fil)
 )
 async def choose_fil_handler(
     message: Message,
@@ -58,7 +144,6 @@ async def choose_fil_handler(
         text=MfcMessages.main_menu, reply_markup=MfcKeyboards().main_menu()
     )
     await state.set_state(MfcStates.choose_type_checking)
-
 
 @router.message(
     F.text.lower() == "начать проверку", StateFilter(MfcStates.choose_type_checking)
@@ -170,9 +255,11 @@ async def back_command(message: Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state == MfcStates.choose_fil:
         await state.clear()
+        await state.update_data(mfc_user_id=message.from_user.id)
         await message.answer(
-            text=MfcMessages.start_message, reply_markup=ReplyKeyboardRemove()
+            text=MfcMessages.welcome_message, reply_markup=ReplyKeyboardRemove()
         )
+        await state.set_state(MfcStates.choose_mo)
     elif current_state == MfcStates.choose_type_checking:
         data = await state.get_data()
         mo = data["mo"]
@@ -200,7 +287,7 @@ async def back_command(message: Message, state: FSMContext):
             text=MfcMessages.choose_zone, reply_markup=await MfcKeyboards().choose_zone()
         )
         await state.update_data(zone=None)
-    elif current_state == MfcStates.choose_photo_comm:
+    elif current_state == MfcStates.add_content:
         await state.set_state(MfcStates.choose_violation)
         data = await state.get_data()
         zone = data["zone"]
@@ -221,7 +308,7 @@ async def back_command(message: Message, state: FSMContext):
             reply_markup=MfcKeyboards().just_cancel(),
         )
         await state.update_data(comm_mfc=None, photo_id_mfc=None)
-        await state.set_state(MfcStates.choose_photo_comm)
+        await state.set_state(MfcStates.add_content)
 
     else:
         await state.clear()
@@ -300,7 +387,7 @@ async def choose_violation_handler(
         text=MfcMessages.add_photo_comm(violation=violation_name),
         reply_markup=MfcKeyboards().get_description(violation_id=violation_dict_id),
     )
-    await state.set_state(MfcStates.choose_photo_comm)
+    await state.set_state(MfcStates.add_content)
 
 
 ###################
@@ -309,7 +396,7 @@ async def choose_violation_handler(
 
 @router.message(
         F.photo,
-        StateFilter(MfcStates.choose_photo_comm)
+        StateFilter(MfcStates.add_content)
         )
 async def add_photo_comm_directly(
     message: Message,
@@ -337,7 +424,7 @@ async def add_photo_comm_directly(
 @router.message(
         F.text,
         not_constants,
-        StateFilter(MfcStates.choose_photo_comm)
+        StateFilter(MfcStates.add_content)
         )
 async def add_text_only_directly(
     message: Message,
@@ -350,9 +437,9 @@ async def add_text_only_directly(
 
 @router.message(
         ~F.text & ~F.photo,
-        StateFilter(MfcStates.choose_photo_comm)
+        StateFilter(MfcStates.add_content)
         )
-async def wrong_choose_photo_comm(
+async def wrong_add_content(
     message: Message,
     state: FSMContext
 ):
@@ -410,10 +497,10 @@ async def cancel_adding(
     )
 
     await state.update_data(comm_mfc=None, photo_id_mfc=None)
-    await state.set_state(MfcStates.choose_photo_comm)
+    await state.set_state(MfcStates.add_content)
 
 
-@router.message(F.text.lower() == "отменить", StateFilter(MfcStates.choose_photo_comm))
+@router.message(F.text.lower() == "отменить", StateFilter(MfcStates.add_content))
 async def cancel_adding_vio(
     message: Message,
     state: FSMContext,
