@@ -2,8 +2,9 @@
 import sys
 import asyncio
 import os
-from app.main import start_bot
+from app.main import start_bot, start_local
 from loguru import logger
+from app.config import settings
 
 
 def set_logger_config():
@@ -19,7 +20,10 @@ def set_logger_config():
 
 def main():
     set_logger_config()
-    start_bot()
+    if settings.IS_TEST:
+        asyncio.run(start_local())
+    else:    
+        start_bot() 
 
 
 if __name__ == "__main__":

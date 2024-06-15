@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    env_file: .env
+    env_file: .env_prod
     ports:
       - "8000:8000"
     command: bash -c "alembic upgrade head && export PYTHONPATH=$PYTHONPATH:$(pwd) && python app/database/main.py && python run.py"
@@ -26,7 +26,7 @@ services:
     image: postgres:15.1-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    env_file: .env
+    env_file: .env_prod
     ports:
       - "5432:5432"
     healthcheck:
@@ -41,7 +41,7 @@ services:
     image: redis:latest
     volumes:
       - redis_data:/usr/local/etc/redis
-    env_file: .env
+    env_file: .env_prod
     ports:
       - "6379:6379"
     depends_on:

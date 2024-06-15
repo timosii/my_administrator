@@ -1,4 +1,6 @@
 .env
+.env_test
+.env_prod
 **/__pycache__/
 **/*__pycache__*
 logs

@@ -16,6 +16,7 @@ class Settings:
     REDIS_HOST: Final = os.getenv('REDIS_HOST', 'need to define')
     NGROK_HOST: Final = os.getenv('NGROK_HOST', 'need to define')
     DEV_ID: Final = os.getenv('DEV_ID', 'need_to_define')
+    IS_TEST: Final = os.getenv('IS_TEST', 'need_to_define')
 
     @property
     def url_constructor(self):
