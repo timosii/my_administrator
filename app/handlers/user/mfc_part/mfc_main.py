@@ -11,8 +11,8 @@ from app.keyboards.default import DefaultKeyboards
 from app.handlers.messages import MfcMessages, DefaultMessages
 from app.handlers.states import MfcStates
 from app.filters.mfc_filters import MfcFilter
-from app.filters.default import not_back_filter, not_cancel_filter, not_buttons_filter
-from app.filters.form_menu import is_in_filials, is_in_violations, is_in_zones
+from app.filters.default import not_constants
+from app.filters.form_menu import IsInFilials, IsInViolations, IsInZones
 # from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
 # from app.database.db_helpers.form_menu import ZONES, VIOLATIONS, FILIALS
 from app.database.services.users import UserService
@@ -25,28 +25,10 @@ from app.database.schemas.violation_found_schema import (
 )
 from loguru import logger
 from aiogram.exceptions import TelegramBadRequest
-import pytz
-from app.utils.utils import to_moscow_time
-
 
 
 router = Router()
 router.message.filter(MfcFilter())
-# moscow_tz = pytz.timezone('Europe/Moscow')
-
-# @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
-# async def cmd_start(
-#     message: Message, state: FSMContext, user_obj: UserService = UserService()
-# ):
-#     user = message.from_user
-#     mo = await user_obj.get_user_mo(user_id=user.id)
-#     await state.update_data(mfc_user_id=user.id, mo=mo)
-#     logger.info("User {0} {1} passed authorization".format(user.id, user.username))
-#     await message.answer(
-#         text=MfcMessages.welcome_message,
-#         reply_markup=await MfcKeyboards().choose_fil(mo=mo),
-#     )
-#     await state.set_state(MfcStates.choose_fil)
 
 @router.message(Command('start'))
 async def cmd_start(
@@ -54,6 +36,7 @@ async def cmd_start(
 ):
     user = message.from_user
     mo = await user_obj.get_user_mo(user_id=user.id)
+    await state.clear()
     await state.update_data(mfc_user_id=user.id, mo=mo)
     logger.info("User {0} {1} passed authorization".format(user.id, user.username))
     await message.answer(
@@ -63,9 +46,8 @@ async def cmd_start(
     await state.set_state(MfcStates.choose_fil)
 
 
-
 @router.message(
-    is_in_filials, StateFilter(MfcStates.choose_fil)
+    IsInFilials(), StateFilter(MfcStates.choose_fil)
 )
 async def choose_fil_handler(
     message: Message,
@@ -230,15 +212,13 @@ async def back_command(message: Message, state: FSMContext):
         )
 
     elif current_state in (
-        MfcStates.add_photo,
-        MfcStates.add_comm,
         MfcStates.continue_state,
     ):
         data = await state.get_data()
         violation = data["violation_name"]
         await message.answer(
             text=MfcMessages.add_photo_comm(violation=violation),
-            reply_markup=MfcKeyboards().choose_photo_comm(),
+            reply_markup=MfcKeyboards().just_cancel(),
         )
         await state.update_data(comm_mfc=None, photo_id_mfc=None)
         await state.set_state(MfcStates.choose_photo_comm)
@@ -254,7 +234,7 @@ async def back_command(message: Message, state: FSMContext):
 
 
 @router.message(
-    is_in_zones, StateFilter(MfcStates.choose_zone)
+    IsInZones(), StateFilter(MfcStates.choose_zone)
 )
 async def choose_zone_handler(message: Message, state: FSMContext):
     zone = ' '.join(message.text.split()[1:])
@@ -269,7 +249,7 @@ async def choose_zone_handler(message: Message, state: FSMContext):
 
 
 @router.message(
-    is_in_violations,
+    IsInViolations(),
     StateFilter(MfcStates.choose_violation),
 )
 async def choose_violation_handler(
@@ -314,13 +294,71 @@ async def choose_violation_handler(
 
     await message.answer(
         text=MfcMessages.problem_detection,
-        reply_markup=MfcKeyboards().choose_photo_comm(),
+        reply_markup=MfcKeyboards().just_cancel()
     )
     await message.answer(
         text=MfcMessages.add_photo_comm(violation=violation_name),
         reply_markup=MfcKeyboards().get_description(violation_id=violation_dict_id),
     )
     await state.set_state(MfcStates.choose_photo_comm)
+
+
+###################
+### add_content ###
+###################
+
+@router.message(
+        F.photo,
+        StateFilter(MfcStates.choose_photo_comm)
+        )
+async def add_photo_comm_directly(
+    message: Message,
+    state: FSMContext
+):
+    photo_id_mfc = message.photo[-1].file_id
+    comm_mfc = message.caption
+    if not comm_mfc:
+        await message.answer(
+            text='Вы не добавили комментарий к фотографии. Пожалуйста, повторите'
+        )
+        return
+    data = await state.get_data()
+    violation_name = data["violation_name"]
+    await state.update_data(
+        photo_id_mfc=photo_id_mfc,
+        comm_mfc=comm_mfc
+        )
+    await message.answer(
+            text=MfcMessages.photo_comm_added(violation=violation_name),
+            reply_markup=MfcKeyboards().save_or_cancel(),
+        )
+    await state.set_state(MfcStates.continue_state)
+
+@router.message(
+        F.text,
+        not_constants,
+        StateFilter(MfcStates.choose_photo_comm)
+        )
+async def add_text_only_directly(
+    message: Message,
+    state: FSMContext
+):
+    await message.answer(
+        text='Добавьте фотографию и комментарий к нарушению в качестве подписи к фото'
+    )
+
+
+@router.message(
+        ~F.text & ~F.photo,
+        StateFilter(MfcStates.choose_photo_comm)
+        )
+async def wrong_choose_photo_comm(
+    message: Message,
+    state: FSMContext
+):
+    await message.answer(
+        text='Поддерживается только фото и текст (в качестве подписи к фото)'
+    )
 
 
 @router.message(
@@ -356,88 +394,8 @@ async def get_description(
 
 
 @router.message(
-    F.text.lower() == "загрузить фото", StateFilter(MfcStates.choose_photo_comm)
-)
-async def add_photo_handler(message: Message, state: FSMContext):
-    await message.answer(
-        text=MfcMessages.add_photo, reply_markup=MfcKeyboards().just_cancel()
-    )
-    await state.set_state(MfcStates.add_photo)
-
-
-@router.message(
-    F.text.lower() == "написать комментарий", StateFilter(MfcStates.choose_photo_comm)
-)
-async def add_comm_handler(message: Message, state: FSMContext):
-    await message.answer(
-        text=MfcMessages.add_comm, reply_markup=MfcKeyboards().just_cancel()
-    )
-    await state.set_state(MfcStates.add_comm)
-
-###############
-# add_content #
-###############
-
-@router.message(F.photo, StateFilter(MfcStates.add_photo))
-async def add_photo_handler_(message: Message, state: FSMContext):
-    photo_id_mfc = message.photo[-1].file_id
-    data = await state.get_data()
-    violation_name = data["violation_name"]
-    await state.update_data(photo_id_mfc=photo_id_mfc)
-    if data.get("comm_mfc"):
-        await message.answer(
-            text=MfcMessages.photo_comm_added(violation=violation_name),
-            reply_markup=MfcKeyboards().save_or_cancel(),
-        )
-        await state.set_state(MfcStates.continue_state)
-    else:
-        await message.answer(
-            text=MfcMessages.photo_added, reply_markup=MfcKeyboards().photo_added()
-        )
-        await state.set_state(MfcStates.choose_photo_comm)
-
-
-@router.message(F.text, not_cancel_filter, not_back_filter, not_buttons_filter, StateFilter(MfcStates.add_comm))
-async def add_comm_handler(message: Message, state: FSMContext):
-    comm_mfc = message.text
-    data = await state.get_data()
-    violation_name = data["violation_name"]
-
-    await state.update_data(comm_mfc=comm_mfc)
-    if data.get("photo_id_mfc"):
-        await message.answer(
-            text=MfcMessages.photo_comm_added(violation=violation_name),
-            reply_markup=MfcKeyboards().save_or_cancel(),
-        )
-        await state.set_state(MfcStates.continue_state)
-    else:
-        await message.answer(
-            text=MfcMessages.comm_added, reply_markup=MfcKeyboards().comm_added()
-        )
-        await state.set_state(MfcStates.choose_photo_comm)
-
-
-@router.callback_query(F.data == "add_comm_", StateFilter(MfcStates.choose_photo_comm))
-async def start_check(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer(
-        text=MfcMessages.add_comm, reply_markup=MfcKeyboards().just_back()
-    )
-    await state.set_state(MfcStates.add_comm)
-    await callback.answer()
-
-
-@router.callback_query(F.data == "add_photo_", StateFilter(MfcStates.choose_photo_comm))
-async def start_check(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer(
-        text=MfcMessages.add_photo, reply_markup=MfcKeyboards().just_back()
-    )
-    await state.set_state(MfcStates.add_photo)
-    await callback.answer()
-
-
-@router.message(
     F.text.lower() == "отменить",
-    StateFilter(MfcStates.add_comm, MfcStates.add_photo, MfcStates.continue_state),
+    StateFilter(MfcStates.continue_state),
 )
 async def cancel_adding(
     message: Message,
@@ -445,10 +403,12 @@ async def cancel_adding(
 ):
     data = await state.get_data()
     violation = data["violation_name"]
+    violation_dict_id = data['violation_dict_id']
     await message.answer(
         text=MfcMessages.add_photo_comm(violation=violation),
-        reply_markup=MfcKeyboards().choose_photo_comm(),
+        reply_markup=MfcKeyboards().get_description(violation_id=violation_dict_id),
     )
+
     await state.update_data(comm_mfc=None, photo_id_mfc=None)
     await state.set_state(MfcStates.choose_photo_comm)
 
@@ -512,7 +472,8 @@ async def save_violation(
     )
     await callback.message.answer(
         text=MfcMessages.choose_violation(zone=vio_data['zone']),
-        reply_markup=await MfcKeyboards().choose_violation(zone=vio_data['zone'], completed_violations=violations_completed),
+        reply_markup=await MfcKeyboards().choose_violation(zone=vio_data['zone'],
+                                                           completed_violations=violations_completed),
     )
     await state.update_data(
         {
@@ -548,7 +509,6 @@ async def finish_check(
         else:
             await message.answer(
                 text=MfcMessages.notification_saved,
-                # reply_markup=DefaultKeyboards().get_authorization()
                 )
             await state.clear()
             return
@@ -559,15 +519,6 @@ async def finish_check(
     await message.answer(
         text=MfcMessages.finish_check, reply_markup=ReplyKeyboardRemove()
     )
-
-
-# @router.message(Command("start"))
-# async def finish_process(message: Message, state: FSMContext):
-#     await state.clear()
-#     await message.answer(
-#         text=DefaultMessages.start_message,
-#         # reply_markup=DefaultKeyboards().get_authorization(),
-#     )
 
 
 @router.message(Command("finish"))

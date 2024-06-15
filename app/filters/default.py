@@ -41,3 +41,6 @@ async def not_buttons_filter(message: Message) -> bool:
 
 async def not_cancel_filter(message: Message) -> bool:
     return message.text.lower() != 'отменить'
+
+async def not_constants(message: Message) -> bool:
+    return (await not_cancel_filter(message=message)) & (await not_buttons_filter(message=message)) & (await not_menu_filter(message=message)) & (await not_back_filter(message=message))

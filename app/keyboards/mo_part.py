@@ -12,9 +12,9 @@ class MoPerformerKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
     
-    def correct_violation(self) -> ReplyKeyboardMarkup:
-        self.kb.button(text='Написать комментарий')
-        self.kb.button(text='Загрузить фото')
+    def just_back(self) -> ReplyKeyboardMarkup:
+        # self.kb.button(text='Написать комментарий')
+        # self.kb.button(text='Загрузить фото')
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)

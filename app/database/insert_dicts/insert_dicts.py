@@ -37,7 +37,10 @@ class DictsInsert():
         async with session_maker() as session:
             result = await session.execute(select(Mos).limit(1))
             if not result.scalar():
-                mos = [Mos(**row) for _, row in self.dfs['mos_dict'].iterrows()]
+                mos = []
+                for _, row in self.dfs['mos_dict'].iterrows():
+                    stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
+                    mos.append(Mos(**stripped_row))
                 session.add_all(mos)
                 await session.commit()
 
@@ -45,15 +48,21 @@ class DictsInsert():
         async with session_maker() as session:
             result = await session.execute(select(Filials).limit(1))
             if not result.scalar():
-                fils = [Filials(**row) for _, row in self.dfs['fils_dict'].iterrows()]
-                session.add_all(fils)
-                await session.commit()  
+                filials = []
+                for _, row in self.dfs['fils_dict'].iterrows():
+                    stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
+                    filials.append(Filials(**stripped_row))
+                session.add_all(filials)
+                await session.commit()
 
     async def insert_zones(self):
         async with session_maker() as session:
             result = await session.execute(select(Zones).limit(1))
             if not result.scalar():
-                zones = [Zones(**row) for _, row in self.dfs['zones_dict'].iterrows()]
+                zones = []
+                for _, row in self.dfs['zones_dict'].iterrows():
+                    stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
+                    zones.append(Zones(**stripped_row))
                 session.add_all(zones)
                 await session.commit()
 
@@ -61,7 +70,10 @@ class DictsInsert():
         async with session_maker() as session:
             result = await session.execute(select(ProblemBlocs).limit(1))
             if not result.scalar():
-                problems = [ProblemBlocs(**row) for _, row in self.dfs['problems_dict'].iterrows()]
+                problems = []
+                for _, row in self.dfs['problems_dict'].iterrows():
+                    stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
+                    problems.append(ProblemBlocs(**stripped_row))
                 session.add_all(problems)
                 await session.commit()
 
@@ -70,9 +82,13 @@ class DictsInsert():
         async with session_maker() as session:
             result = await session.execute(select(Violations).limit(1))
             if not result.scalar():
-                violations = [Violations(**row) for _, row in self.dfs['violations_dict'].iterrows()]
+                violations = []
+                for _, row in self.dfs['violations_dict'].iterrows():
+                    stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
+                    violations.append(Violations(**stripped_row))
                 session.add_all(violations)
                 await session.commit()
+
 
     def insert_dicts_to_db(self):
         asyncio.get_event_loop().run_until_complete(self.insert_mos())

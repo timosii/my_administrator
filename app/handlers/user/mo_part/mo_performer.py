@@ -13,8 +13,8 @@ from app.keyboards.default import DefaultKeyboards
 from app.handlers.messages import MoPerformerMessages, DefaultMessages
 from app.handlers.states import MoPerformerStates
 from app.filters.mo_filters import MoPerformerFilter
-from app.filters.default import not_back_filter, not_menu_filter
-from app.filters.form_menu import is_in_filials, is_in_violations, is_in_zones
+from app.filters.default import not_constants
+from app.filters.form_menu import IsInFilials, IsInViolations, IsInZones
 # from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
 # from app.database.db_helpers.form_menu import ZONES, VIOLATIONS, FILIALS
 from app.database.services.check import CheckService
@@ -33,19 +33,6 @@ import pytz
 router = Router()
 router.message.filter(MoPerformerFilter())
 
-# @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
-# async def cmd_start(
-#     message: Message, state: FSMContext, user_obj: UserService = UserService()
-# ):
-#     user = message.from_user
-#     mo = await user_obj.get_user_mo(user_id=user.id)
-#     logger.info("User {0} {1} passed authorization".format(user.id, user.username))
-#     await state.update_data(mo_user_id=user.id, mo=mo)
-#     await message.answer(
-#         text=MoPerformerMessages.start_message,
-#         reply_markup=await MoPerformerKeyboards().choose_fil(mo=mo),
-#     )
-#     await state.set_state(MoPerformerStates.mo_performer)
 
 @router.message(Command('start'))
 async def cmd_start(
@@ -54,6 +41,7 @@ async def cmd_start(
     user = message.from_user
     mo = await user_obj.get_user_mo(user_id=user.id)
     logger.info("User {0} {1} passed authorization".format(user.id, user.username))
+    await state.clear()
     await state.update_data(mo_user_id=user.id, mo=mo)
     await message.answer(
         text=MoPerformerMessages.start_message,
@@ -61,21 +49,8 @@ async def cmd_start(
     )
     await state.set_state(MoPerformerStates.mo_performer)
 
-
-# @router.message(Command('start'), ~StateFilter(default_state))
-# async def cmd_start(
-#     message: Message, state: FSMContext, user_obj: UserService = UserService()
-# ):
-#     await message.answer(
-#         text=MoPerformerMessages.start_message,
-#         reply_markup=await MoPerformerKeyboards().choose_fil(mo=mo),
-#     )
-#     await state.set_state(MoPerformerStates.mo_performer)
-
-
-
 @router.message(
-    is_in_filials,
+    IsInFilials(),
     StateFilter(MoPerformerStates.mo_performer),
 )
 async def get_checks(
@@ -135,7 +110,8 @@ async def get_active_tasks(
 
 
 @router.callback_query(
-    F.data.startswith("take_"), ~StateFilter(MoPerformerStates.correct_violation)
+    F.data.startswith("take_"), 
+    ~StateFilter(MoPerformerStates.correct_violation)
 )
 async def take_to_work(
     callback: CallbackQuery,
@@ -168,7 +144,7 @@ async def take_to_work(
     })
     await callback.message.answer(
         text=MoPerformerMessages.correct_mode(text_mes=text_mes),
-        reply_markup=MoPerformerKeyboards().correct_violation(),
+        reply_markup=MoPerformerKeyboards().just_back()
     )
     await callback.answer()
     await state.set_state(MoPerformerStates.correct_violation)
@@ -254,7 +230,8 @@ async def wrong_state(callback: CallbackQuery):
 
 
 @router.callback_query(
-    F.data.startswith("correct_"), StateFilter(MoPerformerStates.mo_performer)
+    F.data.startswith("correct_"),
+    StateFilter(MoPerformerStates.mo_performer)
 )
 async def process_correct_callback(
     callback: CallbackQuery,
@@ -284,36 +261,14 @@ async def process_correct_callback(
     text_mes = violation_out.violation_card()
     await callback.message.answer(
         text=MoPerformerMessages.correct_mode(text_mes=text_mes),
-        reply_markup=MoPerformerKeyboards().correct_violation(),
+        reply_markup=MoPerformerKeyboards().just_back(),
     )
     await callback.answer()
     await state.set_state(MoPerformerStates.correct_violation)
 
 
-@router.message(
-    F.text.lower() == "написать комментарий",
-    StateFilter(MoPerformerStates.correct_violation),
-)
-async def correct_vio_process(message: Message, state: FSMContext):
-    await message.answer(
-        text=MoPerformerMessages.add_comm,
-        reply_markup=MoPerformerKeyboards().just_back(),
-    )
-    await state.set_state(MoPerformerStates.add_comm)
-
-
-@router.message(
-    F.text.lower() == "загрузить фото", StateFilter(MoPerformerStates.correct_violation)
-)
-async def correct_vio_process_photo(message: Message, state: FSMContext):
-    await message.answer(
-        text=MoPerformerMessages.add_photo,
-        reply_markup=MoPerformerKeyboards().just_back(),
-    )
-    await state.set_state(MoPerformerStates.add_photo)
-
-
-@router.message(F.photo, StateFilter(MoPerformerStates.add_photo))
+@router.message(F.photo,
+                StateFilter(MoPerformerStates.correct_violation))
 async def add_photo_handler(
     message: Message,
     state: FSMContext,
@@ -321,50 +276,49 @@ async def add_photo_handler(
     data = await state.get_data()
     violation_id = data["violation_found_id"]
     photo_id_mo = message.photo[-1].file_id
-    await state.update_data(photo_id_mo=photo_id_mo)
+    comm_mo = message.caption
+    if not comm_mo:
+        await message.answer(
+            text='Вы не добавили комментарий к фотографии. Пожалуйста, повторите'
+        )
+        return
+    await state.update_data(
+        photo_id_mo=photo_id_mo,
+        comm_mo=comm_mo
+        )
     violation_found_out = ViolationFoundOut(**data[f"vio_{violation_id}"])
-
-    if data.get("comm_mo"):
-        await message.answer(
-            text=MoPerformerMessages.finish_mes(violation_found_out.violation_name),
-            reply_markup=MoPerformerKeyboards().save_violation_found(
-                violation_id=violation_id
-            ),
-        )
-        await state.set_state(MoPerformerStates.save_vio_update)
-    else:
-        await message.answer(
-            text=MoPerformerMessages.photo_added,
-            reply_markup=MoPerformerKeyboards.add_photo(violation_id=violation_id),
-        )
-        await state.set_state(MoPerformerStates.correct_violation)
-
+    await message.answer(
+        text=MoPerformerMessages.finish_mes(violation_found_out.violation_name),
+        reply_markup=MoPerformerKeyboards().save_violation_found(
+            violation_id=violation_id
+        ),
+    )
+    await state.set_state(MoPerformerStates.save_vio_update)
 
 @router.message(
-    F.text, not_back_filter, not_menu_filter, StateFilter(MoPerformerStates.add_comm)
+    F.text,
+    not_constants,
+    StateFilter(MoPerformerStates.correct_violation)
 )
-async def add_photo_handler(
+async def add_text_wrong(
     message: Message,
     state: FSMContext,
 ):
-    data = await state.get_data()
-    violation_found_id = data["violation_found_id"]
-    comm_mo = message.text
-    await state.update_data(comm_mo=comm_mo)
-    if data.get("photo_id_mo"):
-        await message.answer(
-            text=MoPerformerMessages.finish_mes(data["violation_name"]),
-            reply_markup=MoPerformerKeyboards().save_violation_found(
-                violation_id=violation_found_id
-            ),
+    await message.answer(
+        text='Добавьте фотографию и комментарий к нарушению в качестве подписи к фото'
+    )
+
+@router.message(
+        ~F.text & ~F.photo,
+        StateFilter(MoPerformerStates.correct_violation)
         )
-        await state.set_state(MoPerformerStates.save_vio_update)
-    else:
-        await message.answer(
-            text=MoPerformerMessages.comm_added,
-            reply_markup=MoPerformerKeyboards.add_comm(violation_id=violation_found_id),
-        )
-        await state.set_state(MoPerformerStates.correct_violation)
+async def wrong_choose_photo_comm(
+    message: Message,
+    state: FSMContext
+):
+    await message.answer(
+        text='Поддерживается только фото и текст (в качестве подписи к фото)'
+    )
 
 
 @router.callback_query(
@@ -459,33 +413,6 @@ async def add_photo_handler(
         text=MoPerformerMessages.choose_check_task,
         reply_markup=MoPerformerKeyboards().check_or_tasks(),
     )
-
-
-@router.callback_query(
-    F.data.startswith("comm_after_photo_"),
-    StateFilter(MoPerformerStates.correct_violation),
-)
-async def start_check(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer(
-        text=MoPerformerMessages.add_comm,
-        reply_markup=MoPerformerKeyboards().just_back(),
-    )
-    await state.set_state(MoPerformerStates.add_comm)
-    await callback.answer()
-
-
-@router.callback_query(
-    F.data.startswith("photo_after_comm_"),
-    StateFilter(MoPerformerStates.correct_violation),
-)
-async def photo_after_comm(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer(
-        text=MoPerformerMessages.add_photo,
-        reply_markup=MoPerformerKeyboards().just_back(),
-    )
-    await state.set_state(MoPerformerStates.add_photo)
-    await callback.answer()
-
 
 @router.message(
     F.text.lower() == "продолжить проверку",
@@ -615,8 +542,8 @@ async def back_command(
 
     elif current_state in (
         MoPerformerStates.correct_violation,
-        MoPerformerStates.add_comm,
-        MoPerformerStates.add_photo,
+        # MoPerformerStates.add_comm,
+        # MoPerformerStates.add_photo,
     ):
         data = await state.get_data()
         if data.get("is_take"):

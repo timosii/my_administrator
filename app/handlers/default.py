@@ -10,7 +10,7 @@ from app.keyboards.default import DefaultKeyboards
 from app.handlers.messages import DefaultMessages
 from app.handlers.states import MfcStates, Feedback
 from app.filters.mfc_filters import MfcFilter
-from app.filters.default import not_back_filter, not_cancel_filter, not_menu_filter, not_buttons_filter
+from app.filters.default import not_constants
 from loguru import logger
 from app.config import settings
 from app.misc.changelog import CHANGELOG
@@ -40,10 +40,7 @@ async def get_feedback(message: Message, state: FSMContext):
     await state.set_state(Feedback.feedback)
 
 @router.message(F.text,
-                not_menu_filter,
-                not_back_filter,
-                not_cancel_filter,
-                not_buttons_filter,
+                not_constants,
                 StateFilter(Feedback.feedback))
 async def take_feedback(message: Message, state: FSMContext, bot: Bot):
     res = message.text

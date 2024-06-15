@@ -7,8 +7,8 @@ class MfcStates(StatesGroup):
     choose_zone = State()
     choose_violation = State()
     choose_photo_comm = State()
-    add_photo = State()
-    add_comm = State()
+    # add_photo = State()
+    # add_comm = State()
     continue_state = State()
   
 class Feedback(StatesGroup):
@@ -17,8 +17,8 @@ class Feedback(StatesGroup):
 class MoPerformerStates(StatesGroup):
     mo_performer = State()
     correct_violation = State()
-    add_photo = State()
-    add_comm = State()
+    # add_photo = State()
+    # add_comm = State()
     save_vio_update = State()
 
 
