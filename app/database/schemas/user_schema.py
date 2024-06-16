@@ -25,6 +25,7 @@ class UserUpdate(UserCreate):
     pass
 
 class UserInDB(UserBase):
+    fil_: Optional[str] = None
     is_admin: Optional[bool] = None
     is_mfc: Optional[bool] = None
     is_mfc_leader: Optional[bool] = None

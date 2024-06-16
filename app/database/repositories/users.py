@@ -87,11 +87,11 @@ class UserRepo:
         return await self._get_scalar(query=query) or 0
     
     @cached(ttl=60, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
-    async def get_user_performer_by_mo(self, mo: str) -> Optional[List[UserInDB]]:
+    async def get_user_performer_by_fil(self, fil_: str) -> Optional[List[UserInDB]]:
         async with self.session_maker() as session:
             query = select(User).where(
                 and_(
-                    User.mo_ == mo,
+                    User.fil_ == fil_,
                     User.is_mo_performer.is_(True),
                     User.is_archived.is_not(True)
                 )

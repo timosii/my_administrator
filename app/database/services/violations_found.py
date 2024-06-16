@@ -143,8 +143,8 @@ class ViolationFoundService:
         )
         return result
 
-    async def get_violation_performers_by_mo(self, mo: str) -> Optional[List[UserInDB]]:
-        performers = await UserRepo().get_user_performer_by_mo(mo=mo)
+    async def get_violation_performers_by_fil(self, fil_: str) -> Optional[List[UserInDB]]:
+        performers = await UserRepo().get_user_performer_by_fil(fil_=fil_)
         return performers if performers else None
 
     async def get_description(self, violation_dict_id: int) -> Optional[str]:
@@ -153,10 +153,10 @@ class ViolationFoundService:
         )
         return result.description if result else None
 
-    async def send_vio_notification_to_mo_performers(
+    async def send_vio_notification_to_fil_performers(
         self, callback: CallbackQuery, violation: ViolationFoundOut
     ):
-        performers = await self.get_violation_performers_by_mo(mo=violation.mo)
+        performers = await self.get_violation_performers_by_fil(fil_=violation.fil_)
         if performers:
             res = violation.violation_card()
             await callback.message.answer(
@@ -185,7 +185,7 @@ class ViolationFoundService:
                     )
         else:
             await callback.message.answer(
-                text="Отправка уведомления в МО невозможна: нет зарегистрированных исполнителей от МО"
+                text="Отправка уведомления в МО невозможна: нет зарегистрированных исполнителей в филиале"
             )
 
     async def save_violation_process(
@@ -202,7 +202,7 @@ class ViolationFoundService:
         )
         await self.update_violation(violation_found_id=violation_found_out.violation_found_id,
                                     violation_update=vio_found_update)
-        await self.send_vio_notification_to_mo_performers(
+        await self.send_vio_notification_to_fil_performers(
             callback=callback,
             violation=violation_found_out
         )
