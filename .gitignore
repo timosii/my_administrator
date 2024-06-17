@@ -5,3 +5,5 @@
 **/*__pycache__*
 logs
 ngrok.yml
+users.xlsx
+tmp.xlsx

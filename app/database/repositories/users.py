@@ -100,31 +100,31 @@ class UserRepo:
             users = result.scalars().all()
             return [UserInDB.model_validate(user) for user in users] if users else None
 
-    @cached(ttl=600, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
+    @cached(ttl=15, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
     async def is_admin(self, user_id: int) -> bool:
         query = select(User.is_admin).filter_by(user_id=user_id, is_archived=False)
         logger.info('is admin')
         return await self._get_scalar(query=query)
 
-    @cached(ttl=600, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
+    @cached(ttl=15, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
     async def is_mfc(self, user_id: int) -> bool:
         query = select(User.is_mfc).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mfc')
         return await self._get_scalar(query=query)
 
-    @cached(ttl=600, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
+    @cached(ttl=15, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
     async def is_mfc_leader(self, user_id: int) -> bool:
         query = select(User.is_mfc_leader).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mfc leader')
         return await self._get_scalar(query=query)
     
-    @cached(ttl=600, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
+    @cached(ttl=15, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
     async def is_mo_performer(self, user_id: int) -> bool:
         query = select(User.is_mo_performer).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mo performer')
         return await self._get_scalar(query=query)
     
-    @cached(ttl=600, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
+    @cached(ttl=15, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
     async def is_mo_controler(self, user_id: int) -> bool:
         query = select(User.is_mo_controler).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mo controler')
