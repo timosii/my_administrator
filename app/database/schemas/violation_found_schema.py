@@ -41,6 +41,25 @@ class ViolationFoundDeleteMfc(BaseModel):
     photo_id_mfc: None=None
     comm_mfc: None=None
 
+class ViolationFoundPendingMo(BaseModel):
+    check_id: None=None
+    violation_found_id: None=None
+    photo_id_mo: None=None
+    comm_mo: None=None
+    comm_mfc: None=None
+    is_take: None=None
+    is_task: None=None
+    photo_id_mfc: None=None
+    photo_id_mo: None=None
+    time_to_correct: None=None
+    violation_detected: None=None
+    violation_dict_id: None=None
+    violation_found_id: None=None
+    violation_name: None=None
+    zone: None=None
+    is_pending: None=None
+    violation_pending: None=None
+
 class ViolationFoundOut(ViolationFoundBase):
     mo: str
     fil_: str

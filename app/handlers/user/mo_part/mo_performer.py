@@ -22,6 +22,7 @@ from app.database.schemas.check_schema import CheckOut, CheckUpdate
 from app.database.schemas.violation_found_schema import (
     ViolationFoundOut,
     ViolationFoundUpdate,
+    ViolationFoundPendingMo
 )
 from app.utils.utils import get_index_by_violation_id
 
@@ -177,6 +178,9 @@ async def move_to_pending(callback: CallbackQuery,
         check_id = data["check_id"]
         await check_obj.update_check(check_id=check_id, check_update=check_upd)
         await state.update_data(mo_start=None)
+        # await state.update_data(
+        #     **ViolationFoundPendingMo().model_dump()
+        # )
         await state.update_data(
         {   
             'check_id': None,
@@ -263,19 +267,16 @@ async def take_to_work(
 ):
     await state.set_state(MoPerformerStates.mo_performer)
     await state.clear()
-    user = callback.from_user
-    mo = await user_obj.get_user_mo(user_id=user.id)
-    fil_ = await user_obj.get_user_fil(user_id=user.id)
-    await state.update_data(mo_user_id=user.id,
-                            mo=mo,
-                            fil_=fil_
-                            )
+    await user_obj.save_default_user_info(
+        callback=callback,
+        state=state
+    )
     violation_found_id = int(callback.data.split("_")[1])
     is_fixed = await violation_obj.is_violation_already_fixed(
         violation_found_id=violation_found_id
     )
     if is_fixed:
-        await callback.answer(text="Нарушение уже исправлено")
+        await callback.answer(text=MoPerformerMessages.violation_already_fixed)
         await callback.message.delete()
         return
 
@@ -284,6 +285,7 @@ async def take_to_work(
     )
     violation_out = await violation_obj.form_violation_out(violation_in_db)
     current_time = dt.datetime.now(dt.timezone.utc)
+    # TODO: сделать сохранение в стейт сразу в виде "vio_{id}": {**data} 
     if violation_out.is_task:
         await state.update_data(
             **violation_out.model_dump(mode="json"),
@@ -294,7 +296,6 @@ async def take_to_work(
         await state.update_data(
             **violation_out.model_dump(mode="json"),
             is_take=True,
-            # mo_start=current_time.isoformat(),
         )
 
     text_mes = violation_out.violation_card()
@@ -351,7 +352,6 @@ async def get_violations(
 async def get_violations_next_prev(
     callback: CallbackQuery,
     state: FSMContext,
-    violation_obj: ViolationFoundService=ViolationFoundService()
 ):
     violation_found_id = int(callback.data.split("_")[1])
     data = await state.get_data()
@@ -567,7 +567,6 @@ async def process_cancel_correct(
 
     await state.update_data(
         {
-            # 'check_id': None,
             "violation_found_id": None,
             "photo_id_mo": None,
             "comm_mo": None,

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from app.keyboards.mfc_part import MfcKeyboards
 from app.keyboards.default import DefaultKeyboards
 from app.handlers.messages import MfcMessages, DefaultMessages
@@ -80,8 +80,15 @@ class UserService:
     
     async def save_default_user_info(
             self,
-            message: Message,
-            state: FSMContext):
+            state: FSMContext,
+            message: Message=None,
+            callback: CallbackQuery=None
+    ):
+        if callback:
+            user = callback.from_user
+        else:
+            user = message.from_user
+
         user = message.from_user
         mo = await self.get_user_mo(user_id=user.id)
         fil_ = await self.get_user_fil(user_id=user.id)
@@ -89,3 +96,4 @@ class UserService:
                                 mo=mo,
                                 fil_=fil_
                                 )
+                

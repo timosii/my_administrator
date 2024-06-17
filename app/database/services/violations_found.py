@@ -220,7 +220,6 @@ class ViolationFoundService:
         message: Message,
         state: FSMContext,
         fil_: str,
-        # mo_start: str | None,
         tasks: Optional[List[ViolationFoundInDB]],
     ):
         if not tasks:
@@ -228,9 +227,6 @@ class ViolationFoundService:
                 text=MoPerformerMessages.form_no_tasks_answer(fil_=fil_),
             )
         else:
-            # if not mo_start:
-            # current_time = dt.datetime.now(dt.timezone.utc)
-            # await state.update_data(mo_start=current_time.isoformat())
             for task in tasks:
                 violation_out = await self.form_violation_out(violation=task)
                 await state.update_data(
