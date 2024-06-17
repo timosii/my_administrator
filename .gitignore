@@ -3,7 +3,7 @@
 .env_prod
 **/__pycache__/
 **/*__pycache__*
-logs
+logs/*
 ngrok.yml
 users.xlsx
 tmp.xlsx
