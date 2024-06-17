@@ -48,21 +48,22 @@ class MoPerformerKeyboards:
     def check_or_tasks(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Активные уведомления')
         self.kb.button(text='Активные проверки')
+        self.kb.button(text='Перенесенные нарушения')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
     
-    @staticmethod
-    def get_under_violation_photo(violation_id: int) -> InlineKeyboardMarkup:
-        kb = InlineKeyboardMarkup(inline_keyboard=[
-            [
-                InlineKeyboardButton(text="Посмотреть фото", callback_data=f"photo_{violation_id}")
-            ], 
-            [
-                InlineKeyboardButton(text='Нарушение исправлено', callback_data=f"correct_{violation_id}")
-            ]
-        ])
-        return kb
+    # @staticmethod
+    # def get_under_violation_photo(violation_id: int) -> InlineKeyboardMarkup:
+    #     kb = InlineKeyboardMarkup(inline_keyboard=[
+    #         [
+    #             InlineKeyboardButton(text="Посмотреть фото", callback_data=f"photo_{violation_id}")
+    #         ], 
+    #         [
+    #             InlineKeyboardButton(text='Нарушение исправлено', callback_data=f"correct_{violation_id}")
+    #         ]
+    #     ])
+    #     return kb
     
     @staticmethod
     def get_violation_menu(
@@ -75,36 +76,55 @@ class MoPerformerKeyboards:
                 InlineKeyboardButton(text="⬅️", callback_data=f"prev_{prev_violation_id}"),
                 InlineKeyboardButton(text='Исправить', callback_data=f"correct_{violation_id}"),
                 InlineKeyboardButton(text="➡️", callback_data=f"next_{next_violation_id}")
-            ], 
+            ],
+            [
+                InlineKeyboardButton(text="Перенести исправление", callback_data=f"pending_{violation_id}"),
+            ]
         ], row_width=3)
         return kb
     
     @staticmethod
-    def add_photo(violation_id) -> InlineKeyboardMarkup:
+    def get_violation_pending_menu(
+        violation_id: int,
+        prev_violation_id: int,
+        next_violation_id: int
+        ) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text="Написать комментарий", callback_data=f"comm_after_photo_{violation_id}")
-            ]
-        ])
+                InlineKeyboardButton(text="⬅️", callback_data=f"prev_{prev_violation_id}"),
+                InlineKeyboardButton(text='Исправить', callback_data=f"correct_{violation_id}"),
+                InlineKeyboardButton(text="➡️", callback_data=f"next_{next_violation_id}")
+            ],
+        ], row_width=3)
         return kb
+
+
+    # @staticmethod
+    # def add_photo(violation_id) -> InlineKeyboardMarkup:
+    #     kb = InlineKeyboardMarkup(inline_keyboard=[
+    #         [
+    #             InlineKeyboardButton(text="Написать комментарий", callback_data=f"comm_after_photo_{violation_id}")
+    #         ]
+    #     ])
+    #     return kb
     
-    @staticmethod
-    def add_comm(violation_id) -> InlineKeyboardMarkup:
-        kb = InlineKeyboardMarkup(inline_keyboard=[
-            [
-                InlineKeyboardButton(text="Отправить фото", callback_data=f"photo_after_comm_{violation_id}")
-            ]
-        ])
-        return kb
+    # @staticmethod
+    # def add_comm(violation_id) -> InlineKeyboardMarkup:
+    #     kb = InlineKeyboardMarkup(inline_keyboard=[
+    #         [
+    #             InlineKeyboardButton(text="Отправить фото", callback_data=f"photo_after_comm_{violation_id}")
+    #         ]
+    #     ])
+    #     return kb
     
-    @staticmethod
-    def vio_correct_with_photo(violation_id: int) -> InlineKeyboardMarkup:
-        kb = InlineKeyboardMarkup(inline_keyboard=[
-            [
-                InlineKeyboardButton(text='Нарушение исправлено', callback_data=f"correct_{violation_id}")
-            ]
-        ])
-        return kb
+    # @staticmethod
+    # def vio_correct_with_photo(violation_id: int) -> InlineKeyboardMarkup:
+    #     kb = InlineKeyboardMarkup(inline_keyboard=[
+    #         [
+    #             InlineKeyboardButton(text='Нарушение исправлено', callback_data=f"correct_{violation_id}")
+    #         ]
+    #     ])
+    #     return kb
     
     @staticmethod
     def get_under_check(check_id: int) -> InlineKeyboardMarkup:
@@ -116,10 +136,22 @@ class MoPerformerKeyboards:
         return kb
     
     @staticmethod
-    def save_violation_found(violation_id: int) -> InlineKeyboardMarkup:
+    def save_violation_found(violation_found_id: int) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text="Сохранить", callback_data=f"save_{violation_id}"),
+                InlineKeyboardButton(text="Сохранить", callback_data=f"save_{violation_found_id}"),
+            ],
+            [
+                InlineKeyboardButton(text="Отменить", callback_data=f"cancelsave_{violation_found_id}"),
+            ],
+        ])
+        return kb
+    
+    @staticmethod
+    def cancel_correct_mode(violation_found_id: int) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Отменить", callback_data=f"cancel_{violation_found_id}"),
             ],
         ])
         return kb

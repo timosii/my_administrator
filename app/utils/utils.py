@@ -79,11 +79,11 @@ def format_timedelta(td: dt.timedelta):
         
     return result
 
-def get_index_by_violation_id(objects: list[object], violation_id: int) -> int | None:
+def get_index_by_violation_id(objects: list[object], violation_found_id: int) -> int | None:
     for index, obj in enumerate(objects):
-        if obj.violation_found_id == violation_id:
+        if obj.violation_found_id == violation_found_id:
             return index
-    return None
+    return 0
 
 
 if __name__ == '__main__':

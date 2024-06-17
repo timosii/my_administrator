@@ -1,8 +1,8 @@
 """initial migration
 
-Revision ID: 6eee6270b641
-Revises: 69801d6e6583
-Create Date: 2024-06-15 14:56:21.036211
+Revision ID: 15a1817fbf3d
+Revises: b403d56a504f
+Create Date: 2024-06-17 03:04:10.524830
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '6eee6270b641'
+revision: str = '15a1817fbf3d'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -130,7 +130,6 @@ def upgrade() -> None:
     sa.Column('mo_start', sa.DateTime(), nullable=True),
     sa.Column('mo_finish', sa.DateTime(), nullable=True),
     sa.Column('is_task', sa.Boolean(), nullable=False),
-    sa.CheckConstraint('mo_start > mfc_finish', name='check_time_mo_check'),
     sa.ForeignKeyConstraint(['fil_'], ['dicts.filials.fil_'], ),
     sa.ForeignKeyConstraint(['mfc_user_id'], ['data.user.user_id'], ),
     sa.ForeignKeyConstraint(['mo_user_id'], ['data.user.user_id'], ),
@@ -147,6 +146,8 @@ def upgrade() -> None:
     sa.Column('comm_mo', sa.String(), nullable=True),
     sa.Column('violation_detected', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
     sa.Column('violation_fixed', sa.DateTime(), nullable=True),
+    sa.Column('is_pending', sa.Boolean(), nullable=False),
+    sa.Column('violation_pending', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['check_id'], ['data.check.check_id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['violation_dict_id'], ['dicts.violations.violation_dict_id'], ),
     sa.PrimaryKeyConstraint('violation_found_id'),

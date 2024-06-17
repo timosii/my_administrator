@@ -112,7 +112,8 @@ class ViolationFoundRepo:
             query = select(ViolationFound).where(
                     and_(
                         ViolationFound.check_id == check_id,
-                        ViolationFound.violation_fixed.is_(None)
+                        ViolationFound.violation_fixed.is_(None),
+                        ViolationFound.is_pending.is_(False)
                     )
                 )
             result = await session.execute(query)
@@ -153,7 +154,8 @@ class ViolationFoundRepo:
                     Check.mfc_finish.is_not(None),
                     Check.mo_finish.is_(None),
                     Check.is_task.is_(True),
-                    ViolationFound.violation_fixed.is_(None)
+                    ViolationFound.violation_fixed.is_(None),
+                    ViolationFound.is_pending.is_(False)
                     )
                 .options(joinedload(ViolationFound.check))
             )
@@ -166,7 +168,33 @@ class ViolationFoundRepo:
             return [
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ] if violations else None
-        
+
+    async def get_pending_violations_by_fil(
+            self, fil_: str
+    ) -> Optional[List[ViolationFoundInDB]]:
+        async with self.session_maker() as session:
+            query = (
+                select(ViolationFound)
+                .join(ViolationFound.check)
+                .filter(
+                    Check.fil_ == fil_,
+                    Check.mfc_finish.is_not(None),
+                    # Check.mo_finish.is_(None),
+                    # Check.is_task.is_(True),
+                    ViolationFound.violation_fixed.is_(None),
+                    ViolationFound.is_pending.is_(True)
+                    )
+                .options(joinedload(ViolationFound.check))
+            )
+            
+            result = await session.execute(query)
+            
+            violations = result.scalars().all()
+            logger.info('get_active_violations_by_fil')
+            
+            return [
+                ViolationFoundInDB.model_validate(violation) for violation in violations
+            ] if violations else None        
     
     @cached(ttl=10, cache=Cache.REDIS, namespace='violation_found', endpoint=settings.REDIS_HOST)
     async def is_violation_already_in_check(self, violation_dict_id: int, check_id: int) -> bool:

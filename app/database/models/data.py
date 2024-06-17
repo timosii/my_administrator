@@ -62,6 +62,8 @@ class ViolationFound(Base):
     comm_mo: Mapped[str] = mapped_column(nullable=True)
     violation_detected: Mapped[datetime_now]
     violation_fixed: Mapped[dt.datetime] = mapped_column(nullable=True)
+    is_pending: Mapped[bool] = mapped_column(default=False)
+    violation_pending: Mapped[dt.datetime] = mapped_column(nullable=True)
 
     check: Mapped['Check'] = relationship(
         back_populates="violations"
@@ -71,7 +73,7 @@ class ViolationFound(Base):
 class Check(Base):
     __tablename__ = 'check'
     __table_args__ = (
-        CheckConstraint('mo_start > mfc_finish', name='check_time_mo_check'),
+        # CheckConstraint('mo_start > mfc_finish', name='check_time_mo_check'),
         {'schema': 'data'},
     )
 

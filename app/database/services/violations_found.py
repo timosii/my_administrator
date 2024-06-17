@@ -116,6 +116,15 @@ class ViolationFoundService:
         if not result:
             return None
         return result
+    
+    async def get_pending_violations_by_fil(
+        self, fil_: str
+    ) -> Optional[List[ViolationFoundInDB]]:
+        result = await self.db_repository.get_pending_violations_by_fil(fil_=fil_)
+        if not result:
+            return None
+        return result
+
 
     async def get_dict_id_by_name(self, violation_name: str, zone: str) -> int:
         result = await ViolationsRepo().get_dict_id_by_name(
@@ -136,12 +145,12 @@ class ViolationFoundService:
         return result
     
     async def is_violation_already_fixed(
-            self, violation_found_id: int
+        self, violation_found_id: int
     ) -> bool:
         result = await ViolationFoundRepo().is_violation_already_fixed(
             violation_found_id=violation_found_id
         )
-        return result
+        return result        
 
     async def get_violation_performers_by_fil(self, fil_: str) -> Optional[List[UserInDB]]:
         performers = await UserRepo().get_user_performer_by_fil(fil_=fil_)
@@ -160,7 +169,7 @@ class ViolationFoundService:
         if performers:
             res = violation.violation_card()
             await callback.message.answer(
-                text=f"Оповещение о нарушении отправлено сотрудникам {violation.mo}",
+                text=f"Оповещение о нарушении отправлено сотрудникам {violation.fil_}",
                 reply_markup=ReplyKeyboardRemove()
             )
             for performer in performers:
@@ -212,7 +221,7 @@ class ViolationFoundService:
         message: Message,
         state: FSMContext,
         fil_: str,
-        mo_start: str | None,
+        # mo_start: str | None,
         tasks: Optional[List[ViolationFoundInDB]],
     ):
         if not tasks:
@@ -220,8 +229,9 @@ class ViolationFoundService:
                 text=MoPerformerMessages.form_no_tasks_answer(fil_=fil_),
             )
         else:
-            if not mo_start:
-                await state.update_data(mo_start=dt.datetime.now().isoformat())
+            # if not mo_start:
+            # current_time = dt.datetime.now(dt.timezone.utc)
+            # await state.update_data(mo_start=current_time.isoformat())
             for task in tasks:
                 violation_out = await self.form_violation_out(violation=task)
                 await state.update_data(
@@ -232,7 +242,7 @@ class ViolationFoundService:
                 [
                     ViolationFoundOut(**v)
                     for k, v in data.items()
-                    if (k.startswith("vio_") and v)
+                    if (k.startswith("vio_") and v and (v['is_task'] == True) and (v['is_pending'] == False))
                 ],
                 key=lambda x: x.violation_dict_id,
             )
@@ -270,7 +280,7 @@ class ViolationFoundService:
                 [
                     ViolationFoundOut(**v)
                     for k, v in data.items()
-                    if (k.startswith("vio_") and v)
+                    if (k.startswith("vio_") and v and (v['is_task'] == False) and (v['is_pending'] == False))
                 ],
                 key=lambda x: x.violation_dict_id,
             )
@@ -291,6 +301,42 @@ class ViolationFoundService:
                 )
 
             await callback.answer()
+
+    async def form_violations_pending_replies(
+        self,
+        message: Message,
+        state: FSMContext,
+        fil_: str,
+        violations_pending: Optional[List[ViolationFoundInDB]],
+    ):
+        if not violations_pending:
+            await message.answer(
+                text=MoPerformerMessages.form_no_pending_violations_answer(fil_=fil_),
+            )
+        else:
+            for violation_found in violations_pending:
+                violation_out = await self.form_violation_out(violation=violation_found)
+                await state.update_data(
+                    {f"vio_{violation_out.violation_found_id}": violation_out.model_dump(mode='json')}
+                )
+            data = await state.get_data()
+            violation_out_objects = sorted(
+                [
+                    ViolationFoundOut(**v)
+                    for k, v in data.items()
+                    if (k.startswith("vio_") and v and (v['is_pending'] == True))
+                ],
+                key=lambda x: x.violation_dict_id,
+            )
+            reply_obj = FormCards().form_violation_pending_reply(
+                violations_out=violation_out_objects, order=0
+            )
+            photo_id = reply_obj.photo_id
+            text_mes = reply_obj.text_mes
+            keyboard = reply_obj.keyboard
+            await message.answer_photo(
+                photo=photo_id, caption=text_mes, reply_markup=keyboard
+            )
 
     async def form_violation_out(
         self,
@@ -314,8 +360,11 @@ class ViolationFoundService:
             violation_detected=violation.violation_detected,
             comm_mfc=violation.comm_mfc,
             photo_id_mfc=violation.photo_id_mfc,
+            is_pending=violation.is_pending,
+            violation_pending=violation.violation_pending
         )
-        return vio_found
+        # return vio_found if not vio_found.is_pending else None
+        return vio_found  
 
     # async def form_violation_card(
     #     self,

@@ -43,7 +43,7 @@ class CheckOut(BaseModel):
 <b>Дата завершения проверки:</b>
 {to_moscow_time(self.mfc_finish).strftime('%d.%m.%Y %H:%M')}
 <b>Проверка заняла: {format_timedelta(self.mfc_finish - self.mfc_start)} </b>
-<b>Количество нарушений:</b>
+<b>Количество активных нарушений:</b>
 {self.violations_count}
         """
         return result

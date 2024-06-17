@@ -90,7 +90,8 @@ class CheckRepo:
         query = select(func.count()).select_from(ViolationFound).where(
             and_(
                 ViolationFound.check_id==check_id,
-                ViolationFound.violation_fixed.is_(None)
+                ViolationFound.violation_fixed.is_(None),
+                ViolationFound.is_pending.is_(False)
                 )
             )
         logger.info('get violations found count by check')

@@ -550,7 +550,8 @@ async def save_violation(
 
     if vio_data.get("is_task"):
         check_id = vio_data["check_id"]
-        check_upd = CheckUpdate(mfc_finish=dt.datetime.now())
+        current_time = dt.datetime.now(dt.timezone.utc)
+        check_upd = CheckUpdate(mfc_finish=current_time)
         await check.update_check(check_id=check_id, check_update=check_upd)
         await state.clear()
         return
@@ -601,7 +602,8 @@ async def finish_check(
             await state.clear()
             return
 
-    check_upd = CheckUpdate(mfc_finish=dt.datetime.now())
+    current_time = dt.datetime.now(dt.timezone.utc)
+    check_upd = CheckUpdate(mfc_finish=current_time)
     await check.update_check(check_id=check_id, check_update=check_upd)
     await state.clear()
     await message.answer(
