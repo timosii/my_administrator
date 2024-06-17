@@ -10,11 +10,15 @@ from loguru import logger
 from aiocache import cached, Cache
 from app.config import settings
 
+CACHE_EXPIRE_SHORT=settings.CACHE_SHORT
+CACHE_EXPIRE_LONG=settings.CACHE_LONG
+
 
 class ViolationsRepo:
     def __init__(self):
         self.session_maker = session_maker
 
+    @cached(ttl=CACHE_EXPIRE_LONG, cache=Cache.REDIS, namespace='violations', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
     async def get_dict_id_by_name(
         self,
         violation_name: str,
@@ -29,7 +33,7 @@ class ViolationsRepo:
             logger.info('get dict vio id by name and zone')
             return violation_id if violation_id else None       
 
-    @cached(ttl=600, cache=Cache.REDIS, namespace='violations', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_LONG, cache=Cache.REDIS, namespace='violations', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
     async def get_violation_dict_by_id(
         self,
         violation_dict_id: int

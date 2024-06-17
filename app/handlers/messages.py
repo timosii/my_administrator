@@ -23,7 +23,7 @@ class MfcMessages:
     start_message = 'Для начала нажмите /start'
     welcome_message = f'{form_greeting()}, исполнитель МФЦ!\nВведите номер поликлиники для проверки:'
     wrong_type='Чтобы начать, нам нужно определиться с поликлиникой! Введите <b>число</b>'
-    main_menu = 'Выберите, что хотите сделать'
+    main_menu = 'Выберите действие'
     choose_zone_with_time = f'Вы начали проверку {time_determiner()}. Выберите зону нарушения: '
     choose_zone = 'Выберите зону нарушения:'
     add_photo = 'Отправьте фото'

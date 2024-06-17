@@ -28,7 +28,7 @@ class UserService:
         return result
 
     async def get_user_fil(self, user_id: int) -> str:
-        result = await self.db_repository.get_user_mo(user_id=user_id)
+        result = await self.db_repository.get_user_fil(user_id=user_id)
         return result
 
     async def user_exists(self, user_id: int) -> bool:

@@ -12,13 +12,15 @@ from app.database.schemas.check_schema import CheckCreate, CheckUpdate, CheckInD
 from aiocache import cached, Cache
 from app.config import settings
 
+CACHE_EXPIRE_LONG=settings.CACHE_LONG
+
 
 class HelpRepo:
     def __init__(self):
         self.session_maker = session_maker
         self.cache = Cache(Cache.REDIS, namespace='helpers', serializer=PickleSerializer(),endpoint=settings.REDIS_HOST)
     
-    @cached(ttl=3600, cache=Cache.REDIS, namespace='helpers', serializer=PickleSerializer(),endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_LONG, cache=Cache.REDIS, namespace='helpers', serializer=PickleSerializer(),endpoint=settings.REDIS_HOST)
     async def get_mo_by_fil(self, fil_: str):
         query = select(Filials.mo_).where(
             and_(
