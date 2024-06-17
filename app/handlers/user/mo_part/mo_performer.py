@@ -271,13 +271,20 @@ async def take_to_work(
         violation_found_id=violation_found_id
     )
     violation_out = await violation_obj.form_violation_out(violation_in_db)
+    current_time = dt.datetime.now(dt.timezone.utc)
     if violation_out.is_task:
-        current_time = dt.datetime.now(dt.timezone.utc)
         await state.update_data(
             **violation_out.model_dump(mode="json"),
             is_take=True,
             mo_start=current_time.isoformat(),
         )
+    else:
+        await state.update_data(
+            **violation_out.model_dump(mode="json"),
+            is_take=True,
+            # mo_start=current_time.isoformat(),
+        )
+
     text_mes = violation_out.violation_card()
     await state.update_data({
         f'vio_{violation_found_id}': violation_out.model_dump(mode='json')
