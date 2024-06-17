@@ -38,14 +38,19 @@ class MfcMessages:
     wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
     check_deleted = 'Проверка успешно удалена!'
     no_unfinished = 'Нет незавершенных проверок'
-    violation_already_exist = 'Вы уже зарегистрировали это нарушение. Пожалуйста, выберите другое'
+    violation_already_in_check = 'Вы уже зарегистрировали это нарушение. Пожалуйста, выберите другое'
     wrong_state = 'Описание доступно только после выбора нарушения'
-    no_description = 'Нет описания'
+    no_description = 'Для этого нарушения нет описания'
     notification_add = 'Выберите филиал, где проблема обнаружена'
     problem_detection = 'Вы обнаружили проблему ☑️'
     violation_saved = 'Информация сохранена ✅'
     does_not_find = 'Мы не нашли вашу поликлинику. Пожалуйста, попробуйте ещё раз или обратитесь к администратору'
     choose_mo_additional='Пожалуйста, выберите MO из предложенных вариантов'
+    not_comm_to_photo = 'Вы не добавили комментарий к фотографии. Пожалуйста, повторите'
+    need_comm_and_photo = 'Добавьте фотографию и комментарий к нарушению в качестве подписи к фото'
+    work_only_with_photo_and_text = 'Поддерживается только фото и текст (в качестве подписи к фото)'
+    zero_performers = "Отправка уведомления в МО невозможна: нет зарегистрированных исполнителей в филиале"
+    cant_delete = 'Проверка не может быть удалена, есть зарегистрированные нарушения'
     
 
     @staticmethod
@@ -53,8 +58,8 @@ class MfcMessages:
         return f'Выберите нарушение в зоне <b>"{zone}"</b>'
     
     @staticmethod
-    def add_photo_comm(violation: str) -> str:
-        return f'Приложите фото и напишите комментарий по проблеме <b>"{violation}"</b>'
+    def add_photo_comm(violation_name: str) -> str:
+        return f'Приложите фото и напишите комментарий по проблеме <b>"{violation_name}"</b>'
 
     @staticmethod
     def photo_comm_added(violation: str) -> str:
@@ -71,7 +76,6 @@ class MfcMessages:
         message = f'Вы можете добавить фото и комментарии для проблемы <b>"{violation}"</b>.'
         return message
 
-
     @staticmethod
     def notification_final(mo: str) -> str:
         message = f'Уведомление отправлено в {mo}. Спасибо!'
@@ -81,6 +85,17 @@ class MfcMessages:
     def choose_fil(mo: str) -> str:
         result = f'Ваша поликлиника: {mo}, пожалуйста выберите филиал проверки'
         return result
+    
+    @staticmethod
+    def violation_sending(fil_: str) -> str:
+        result = f"Оповещение о нарушении отправлено сотрудникам {fil_}"
+        return result
+
+    @staticmethod
+    def there_is_new_violation(fil_: str, text: str) -> str:
+        result = f"<b>Зарегистрировано новое нарушение в филиале {fil_}</b>\n{text}"
+        return result
+
     
 class MfcLeaderMessages:
     start_message = f"{form_greeting()}, куратор МФЦ!"
@@ -108,6 +123,7 @@ class MoPerformerMessages:
     exit_take = 'Вы вышли из режима исправления нарушения'
     move_to_pending_alert = 'Нарушение будет находиться в статусе "Перенесено" и не отображаться среди других нарушений.\nВы сможете найти такие нарушения в пункте "Перенесенные нарушения" главного меню'
     move_to_pending = 'Нарушение перенесено. Вы можете продолжить работу'
+    finish_check_zero_violations = 'Проверка завершена без нарушений! Спасибо!'
     
 
     @staticmethod

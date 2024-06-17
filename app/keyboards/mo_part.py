@@ -98,33 +98,6 @@ class MoPerformerKeyboards:
         ], row_width=3)
         return kb
 
-
-    # @staticmethod
-    # def add_photo(violation_id) -> InlineKeyboardMarkup:
-    #     kb = InlineKeyboardMarkup(inline_keyboard=[
-    #         [
-    #             InlineKeyboardButton(text="Написать комментарий", callback_data=f"comm_after_photo_{violation_id}")
-    #         ]
-    #     ])
-    #     return kb
-    
-    # @staticmethod
-    # def add_comm(violation_id) -> InlineKeyboardMarkup:
-    #     kb = InlineKeyboardMarkup(inline_keyboard=[
-    #         [
-    #             InlineKeyboardButton(text="Отправить фото", callback_data=f"photo_after_comm_{violation_id}")
-    #         ]
-    #     ])
-    #     return kb
-    
-    # @staticmethod
-    # def vio_correct_with_photo(violation_id: int) -> InlineKeyboardMarkup:
-    #     kb = InlineKeyboardMarkup(inline_keyboard=[
-    #         [
-    #             InlineKeyboardButton(text='Нарушение исправлено', callback_data=f"correct_{violation_id}")
-    #         ]
-    #     ])
-    #     return kb
     
     @staticmethod
     def get_under_check(check_id: int) -> InlineKeyboardMarkup:
@@ -134,6 +107,16 @@ class MoPerformerKeyboards:
             ],
         ])
         return kb
+    
+    @staticmethod
+    def get_under_check_zero_violations(check_id: int) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Закончить проверку", callback_data=f"violationszero_{check_id}"),
+            ],
+        ])
+        return kb
+    
     
     @staticmethod
     def save_violation_found(violation_found_id: int) -> InlineKeyboardMarkup:

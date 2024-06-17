@@ -140,7 +140,8 @@ class ViolationFoundService:
         self, violation_dict_id: int, check_id: int
     ) -> bool:
         result = await ViolationFoundRepo().is_violation_already_in_check(
-            violation_dict_id=violation_dict_id, check_id=check_id
+            violation_dict_id=violation_dict_id,
+            check_id=check_id
         )
         return result
     
@@ -166,18 +167,18 @@ class ViolationFoundService:
         self, callback: CallbackQuery, violation: ViolationFoundOut
     ):
         performers = await self.get_violation_performers_by_fil(fil_=violation.fil_)
-        if performers:
-            res = violation.violation_card()
+        if not performers:
             await callback.message.answer(
-                text=f"Оповещение о нарушении отправлено сотрудникам {violation.fil_}",
-                reply_markup=ReplyKeyboardRemove()
+                text=MfcMessages.zero_performers
             )
+        else:
+            res = violation.violation_card()
             for performer in performers:
                 if violation.photo_id_mfc:
                     await callback.bot.send_photo(
                         chat_id=performer.user_id,
                         photo=violation.photo_id_mfc,
-                        caption=f"<b>Зарегистрировано новое нарушение в филиале {violation.fil_}</b>\n{res}",
+                        caption=MfcMessages.there_is_new_violation(fil_=violation.fil_, text=res),
                         reply_markup=MfcKeyboards().take_task_to_work(
                             violation_id=violation.violation_found_id,
                             is_task=violation.is_task
@@ -186,15 +187,15 @@ class ViolationFoundService:
                 else:
                     await callback.bot.send_message(
                         chat_id=performer.id,
-                        text=f"<b>Зарегистрировано новое нарушение в филиале {violation.fil_}</b>\n{res}",
+                        text=MfcMessages.there_is_new_violation(fil_=violation.fil_, text=res),
                         reply_markup=MfcKeyboards().take_task_to_work(
-                            violation_id=violation.id,
+                            violation_id=violation.violation_found_id,
                             is_task=violation.is_task
                         )
                     )
-        else:
             await callback.message.answer(
-                text="Отправка уведомления в МО невозможна: нет зарегистрированных исполнителей в филиале"
+                text=MfcMessages.violation_sending(fil_=violation.fil_),
+                reply_markup=ReplyKeyboardRemove()
             )
 
     async def save_violation_process(
@@ -203,18 +204,16 @@ class ViolationFoundService:
         violation_found_out: ViolationFoundOut,
     ):
         await callback.message.edit_text(
-            text=MfcMessages.save_violation(violation=violation_found_out.violation_name), reply_markup=None
+            text=MfcMessages.save_violation(
+                violation=violation_found_out.violation_name), reply_markup=None
         )
 
         vio_found_update = ViolationFoundUpdate(
             **violation_found_out.model_dump()
         )
-        await self.update_violation(violation_found_id=violation_found_out.violation_found_id,
-                                    violation_update=vio_found_update)
-        await self.send_vio_notification_to_fil_performers(
-            callback=callback,
-            violation=violation_found_out
-        )
+        await self.update_violation(
+            violation_found_id=violation_found_out.violation_found_id,
+            violation_update=vio_found_update)
 
     async def form_task_replies(
         self,

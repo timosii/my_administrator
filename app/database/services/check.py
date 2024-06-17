@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 from loguru import logger
 from pydantic import BaseModel
@@ -20,6 +21,7 @@ from aiogram.fsm.context import FSMContext
 from app.view.cards import FormCards
 from app.keyboards.mfc_part import MfcKeyboards
 from app.handlers.messages import MfcMessages
+from app.handlers.states import MfcStates
 
 
 class CheckService:
@@ -44,16 +46,10 @@ class CheckService:
             check_id=check_id, check_update=check_update
         )
         return result
-
-    async def delete_check_zero_violations(self, check_id: int) -> None | str:
-        violations_count = await self.get_violations_found_count_by_check(
-                check_id=check_id
-            )
-        if violations_count == 0:
-            result = await self.db_repository.delete_check(check_id=check_id)
-            return result
-        else:
-            return 'Вы не можете удалить проверку, есть зафиксированные нарушения'
+    
+    async def delete_check(self, check_id: int) -> None:
+        result = await self.db_repository.delete_check(check_id=check_id)
+        return result
 
     async def delete_all_checks(self) -> None:
         result = await self.db_repository.delete_all_checks()
@@ -89,6 +85,38 @@ class CheckService:
             check_id=check_id
         )
         return result
+    
+    async def start_checking_process(
+        self,
+        message: Message,
+        state: FSMContext,
+        is_task: bool
+    ):
+        check_data = await state.get_data()
+        check_obj = CheckCreate(
+            fil_=check_data["fil_"],
+            mfc_user_id=check_data["mfc_user_id"],
+            is_task=is_task
+        )
+        check_in_obj = await self.add_check(check_create=check_obj)
+        await message.answer(
+            text=MfcMessages.choose_zone_with_time,
+            reply_markup=await MfcKeyboards().choose_zone(),
+        )
+        await state.update_data(
+            check_in_obj.model_dump(mode='json')
+            )
+        await state.set_state(MfcStates.choose_zone)
+
+    async def finish_check_process(
+        self,
+        check_id: int,
+        state: FSMContext,
+    ):
+        current_time = dt.datetime.now(dt.timezone.utc)
+        check_upd = CheckUpdate(mfc_finish=current_time)
+        await self.update_check(check_id=check_id, check_update=check_upd)
+        await state.clear()        
 
     async def unfinished_checks_process(
         self,

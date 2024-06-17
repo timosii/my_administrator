@@ -92,7 +92,7 @@ class CheckRepo:
     async def get_violations_found_count_by_check(self, check_id: int) -> int:
         query = select(func.count()).select_from(ViolationFound).where(
             and_(
-                ViolationFound.check_id==check_id,
+                ViolationFound.check_id == check_id,
                 ViolationFound.violation_fixed.is_(None),
                 ViolationFound.is_pending.is_(False)
                 )

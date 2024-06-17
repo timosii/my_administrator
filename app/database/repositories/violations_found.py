@@ -203,7 +203,7 @@ class ViolationFoundRepo:
         query = select(ViolationFound).where(
             and_(
                 ViolationFound.violation_dict_id == violation_dict_id,
-                ViolationFound.check_id == check_id
+                ViolationFound.check_id == check_id,
             )
         )
         result = await self._get_scalar(query=query)

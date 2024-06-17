@@ -77,8 +77,31 @@ async def get_active_violations(
         for check in checks:
             check_out = await check_obj.form_check_out(check=check)
             text_mes = check_out.form_card_check_out()
-            keyboard = MoPerformerKeyboards().get_under_check(check_id=check.check_id)
+            keyboard = MoPerformerKeyboards().get_under_check(check_id=check.check_id) if check_out.violations_count > 0 else MoPerformerKeyboards().get_under_check_zero_violations(check_id=check.check_id)
             await message.answer(text=text_mes, reply_markup=keyboard)
+
+
+@router.callback_query(
+    F.data.startswith('violationszero_'),
+    StateFilter(MoPerformerStates.mo_performer)
+)
+async def check_zero_violations(callback: CallbackQuery,
+                          state: FSMContext,
+                          check_obj:CheckService=CheckService()):
+    check_id = int(callback.data.split("_")[1])
+    data = await state.get_data()
+    await callback.answer(
+        text=MoPerformerMessages.finish_check_zero_violations,
+        show_alert=True
+    )
+    current_time = dt.datetime.now(dt.timezone.utc)
+    check_upd = CheckUpdate(
+        mo_user_id=data["mo_user_id"],
+        mo_start=current_time,
+        mo_finish=current_time,
+    )
+    await check_obj.update_check(check_id=check_id, check_update=check_upd)
+    await callback.message.delete()
 
 @router.message(
     F.text.lower() == "активные уведомления",
@@ -914,13 +937,6 @@ async def correct_vio_process_finish(
 ):
     data = await state.get_data()
     check_id = data['check_id']
-
-    # if data.get("is_task"):
-    #     await message.answer(
-    #         text=MoPerformerMessages.tasks_work_finish,
-    #         reply_markup=ReplyKeyboardRemove(),
-    #     )
-
     violation_out_objects = sorted(
         [
             ViolationFoundOut(**v)
@@ -940,7 +956,6 @@ async def correct_vio_process_finish(
         mo_start=dt.datetime.fromisoformat(data["mo_start"]),
         mo_finish=current_time,
     )
-    # check_id = data["check_id"]
     await check_obj.update_check(check_id=check_id, check_update=check_upd)
     await state.update_data(mo_start=None)
     fil_ = data["fil_"]

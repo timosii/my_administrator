@@ -10,10 +10,8 @@ class ViolationFoundBase(BaseModel):
 
 class ViolationFoundCreate(ViolationFoundBase):
     pass
-    # violation_detected: dt.datetime
 
 class ViolationFoundUpdate(BaseModel):
-    # violation_found_id: int
     photo_id_mfc: Optional[str] = None
     comm_mfc: Optional[str] = None
     photo_id_mo: Optional[str] = None
@@ -33,6 +31,15 @@ class ViolationFoundInDB(ViolationFoundBase):
 
     class Config:
         from_attributes = True
+
+class ViolationFoundDeleteMfc(BaseModel):
+    violation_detected: None=None
+    time_to_correct: None=None
+    violation_found_id: None=None
+    violation_name: None=None
+    violation_dict_id: None=None
+    photo_id_mfc: None=None
+    comm_mfc: None=None
 
 class ViolationFoundOut(ViolationFoundBase):
     mo: str
