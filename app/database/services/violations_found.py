@@ -362,7 +362,6 @@ class ViolationFoundService:
             is_pending=violation.is_pending,
             violation_pending=violation.violation_pending
         )
-        # return vio_found if not vio_found.is_pending else None
         return vio_found  
 
     # async def form_violation_card(

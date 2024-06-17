@@ -33,15 +33,13 @@ router.message.filter(MoPerformerFilter())
 async def cmd_start(
     message: Message, state: FSMContext, user_obj: UserService = UserService()
 ):
-    user = message.from_user
-    mo = await user_obj.get_user_mo(user_id=user.id)
-    fil_ = await user_obj.get_user_fil(user_id=user.id)
-    logger.info("User {0} {1} passed authorization".format(user.id, user.username))
     await state.clear()
-    await state.update_data(mo_user_id=user.id,
-                            mo=mo,
-                            fil_=fil_
-                            )
+    await user_obj.save_default_user_info(
+        message=message,
+        state=state
+    )
+    user = message.from_user
+    logger.info("User {0} {1} passed authorization".format(user.id, user.username))
     await message.answer(
         text=MoPerformerMessages.start_message,
         reply_markup=MoPerformerKeyboards().check_or_tasks(),
@@ -58,13 +56,10 @@ async def get_active_violations(
     check_obj: CheckService = CheckService(),
     user_obj: UserService=UserService()
 ):
-    user = message.from_user
-    mo = await user_obj.get_user_mo(user_id=user.id)
-    fil_ = await user_obj.get_user_fil(user_id=user.id)
-    await state.update_data(mo_user_id=user.id,
-                            mo=mo,
-                            fil_=fil_
-                            )
+    await user_obj.save_default_user_info(
+        message=message,
+        state=state
+    )
     data = await state.get_data()
     fil_ = data["fil_"]
     checks = await check_obj.get_all_active_checks_by_fil(fil_=fil_)
@@ -103,6 +98,7 @@ async def check_zero_violations(callback: CallbackQuery,
     await check_obj.update_check(check_id=check_id, check_update=check_upd)
     await callback.message.delete()
 
+
 @router.message(
     F.text.lower() == "активные уведомления",
     StateFilter(MoPerformerStates.mo_performer),
@@ -113,13 +109,10 @@ async def get_active_tasks(
     violation_obj: ViolationFoundService = ViolationFoundService(),
     user_obj: UserService=UserService()
 ):
-    user = message.from_user
-    mo = await user_obj.get_user_mo(user_id=user.id)
-    fil_ = await user_obj.get_user_fil(user_id=user.id)
-    await state.update_data(mo_user_id=user.id,
-                            mo=mo,
-                            fil_=fil_
-                            )
+    await user_obj.save_default_user_info(
+        message=message,
+        state=state
+    )
     data = await state.get_data()
     fil_ = data["fil_"]
     tasks = await violation_obj.get_active_violations_by_fil(fil_=fil_)
@@ -127,7 +120,6 @@ async def get_active_tasks(
         message=message,
         state=state,
         fil_=fil_,
-        # mo_start=data.get("mo_start"),
         tasks=tasks,
     )
 
@@ -142,13 +134,10 @@ async def get_pending_violations_found(
     violation_obj: ViolationFoundService = ViolationFoundService(),
     user_obj: UserService=UserService()
 ):
-    user = message.from_user
-    mo = await user_obj.get_user_mo(user_id=user.id)
-    fil_ = await user_obj.get_user_fil(user_id=user.id)
-    await state.update_data(mo_user_id=user.id,
-                            mo=mo,
-                            fil_=fil_
-                            )
+    await user_obj.save_default_user_info(
+        message=message,
+        state=state
+    )
     data = await state.get_data()
     fil_ = data["fil_"]
     violations_found_pending = await violation_obj.get_pending_violations_by_fil(fil_=fil_)

@@ -85,7 +85,7 @@ class CheckService:
             check_id=check_id
         )
         return result
-    
+        
     async def start_checking_process(
         self,
         message: Message,
