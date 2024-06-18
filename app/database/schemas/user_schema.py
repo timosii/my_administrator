@@ -4,11 +4,10 @@ import datetime as dt
 
 class UserBase(BaseModel):
     user_id: int
-    # mo_: str
     last_name: str
     first_name: str
-    patronymic: str
-    post: str
+    patronymic: Optional[str] = None
+    post: Optional[str] = None
 
 class UserCreate(UserBase):
     mo_: Optional[str] = None

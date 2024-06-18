@@ -36,8 +36,8 @@ class User(Base):
     department: Mapped[str_255] = mapped_column(nullable=True)
     last_name: Mapped[str_255]
     first_name: Mapped[str_255]
-    patronymic: Mapped[str_255]
-    post: Mapped[str_255]
+    patronymic: Mapped[str_255]= mapped_column(nullable=True)
+    post: Mapped[str_255]= mapped_column(nullable=True)
     is_admin: Mapped[bool] = mapped_column(default=False)
     is_mfc: Mapped[bool] = mapped_column(default=False)
     is_mfc_leader: Mapped[bool] = mapped_column(default=False)

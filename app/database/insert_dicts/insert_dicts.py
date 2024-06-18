@@ -29,7 +29,7 @@ class DictsInsert():
             )
         self.dfs = {
             os.path.basename(file).split('.')[0]: pd.read_excel(
-                file
+                file, engine='openpyxl'
                 ) for file in excel_files
             }        
 
