@@ -1,8 +1,8 @@
 """initial migration
 
-Revision ID: 8b2915b95b7a
-Revises: 15a1817fbf3d
-Create Date: 2024-06-18 10:07:28.375339
+Revision ID: 20716cd8712b
+Revises: b51c0eb2531d
+Create Date: 2024-06-18 19:16:46.694641
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '8b2915b95b7a'
+revision: str = '20716cd8712b'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -53,7 +53,6 @@ def upgrade() -> None:
         END 
         $$;
     """)
-    
     op.create_table('mos',
     sa.Column('mo_', sa.String(length=255), nullable=False),
     sa.Column('mo_population', sa.String(length=255), nullable=False),
@@ -76,12 +75,12 @@ def upgrade() -> None:
     sa.Column('fil_population', sa.String(length=255), nullable=False),
     sa.Column('fil_type', sa.String(length=255), nullable=False),
     sa.Column('mo_', sa.String(length=255), nullable=False),
-    sa.ForeignKeyConstraint(['mo_'], ['dicts.mos.mo_'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['mo_'], ['dicts.mos.mo_'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('fil_'),
     schema='dicts'
     )
     op.create_table('violations',
-    sa.Column('violation_dict_id', sa.Integer(), nullable=False),
+    sa.Column('violation_dict_id', sa.Integer(), autoincrement=False, nullable=False),
     sa.Column('violation_name', sa.String(length=255), nullable=False),
     sa.Column('zone', sa.String(length=255), nullable=False),
     sa.Column('problem', sa.String(length=255), nullable=False),
@@ -92,8 +91,8 @@ def upgrade() -> None:
     sa.Column('is_comment_mo', sa.Boolean(), nullable=False),
     sa.Column('is_no_data_button', sa.Boolean(), nullable=False),
     sa.Column('time_to_correct', sa.Interval(), nullable=False),
-    sa.ForeignKeyConstraint(['problem'], ['dicts.problems.problem_name'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['zone'], ['dicts.zones.zone_name'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['problem'], ['dicts.problems.problem_name'], onupdate='CASCADE', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['zone'], ['dicts.zones.zone_name'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('violation_dict_id'),
     schema='dicts'
     )
@@ -115,8 +114,8 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
     sa.CheckConstraint('is_admin OR is_mfc OR is_mfc_leader OR is_mo_performer OR is_mo_controler', name='check_role_logic'),
-    sa.ForeignKeyConstraint(['fil_'], ['dicts.filials.fil_'], ),
-    sa.ForeignKeyConstraint(['mo_'], ['dicts.mos.mo_'], ),
+    sa.ForeignKeyConstraint(['fil_'], ['dicts.filials.fil_'], onupdate='CASCADE', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['mo_'], ['dicts.mos.mo_'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('user_id'),
     schema='data'
     )
@@ -130,9 +129,9 @@ def upgrade() -> None:
     sa.Column('mo_start', sa.DateTime(), nullable=True),
     sa.Column('mo_finish', sa.DateTime(), nullable=True),
     sa.Column('is_task', sa.Boolean(), nullable=False),
-    sa.ForeignKeyConstraint(['fil_'], ['dicts.filials.fil_'], ),
-    sa.ForeignKeyConstraint(['mfc_user_id'], ['data.user.user_id'], ),
-    sa.ForeignKeyConstraint(['mo_user_id'], ['data.user.user_id'], ),
+    sa.ForeignKeyConstraint(['fil_'], ['dicts.filials.fil_'], onupdate='CASCADE', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['mfc_user_id'], ['data.user.user_id'], onupdate='CASCADE', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['mo_user_id'], ['data.user.user_id'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('check_id'),
     schema='data'
     )
@@ -148,8 +147,8 @@ def upgrade() -> None:
     sa.Column('violation_fixed', sa.DateTime(), nullable=True),
     sa.Column('is_pending', sa.Boolean(), nullable=False),
     sa.Column('violation_pending', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['check_id'], ['data.check.check_id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['violation_dict_id'], ['dicts.violations.violation_dict_id'], ),
+    sa.ForeignKeyConstraint(['check_id'], ['data.check.check_id'], onupdate='CASCADE', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['violation_dict_id'], ['dicts.violations.violation_dict_id'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('violation_found_id'),
     schema='data'
     )

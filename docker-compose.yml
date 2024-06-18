@@ -6,7 +6,7 @@ services:
     env_file: .env_prod
     ports:
       - "8000:8000"
-    command: bash -c "alembic upgrade head && export PYTHONPATH=$PYTHONPATH:$(pwd) && python app/database/main.py && python run.py"
+    command: bash -c "alembic upgrade head && export PYTHONPATH=$PYTHONPATH:$(pwd) && python run.py"
     depends_on:
       ngrok:
         condition: service_started

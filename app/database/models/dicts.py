@@ -37,7 +37,7 @@ class Filials(Base):
     fil_: Mapped[str_pk]
     fil_population: Mapped[str_255]
     fil_type: Mapped[str_255]
-    mo_: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_", ondelete="CASCADE"))
+    mo_: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_", ondelete="CASCADE", onupdate='CASCADE'))
 
 
 class ProblemBlocs(Base):
@@ -60,8 +60,8 @@ class Violations(Base):
 
     violation_dict_id: Mapped[intpk]
     violation_name: Mapped[str_255]
-    zone: Mapped[str_255] = mapped_column(ForeignKey("dicts.zones.zone_name", ondelete="CASCADE"))
-    problem: Mapped[str_255] = mapped_column(ForeignKey("dicts.problems.problem_name", ondelete="CASCADE"))
+    zone: Mapped[str_255] = mapped_column(ForeignKey("dicts.zones.zone_name", ondelete="CASCADE", onupdate='CASCADE'))
+    problem: Mapped[str_255] = mapped_column(ForeignKey("dicts.problems.problem_name", ondelete="CASCADE", onupdate='CASCADE'))
     description: Mapped[str] = mapped_column(nullable=True)
     is_photo_mfc: Mapped[bool]
     is_comment_mfc: Mapped[bool]

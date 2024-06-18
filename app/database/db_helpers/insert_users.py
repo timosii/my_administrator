@@ -1,3 +1,4 @@
+import asyncio
 import datetime as dt
 from app.database.database import engine, session_maker, Base
 from app.database.models.data import (
@@ -321,14 +322,5 @@ async def insert_data_user(user: UserService = UserService()):
     logger.info('users process finished')
 
 
-async def clear_data(
-        user: UserService=UserService(),
-        check: CheckService=CheckService(),
-        violations_found: ViolationFoundService=ViolationFoundService()
-        ):
-    await violations_found.delete_all_violations_found()
-    logger.info('violations found deleted')
-    await check.delete_all_checks()
-    logger.info('checks deleted')
-    await user.delete_all_users()
-    logger.info('users deleted')
+if __name__=='__main__':
+    asyncio.get_event_loop().run_until_complete(insert_data_user())

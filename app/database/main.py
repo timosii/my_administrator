@@ -7,16 +7,18 @@ from app.config import settings
 from app.database.models.data import User
 from app.database.schemas.user_schema import UserCreate
 
-from app.database.db_helpers.data_operations import (
-    insert_data_user,
-    clear_data
+from app.database.db_helpers.insert_users import (
+    insert_data_user,   
 )
+
 from app.database.services.users import UserService
 
 from app.database.insert_dicts.insert_dicts import DictsInsert
+from app.database.insert_dicts.update_dicts import DictsUpdate
 
 # накатить алембик сначала
 DictsInsert().insert_dicts_to_db()
+DictsUpdate().update_dicts_to_db()
 # asyncio.get_event_loop().run_until_complete(clear_data())
 asyncio.get_event_loop().run_until_complete(insert_data_user())
 # asyncio.run(insert_data_user())

@@ -10,7 +10,9 @@ from app.database.models.dicts import (
     Violations,
     ProblemBlocs
 )
-from sqlalchemy import select
+from sqlalchemy import select, delete, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from loguru import logger
 
 class DictsInsert():
     def __init__(self,
@@ -44,6 +46,7 @@ class DictsInsert():
                 session.add_all(mos)
                 await session.commit()
 
+
     async def insert_fils(self):
         async with session_maker() as session:
             result = await session.execute(select(Filials).limit(1))
@@ -66,6 +69,7 @@ class DictsInsert():
                 session.add_all(zones)
                 await session.commit()
 
+
     async def insert_problems(self):
         async with session_maker() as session:
             result = await session.execute(select(ProblemBlocs).limit(1))
@@ -77,8 +81,10 @@ class DictsInsert():
                 session.add_all(problems)
                 await session.commit()
 
+
     async def insert_violations(self):
         self.dfs['violations_dict']['time_to_correct'] = pd.to_timedelta(self.dfs['violations_dict']['time_to_correct']).astype(str)
+        self.dfs['violations_dict']['violation_dict_id'] = self.dfs['violations_dict']['violation_dict_id'].astype(int)
         async with session_maker() as session:
             result = await session.execute(select(Violations).limit(1))
             if not result.scalar():
@@ -96,9 +102,8 @@ class DictsInsert():
         asyncio.get_event_loop().run_until_complete(self.insert_zones())
         asyncio.get_event_loop().run_until_complete(self.insert_problems())
         asyncio.get_event_loop().run_until_complete(self.insert_violations())
-        # asyncio.run(self.insert_mos())
-        # asyncio.run(self.insert_fils())
-        # asyncio.run(self.insert_zones())
-        # asyncio.run(self.insert_problems())
-        # asyncio.run(self.insert_violations())
+
+
+if __name__=='__main__':
+    DictsInsert().insert_dicts_to_db()
         

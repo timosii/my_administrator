@@ -40,7 +40,6 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.set_state(AdminStates.admin)
 
 
-
 @router.message(F.text.lower() == "добавить пользователей",
                 StateFilter(AdminStates.admin))
 async def add_users_command(message: Message, state: FSMContext, bot:Bot):
@@ -65,8 +64,6 @@ async def process_doc_command(
         doc_id = message.document.file_id
         logger.info(f'DOC_ID: {doc_id}')
         doc_title = message.document.file_name
-        # if doc_title != 'users_insert.xlsx':
-        #     raise Exception('Работаю только с файлом user_dict')
         file = await bot.get_file(doc_id)
         file_path = file.file_path
         if os.path.exists('tmp.xlsx'):
@@ -74,18 +71,11 @@ async def process_doc_command(
         await bot.download_file(file_path, 'tmp.xlsx')
         df = pd.read_excel('tmp.xlsx', sheet_name='new', engine='openpyxl')
         df.where(pd.notnull(df), None, inplace=True)
-        # async with session_maker() as session:
-        #     for _, row in df.iterrows():
-        #         stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
-        #         user_id = int(stripped_row['user_id'])
-        #         result = await session.execute(select(User).filter_by(user_id=user_id))
-        #         if not result.scalar():
-        #             user = User(**stripped_row)
-        #             session.add(user)
-        #     await session.commit()
+
         async with session_maker() as session:
             for _, row in df.iterrows():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
+                logger.info('')
                 
                 unique_field_value = stripped_row['user_id']
                 result = await session.execute(select(User).filter_by(user_id=unique_field_value))

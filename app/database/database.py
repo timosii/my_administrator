@@ -20,12 +20,11 @@ engine = create_async_engine(
     # echo=True
 )
 
-# moscow_tz = pytz.timezone('Europe/Moscow') 
-
 session_maker = async_sessionmaker(engine)
 
 intpk = Annotated[int, mapped_column(
-    primary_key=True
+    primary_key=True,
+    autoincrement=False,
     )]
 bigint_pk = Annotated[int, mapped_column(
     primary_key=True,

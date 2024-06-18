@@ -9,7 +9,6 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.database import (
     Base,
-    intpk,
     str_255,
     datetime_now,
     updated_at,
@@ -30,8 +29,8 @@ class User(Base):
 
     user_id: Mapped[bigint_pk_tg]
 
-    mo_: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_"), nullable=True)
-    fil_: Mapped[str_255] = mapped_column(ForeignKey("dicts.filials.fil_"), nullable=True)
+    mo_: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_",ondelete='CASCADE', onupdate='CASCADE'), nullable=True)
+    fil_: Mapped[str_255] = mapped_column(ForeignKey("dicts.filials.fil_",ondelete='CASCADE', onupdate='CASCADE'), nullable=True)
     
     department: Mapped[str_255] = mapped_column(nullable=True)
     last_name: Mapped[str_255]
@@ -54,8 +53,8 @@ class ViolationFound(Base):
 
     violation_found_id: Mapped[bigint_pk]
 
-    check_id: Mapped[bigint] = mapped_column(ForeignKey("data.check.check_id", ondelete='CASCADE'))
-    violation_dict_id: Mapped[int] = mapped_column(ForeignKey("dicts.violations.violation_dict_id"))
+    check_id: Mapped[bigint] = mapped_column(ForeignKey("data.check.check_id", ondelete='CASCADE', onupdate='CASCADE'))
+    violation_dict_id: Mapped[int] = mapped_column(ForeignKey("dicts.violations.violation_dict_id", ondelete='CASCADE', onupdate='CASCADE'))
     photo_id_mfc: Mapped[str_255] = mapped_column(nullable=True)
     comm_mfc: Mapped[str] = mapped_column(nullable=True)
     photo_id_mo: Mapped[str_255] = mapped_column(nullable=True)
@@ -78,11 +77,11 @@ class Check(Base):
     )
 
     check_id: Mapped[bigint_pk]
-    fil_: Mapped[str_255] = mapped_column(ForeignKey("dicts.filials.fil_"))
-    mfc_user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.user_id"))
+    fil_: Mapped[str_255] = mapped_column(ForeignKey("dicts.filials.fil_", ondelete='CASCADE', onupdate='CASCADE'))
+    mfc_user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.user_id", ondelete='CASCADE', onupdate='CASCADE'))
     mfc_start: Mapped[datetime_now]
     mfc_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
-    mo_user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.user_id"), nullable=True)
+    mo_user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.user_id", ondelete='CASCADE', onupdate='CASCADE'), nullable=True)
     mo_start: Mapped[dt.datetime] = mapped_column(nullable=True)
     mo_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
     is_task: Mapped[bool] = mapped_column(default=False)
