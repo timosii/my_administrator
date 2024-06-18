@@ -7,7 +7,7 @@ from app.handlers.admin import admin
 from app.handlers.user.mo_part import mo_controler, mo_performer
 from app.handlers.user.mfc_part import mfc_main, mfc_leader
 from aiogram.types import BotCommand
-from app.middlewares.logging_mw import ErrorLoggingMiddleware, FSMMiddleware
+from app.middlewares.main import ErrorProcessMiddleware, FSMMiddleware
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiogram.client.bot import DefaultBotProperties
 from aiohttp import web
@@ -54,7 +54,7 @@ def all_register():
         default.router,
     )
     dp.update.middleware(FSMMiddleware())
-    dp.update.middleware(ErrorLoggingMiddleware(bot=bot))
+    dp.update.middleware(ErrorProcessMiddleware(bot=bot))
     dp.startup.register(set_main)
     dp.shutdown.register(on_shutdown)
     return bot, dp

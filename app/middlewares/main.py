@@ -9,13 +9,14 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from pprint import pformat
 from app.config import settings
+from aiogram.exceptions import TelegramAPIError
 
 
-class ErrorLoggingMiddleware(BaseMiddleware):
+class ErrorProcessMiddleware(BaseMiddleware):
     def __init__(self, bot: Bot):
         super().__init__()
         self.bot = bot
-        self.chat_id = settings.DEV_ID
+        self.dev_id = settings.DEV_ID
         self.log_file = os.path.join(("logs/debug.log"))
         self.prev_lines_count = 30
 
@@ -28,6 +29,8 @@ class ErrorLoggingMiddleware(BaseMiddleware):
         user: User = data.get("event_from_user")
         try:
             return await handler(event, data)
+        except TelegramAPIError as e:
+            await self.handle_error(event, error_message=f"Telegram API Error: {e}")
         except Exception as e:
             error_message = "Error occurred for user {0} ({1}): {2}".format(
                     user.id, user.username, e)
@@ -40,8 +43,15 @@ class ErrorLoggingMiddleware(BaseMiddleware):
 
             message = f"#error\n<b>{error_message}</b>\n\nLast {self.prev_lines_count} lines of logs:\n{prev_lines}"
 
-            await self.bot.send_message(self.chat_id, message)
-            raise e
+            await self.bot.send_message(self.dev_id, message)
+            await self.handle_error(event, error_message=f"Telegram API Error: {e}")
+            # raise e
+        
+        async def handle_error(self, event, error_message: str):
+            if isinstance(event, Message):
+                await event.answer(error_message)
+            elif isinstance(event, CallbackQuery):
+                await event.message.answer(error_message)
 
 
 class FSMMiddleware(BaseMiddleware):

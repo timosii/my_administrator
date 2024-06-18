@@ -166,7 +166,6 @@ class ViolationFoundService:
         self, callback: CallbackQuery, violation: ViolationFoundOut
     ):
         performers = await self.get_violation_performers_by_fil(fil_=violation.fil_)
-        logger.info(performers)
         if not performers:
             await callback.message.answer(
                 text=MfcMessages.zero_performers

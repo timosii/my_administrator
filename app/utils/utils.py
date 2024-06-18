@@ -54,6 +54,12 @@ def ending_define(num: int) -> str:
         return 'у'
     else:
         return 'ам'
+    
+def define_word(num: int) -> str:
+    if num == 1:
+        return 'ему'
+    else:
+        return 'им'    
 
 
 def format_timedelta(td: dt.timedelta):
