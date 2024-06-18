@@ -948,7 +948,10 @@ async def correct_vio_process_finish(
     await state.update_data(mo_start=None)
     fil_ = data["fil_"]
     checks = await check_obj.get_all_active_checks_by_fil(fil_=fil_)
-    await message.answer(text=MoPerformerMessages.back_to_checks)
+    await message.answer(
+        text=MoPerformerMessages.back_to_checks,
+        reply_markup=MoPerformerKeyboards().check_or_tasks(),
+        )
     if not checks:
         await message.answer(
             text=MoPerformerMessages.form_no_checks_answer(fil_=fil_),
