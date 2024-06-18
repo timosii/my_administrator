@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from aiogram.types import Message, CallbackQuery
 from app.keyboards.mfc_part import MfcKeyboards
 from app.keyboards.default import DefaultKeyboards
-from app.handlers.messages import MfcMessages, DefaultMessages
 from aiogram.fsm.context import FSMContext
 from app.handlers.states import MfcStates
 from typing import Optional, List
@@ -13,6 +12,21 @@ from app.database.models.data import User
 from app.database.schemas.user_schema import UserCreate, UserUpdate, UserInDB
 from app.database.schemas.check_schema import CheckInDB
 from app.database.repositories.users import UserRepo
+from dataclasses import dataclass
+
+
+@dataclass
+class Name:
+    last_name: str
+    first_name: str
+    patronymic: Optional[str] = None
+
+    def get_greeting_name(self):
+        if self.patronymic:
+            return f'{self.first_name} {self.patronymic}'
+        else:
+            return f'{self.first_name}'
+
 
 class UserService:
     def __init__(self, db_repository: UserRepo = UserRepo()):
@@ -23,6 +37,15 @@ class UserService:
         result = await self.db_repository.add_user(user_create=user_create)
         return result
         
+    async def get_name(self, user_id: int) -> str:
+        user = await self.get_user_by_id(user_id=user_id)
+        name = Name(
+            last_name=user.last_name,
+            first_name=user.first_name,
+            patronymic=user.patronymic,
+        )
+        return name.get_greeting_name()
+
     async def get_user_mo(self, user_id: int) -> str:
         result = await self.db_repository.get_user_mo(user_id=user_id)
         return result

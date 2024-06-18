@@ -14,14 +14,6 @@ router = Router()
 router.message.filter(MfcLeaderFilter())
 
 
-# @router.message(F.text.lower() == "пройти авторизацию", StateFilter(default_state))
-# async def cmd_start(message: Message, state: FSMContext):
-#     await message.answer(
-#         text=MfcLeaderMessages.start_message,
-#         reply_markup=MfcLeaderKeyboards().main_menu(),
-#     )
-#     await state.set_state(MfcLeaderStates.mfc_leader)
-
 @router.message(Command('start'))
 async def cmd_start(message: Message, state: FSMContext):
     await message.answer(
@@ -39,6 +31,6 @@ async def cmd_start(message: Message, state: FSMContext):
 async def back_command(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(
-            text=DefaultMessages.start_message,
+            text=MfcLeaderMessages.start_message,
             reply_markup=DefaultKeyboards().get_authorization()
         )

@@ -26,5 +26,5 @@ async def cmd_start(message: Message, state: FSMContext):
 async def back_command(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(
-            text=DefaultMessages.start_message,
+            text=MoControlerMessages.start_message,
         )

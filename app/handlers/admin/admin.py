@@ -157,6 +157,7 @@ async def export_users_to_excel(message: Message, state: FSMContext, bot:Bot):
 @router.message(F.text.lower() == "назад", StateFilter(AdminStates.admin))
 async def back_command(message: Message, state: FSMContext):
     await state.clear()
+    user = message.from_user
     await message.answer(
             text=DefaultMessages.start_message,
             reply_markup=DefaultKeyboards().get_authorization()

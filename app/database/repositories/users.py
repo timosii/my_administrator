@@ -50,7 +50,7 @@ class UserRepo:
 
     async def get_user_by_id(self, user_id: int) -> Optional[UserInDB]:
         async with self.session_maker() as session:
-            result = await session.execute(select(User).filter_by(id=user_id))
+            result = await session.execute(select(User).filter_by(user_id=user_id))
             user = result.scalar_one_or_none()
             logger.info('get user by id')
             return UserInDB.model_validate(user) if user else None

@@ -41,7 +41,7 @@ async def cmd_start(
     await state.clear()
     await state.update_data(mfc_user_id=user.id)
     await message.answer(
-        text=MfcMessages.welcome_message,
+        text=await MfcMessages.welcome_message(user_id=user.id),
         reply_markup=ReplyKeyboardRemove()
     )
     await state.set_state(MfcStates.choose_mo)
@@ -113,8 +113,9 @@ async def back_choose_mos_additional(
     message: Message,
     state: FSMContext
     ):
+    user = message.from_user
     await message.answer(
-        text=MfcMessages.welcome_message,
+        text=await MfcMessages.welcome_message(user_id=user.id),
         reply_markup=ReplyKeyboardRemove()
     )
     await state.set_state(MfcStates.choose_mo)
@@ -239,6 +240,7 @@ async def notification_handler(
 async def back_command(message: Message, state: FSMContext):
     current_state = await state.get_state()
     data = await state.get_data()
+    user = message.from_user
     if current_state == MfcStates.choose_fil:
         await state.set_state(MfcStates.choose_mo)
         await state.update_data(
@@ -246,7 +248,7 @@ async def back_command(message: Message, state: FSMContext):
             mfc_user_id=message.from_user.id
             )
         await message.answer(
-            text=MfcMessages.welcome_message, reply_markup=ReplyKeyboardRemove()
+            text=await MfcMessages.welcome_message(user_id=user.id), reply_markup=ReplyKeyboardRemove()
         )
     elif current_state == MfcStates.choose_type_checking:
         await state.set_state(MfcStates.choose_fil)

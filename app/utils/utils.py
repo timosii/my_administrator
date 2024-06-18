@@ -1,7 +1,22 @@
 import datetime as dt
 import pytz
 from loguru import logger
+# from app.database.services.users import UserService
+from dataclasses import dataclass
+from typing import Optional
 
+
+@dataclass
+class Name:
+    last_name: str
+    first_name: str
+    patronymic: Optional[str]
+
+    def get_greeting_name(self):
+        if self.patronymic:
+            return f'{self.first_name} {self.patronymic}'
+        else:
+            return f'{self.first_name}'
 
 
 def time_determiner():
@@ -21,6 +36,16 @@ def form_greeting():
     else:
         greeting = 'Добрый вечер'
     return greeting
+
+# async def get_name(user_id: int,
+#                    user_obj: UserService=UserService()):
+#     user = await user_obj.get_user_by_id(user_id=user_id)
+#     name = Name(
+#         last_name=user.last_name,
+#         first_name=user.first_name,
+#         patronymic=user.patronymic
+#     )
+#     return name.get_greeting_name()
 
 def to_moscow_time(date: dt.datetime) -> dt.datetime:
     utc_zone = pytz.utc

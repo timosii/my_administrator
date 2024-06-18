@@ -8,7 +8,7 @@ from app.database.models.data import (
 from app.database.services.users import UserService
 from app.database.services.check import CheckService
 from app.database.services.violations_found import ViolationFoundService
-from app.database.schemas.user_schema import UserCreate
+from app.database.schemas.user_schema import UserCreate, UserUpdate
 from app.database.schemas.check_schema import CheckCreate
 from app.database.schemas.violation_found_schema import ViolationFoundCreate
 from loguru import logger
@@ -21,8 +21,6 @@ async def insert_data_user(user: UserService = UserService()):
             is_mfc=True,
             last_name='Симашев',
             first_name='Тест',
-            patronymic='Тестович',
-            post='Аналитик 2.0',
         ),
         UserCreate(
             user_id=581145287,
@@ -32,7 +30,6 @@ async def insert_data_user(user: UserService = UserService()):
             last_name='Симашев',
             first_name='Тест',
             patronymic='Тестович',
-            post='Аналитик 3.0',
         ),
         UserCreate(
             user_id=255746374,
@@ -40,7 +37,6 @@ async def insert_data_user(user: UserService = UserService()):
             last_name='Тестов',
             first_name='Тест',
             patronymic='Тестович',
-            post='Аналитик 4.0',
         ),
         UserCreate(
             user_id=714806103,
@@ -48,7 +44,6 @@ async def insert_data_user(user: UserService = UserService()):
             last_name='Куликов',
             first_name='Тест',
             patronymic='Тестович',
-            post='Аналитик 5.0',
         ),
         UserCreate(
             user_id=364167798,
@@ -56,7 +51,6 @@ async def insert_data_user(user: UserService = UserService()):
             last_name='Мискарян',
             first_name='Тест',
             patronymic='Тестович',
-            post='Аналитик 6.0',
         ),
         UserCreate(
             user_id=905290819,
@@ -66,7 +60,6 @@ async def insert_data_user(user: UserService = UserService()):
             last_name='Бортников',
             first_name='Тест',
             patronymic='Тестович',
-            post='Аналитик 7.0',
         ),
         UserCreate(
             user_id=133283796,
@@ -74,7 +67,6 @@ async def insert_data_user(user: UserService = UserService()):
             last_name='Постолакин',
             first_name='Тест',
             patronymic='Тестович',
-            post='Аналитик 8.0',
         ),
         UserCreate(
             user_id=360185080,
@@ -82,7 +74,6 @@ async def insert_data_user(user: UserService = UserService()):
             last_name='Баум',
             first_name='Тест',
             patronymic='Тестович',
-            post='Аналитик 9.0',
         ),
         UserCreate(
             user_id=322561217,
@@ -90,7 +81,6 @@ async def insert_data_user(user: UserService = UserService()):
             last_name='Варлашин',
             first_name='Тест',
             patronymic='Тестович',
-            post='Аналитик 10.0',
         ),
         UserCreate(
             user_id=153964237,
@@ -98,7 +88,6 @@ async def insert_data_user(user: UserService = UserService()):
             last_name='Сизов',
             first_name='Тест',
             patronymic='Тестович',
-            post='Аналитик 11.0',
         ),
         UserCreate(
             user_id=779416588,
@@ -280,9 +269,20 @@ async def insert_data_user(user: UserService = UserService()):
         if not existing_user:
             await user.add_user(u)    
         else:
-            logger.info(f'User with id {u.user_id} already exists in db')
+            current_user = await user.get_user_by_id(u.user_id)
+            fields_changed = any(
+                getattr(u, field) != getattr(current_user, field)
+                for field in u.__dict__
+                if field != 'user_id'
+            )
+            if fields_changed:
+                user_update = UserUpdate(**u.model_dump(exclude={'user_id'}))
+                await user.update_user(user_id=u.user_id, user_update=user_update)
+                logger.info(f'User with id {u.user_id} updated in db')
+            else:
+                logger.info(f'User with id {u.user_id} already exists in db and no fields have changed')
     
-    logger.info('users added to db')
+    logger.info('users process finished')
 
 
 async def clear_data(

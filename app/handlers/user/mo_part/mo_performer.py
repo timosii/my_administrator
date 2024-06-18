@@ -42,7 +42,7 @@ async def cmd_start(
     user = message.from_user
     logger.info("User {0} {1} passed authorization".format(user.id, user.username))
     await message.answer(
-        text=MoPerformerMessages.start_message,
+        text=await MoPerformerMessages.welcome_message(user_id=user.id),
         reply_markup=MoPerformerKeyboards().check_or_tasks(),
     )
     await state.set_state(MoPerformerStates.mo_performer)
@@ -986,7 +986,7 @@ async def back_command(
                                 fil_=fil_
                                 )
         await message.answer(
-            text=MoPerformerMessages.start_message,
+            text=await MoPerformerMessages.welcome_message(user_id=user.id),
             reply_markup=MoPerformerKeyboards().check_or_tasks()
         )
 
