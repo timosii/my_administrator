@@ -286,6 +286,7 @@ async def take_to_work(
     violation_out = await violation_obj.form_violation_out(violation_in_db)
     current_time = dt.datetime.now(dt.timezone.utc)
     # TODO: сделать сохранение в стейт сразу в виде "vio_{id}": {**data} 
+    # или отдельно вынести процесс "взятия"
     if violation_out.is_task:
         await state.update_data(
             **violation_out.model_dump(mode="json"),
@@ -467,7 +468,6 @@ async def process_correct_callback(
 
     text_mes = violation_out.violation_card()
 
-    
     await callback.message.answer(
         text=MoPerformerMessages.correct_mode(text_mes=text_mes),
         reply_markup=MoPerformerKeyboards().cancel_correct_mode(violation_found_id=violation_found_id),
