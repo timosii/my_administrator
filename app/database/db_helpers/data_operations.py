@@ -281,6 +281,15 @@ async def insert_data_user(user: UserService = UserService()):
             last_name='Патрикеева',
             first_name='Светлана',
         ),
+        UserCreate(
+            user_id=1012673331,
+            mo_='ГП 3',
+            fil_='ГП 3 филиал 2',
+            is_mo_performer=True,
+            last_name='Хайтен',
+            first_name='Иван',
+            patronymic='Сергеевич',
+        ),
     ]
 
     for u in user_tests:
