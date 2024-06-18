@@ -1,5 +1,5 @@
 import datetime as dt
-import json
+import time
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy import select, update, delete, func
@@ -31,7 +31,6 @@ from app.database.schemas.violation_schema import (
 from app.database.schemas.user_schema import UserInDB
 from app.view.cards import FormCards
 from loguru import logger
-from app.utils.utils import to_moscow_time
 
 
 
@@ -167,6 +166,7 @@ class ViolationFoundService:
         self, callback: CallbackQuery, violation: ViolationFoundOut
     ):
         performers = await self.get_violation_performers_by_fil(fil_=violation.fil_)
+        logger.info(performers)
         if not performers:
             await callback.message.answer(
                 text=MfcMessages.zero_performers
@@ -174,6 +174,13 @@ class ViolationFoundService:
             return
         else:
             res = violation.violation_card()
+            await callback.message.answer(
+                text=MfcMessages.send_to_mo(fil_=violation.fil_),
+                reply_markup=ReplyKeyboardRemove()
+                )    
+            time.sleep(1)
+            norm_users_count = 0
+            troubles_user_count = 0
             for performer in performers:
                 try:
                     if violation.photo_id_mfc:
@@ -195,15 +202,23 @@ class ViolationFoundService:
                                 is_task=violation.is_task
                             )
                         )
+                    norm_users_count += 1
                 except TelegramBadRequest:
-                    await callback.message.answer(
-                        text='Найден сотрудник МО, но для получения оповещения ему нужно хотя бы один раз воспользоваться сервисом'
-                    )
+                    troubles_user_count += 1
                     continue
-            await callback.message.answer(
-                text=MfcMessages.violation_sending(fil_=violation.fil_),
-                reply_markup=ReplyKeyboardRemove()
-            )
+
+            if norm_users_count > 0:   
+                await callback.message.answer(
+                    text=MfcMessages.violation_sending(fil_=violation.fil_, count=norm_users_count, flag=True),
+                    reply_markup=ReplyKeyboardRemove()
+                    )    
+                
+            if troubles_user_count > 0:    
+                await callback.message.answer(
+                    text=MfcMessages.violation_sending(fil_=violation.fil_, count=troubles_user_count, flag=False),
+                    reply_markup=ReplyKeyboardRemove()
+                )
+
 
     async def save_violation_process(
         self,

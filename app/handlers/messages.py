@@ -1,5 +1,5 @@
 import datetime as dt
-from app.utils.utils import time_determiner, form_greeting
+from app.utils.utils import time_determiner, form_greeting, ending_define
 from app.view.changelog import CHANGELOG
 from app.database.services.users import UserService
 
@@ -90,15 +90,22 @@ class MfcMessages:
         return result
     
     @staticmethod
-    def violation_sending(fil_: str) -> str:
-        result = f"Оповещение о нарушении отправлено сотрудникам {fil_}"
+    def violation_sending(fil_: str, count: int, flag: bool) -> str:
+        if flag:
+            result = f"Оповещение в телеграм <b>отправлено</b> {count} сотрудник{ending_define(count)} филиала {fil_}."
+        else:
+            result = f"Оповещение <b>не удалось отправить</b> {count} сотрудник{ending_define(count)} филиала {fil_}.\nДля получения оповещений сначала нужно познакомиться с сервисом 🤝"
         return result
 
     @staticmethod
     def there_is_new_violation(fil_: str, text: str) -> str:
         result = f"<b>Зарегистрировано новое нарушение в филиале {fil_}</b>\n{text}"
         return result
-
+    
+    @staticmethod
+    def send_to_mo(fil_: str):
+        result = f'Отправляю нарушение сотрудникам {fil_} ...'
+        return result
     
 class MfcLeaderMessages:
     start_message = f"{form_greeting()}, куратор МФЦ!"
