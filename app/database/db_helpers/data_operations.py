@@ -93,8 +93,8 @@ async def insert_data_user(user: UserService = UserService()):
             user_id=779416588,
             is_mfc=True,
             last_name='Бортникова',
-            first_name='Соня',
-            patronymic='Тестовна',
+            first_name='София',
+            patronymic='Петровна',
         ),
         UserCreate(
             user_id=1064558495,
