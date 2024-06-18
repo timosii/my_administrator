@@ -89,7 +89,6 @@ class UserService:
         else:
             user = message.from_user
 
-        user = message.from_user
         mo = await self.get_user_mo(user_id=user.id)
         fil_ = await self.get_user_fil(user_id=user.id)
         await state.update_data(mo_user_id=user.id,

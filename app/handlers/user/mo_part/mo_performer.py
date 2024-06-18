@@ -269,7 +269,7 @@ async def take_to_work(
     await state.clear()
     await user_obj.save_default_user_info(
         callback=callback,
-        state=state
+        state=state,
     )
     violation_found_id = int(callback.data.split("_")[1])
     is_fixed = await violation_obj.is_violation_already_fixed(
