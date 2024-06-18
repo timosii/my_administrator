@@ -1,3 +1,0 @@
-2024-06-05 23:03:14.272 | INFO     | app.main:set_main:20 - bot started
-Received SIGTERM signal
-2024-06-05 23:04:00.212 | INFO     | app.main:on_shutdown:24 - bot stopped

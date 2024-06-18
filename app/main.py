@@ -54,7 +54,7 @@ def all_register():
         default.router,
     )
     dp.update.middleware(FSMMiddleware())
-    dp.update.middleware(ErrorLoggingMiddleware())
+    dp.update.middleware(ErrorLoggingMiddleware(bot=bot))
     dp.startup.register(set_main)
     dp.shutdown.register(on_shutdown)
     return bot, dp

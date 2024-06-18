@@ -1,16 +1,24 @@
-from aiogram import Dispatcher
+import os
+from aiogram import Dispatcher, Bot
 from aiogram.types import TelegramObject, Message, CallbackQuery, User
 from loguru import logger
 from typing import Callable, Dict, Any, Awaitable
-import logging
 from aiogram import BaseMiddleware
 from aiogram.types import Update
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State
 from pprint import pformat
+from app.config import settings
 
 
 class ErrorLoggingMiddleware(BaseMiddleware):
+    def __init__(self, bot: Bot):
+        super().__init__()
+        self.bot = bot
+        self.chat_id = settings.DEV_ID
+        self.log_file = os.path.join(("logs/debug.log"))
+        self.prev_lines_count = 30
+
     async def __call__(
         self,
         handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
@@ -21,11 +29,18 @@ class ErrorLoggingMiddleware(BaseMiddleware):
         try:
             return await handler(event, data)
         except Exception as e:
+            error_message = "Error occurred for user {0} ({1}): {2}".format(
+                    user.id, user.username, e)
             logger.error(
-                "Error occurred for user {0} ({1}): {2}".format(
-                    user.id, user.username, e
-                )
+                error_message
             )
+            with open(self.log_file, "r") as file:
+                log_lines = file.readlines()
+                prev_lines = "".join(log_lines[-self.prev_lines_count:])
+
+            message = f"#error\n<b>{error_message}</b>\n\nLast {self.prev_lines_count} lines of logs:\n{prev_lines}"
+
+            await self.bot.send_message(self.chat_id, message)
             raise e
 
 

@@ -13,7 +13,7 @@ def set_logger_config():
         log_path,
         format="{time} | {level} | {module}:{function}:{line} | {message}",
         level="DEBUG",
-        rotation="100 KB",
+        rotation="200 KB",
         compression="zip",
     )
 
