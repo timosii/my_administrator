@@ -54,12 +54,12 @@ async def insert_data_user(user: UserService = UserService()):
         ),
         UserCreate(
             user_id=905290819,
-            mo_='ДГП 38',
-            fil_='ДГП 38 филиал 3',
+            mo_='ГП 3',
+            fil_='ГП 3 филиал 2',
             is_mo_performer=True,
             last_name='Бортников',
-            first_name='Тест',
-            patronymic='Тестович',
+            first_name='Василий',
+            patronymic='Павлович',
         ),
         UserCreate(
             user_id=133283796,

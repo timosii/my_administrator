@@ -20,7 +20,7 @@ from app.database.schemas.violation_found_schema import (
 )
 from app.database.services.check import CheckService
 from app.database.services.helpers import HelpService
-
+from aiogram.exceptions import TelegramBadRequest
 from app.database.schemas.check_schema import CheckUpdate
 from app.handlers.messages import MfcMessages, MoPerformerMessages
 from app.keyboards.mfc_part import MfcKeyboards
@@ -171,28 +171,35 @@ class ViolationFoundService:
             await callback.message.answer(
                 text=MfcMessages.zero_performers
             )
+            return
         else:
             res = violation.violation_card()
             for performer in performers:
-                if violation.photo_id_mfc:
-                    await callback.bot.send_photo(
-                        chat_id=performer.user_id,
-                        photo=violation.photo_id_mfc,
-                        caption=MfcMessages.there_is_new_violation(fil_=violation.fil_, text=res),
-                        reply_markup=MfcKeyboards().take_task_to_work(
-                            violation_id=violation.violation_found_id,
-                            is_task=violation.is_task
-                            )
-                    )
-                else:
-                    await callback.bot.send_message(
-                        chat_id=performer.id,
-                        text=MfcMessages.there_is_new_violation(fil_=violation.fil_, text=res),
-                        reply_markup=MfcKeyboards().take_task_to_work(
-                            violation_id=violation.violation_found_id,
-                            is_task=violation.is_task
+                try:
+                    if violation.photo_id_mfc:
+                        await callback.bot.send_photo(
+                            chat_id=performer.user_id,
+                            photo=violation.photo_id_mfc,
+                            caption=MfcMessages.there_is_new_violation(fil_=violation.fil_, text=res),
+                            reply_markup=MfcKeyboards().take_task_to_work(
+                                violation_id=violation.violation_found_id,
+                                is_task=violation.is_task
+                                )
                         )
+                    else:
+                        await callback.bot.send_message(
+                            chat_id=performer.id,
+                            text=MfcMessages.there_is_new_violation(fil_=violation.fil_, text=res),
+                            reply_markup=MfcKeyboards().take_task_to_work(
+                                violation_id=violation.violation_found_id,
+                                is_task=violation.is_task
+                            )
+                        )
+                except TelegramBadRequest:
+                    await callback.message.answer(
+                        text='Найден сотрудник МО, но для получения оповещения ему нужно хотя бы один раз воспользоваться сервисом'
                     )
+                    continue
             await callback.message.answer(
                 text=MfcMessages.violation_sending(fil_=violation.fil_),
                 reply_markup=ReplyKeyboardRemove()
