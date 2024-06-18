@@ -1,6 +1,3 @@
-app:
-	docker-compose up -d
-
 restart:
 	docker container restart my_administrator-app-1
 
