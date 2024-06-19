@@ -26,6 +26,7 @@ from app.handlers.states import AdminStates
 from app.filters.admin import AdminFilter
 from loguru import logger
 from aiogram.types import FSInputFile
+import numpy as np
 
 
 router = Router() 
@@ -70,16 +71,20 @@ async def process_doc_command(
             os.remove('tmp.xlsx')
         await bot.download_file(file_path, 'tmp.xlsx')
         df = pd.read_excel('tmp.xlsx', sheet_name='new', engine='openpyxl')
-        df.where(pd.notnull(df), None, inplace=True)
+        df = df.replace(np.nan, None)
 
         async with session_maker() as session:
             for _, row in df.iterrows():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
-                logger.info('')
                 
                 unique_field_value = stripped_row['user_id']
                 result = await session.execute(select(User).filter_by(user_id=unique_field_value))
                 existing_user = result.scalar()
+                if unique_field_value is None:
+                    logger.error(f'Missing user_id in row: {stripped_row}')
+                    continue
+
+                
                 
                 if existing_user:
                     updated = False

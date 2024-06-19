@@ -29,8 +29,8 @@ class ErrorProcessMiddleware(BaseMiddleware):
         user: User = data.get("event_from_user")
         try:
             return await handler(event, data)
-        except TelegramAPIError as e:
-            await self.handle_error(event, error_message=f"Telegram API Error: {e}")
+        # except TelegramAPIError as e:
+        #     await self.handle_error(event, error_message=f"Telegram API Error: {e}")
         except Exception as e:
             error_message = "Error occurred for user {0} ({1}): {2}".format(
                     user.id, user.username, e)
@@ -44,14 +44,14 @@ class ErrorProcessMiddleware(BaseMiddleware):
             message = f"#error\n<b>{error_message}</b>\n\nLast {self.prev_lines_count} lines of logs:\n{prev_lines}"
 
             await self.bot.send_message(self.dev_id, message)
-            await self.handle_error(event, error_message=f"Telegram API Error: {e}")
-            # raise e
+    #         await self.handle_error(event, error_message=f"Telegram API Error: {e}")
+    #         # raise e
         
-        async def handle_error(self, event, error_message: str):
-            if isinstance(event, Message):
-                await event.answer(error_message)
-            elif isinstance(event, CallbackQuery):
-                await event.message.answer(error_message)
+    # async def handle_error(self, event, error_message: str):
+    #     if isinstance(event, Message):
+    #         await event.answer(error_message)
+    #     elif isinstance(event, CallbackQuery):
+    #         await event.message.answer(error_message)
 
 
 class FSMMiddleware(BaseMiddleware):

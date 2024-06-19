@@ -25,6 +25,7 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundPendingMo
 )
 from app.utils.utils import get_index_by_violation_id
+from app.handlers.user.mo_part.performer_card_constructor import DataMoPerformerConstructor
 
 router = Router()
 router.message.filter(MoPerformerFilter())

@@ -46,9 +46,6 @@ class DataMoPerformerConstructor:
     def __init__(self, violation_found_id) -> None:
         self.violation_found_id = violation_found_id
 
-    def pending_violation():
-        pass
-
     def get_violations_out_lst_unsorted(self, data: dict):
         self.violation_out_objects = [
             ViolationFoundOut(**v)
@@ -349,3 +346,6 @@ class DataMoPerformerConstructor:
         )    
 
         return reply_obj
+    
+    def get_check_card(self):
+        pass
