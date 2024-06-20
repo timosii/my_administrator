@@ -161,7 +161,7 @@ async def get_pending_violations_found(
     reply_obj = MoPerformerCard(data=data).all_violations_pending_start()
     if not reply_obj:
         await message.answer(
-            text=MoPerformerMessages.no_pending,
+            text=MoPerformerMessages.form_no_pending_violations_answer(fil_=data['fil_']),
             )
     else:    
         await message.answer_photo(
