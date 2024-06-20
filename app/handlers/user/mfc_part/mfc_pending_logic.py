@@ -1,4 +1,3 @@
-from typing import Optional
 from aiogram.fsm.context import FSMContext
 from app.keyboards.mfc_part import MfcKeyboards
 from app.database.schemas.violation_found_schema import (
