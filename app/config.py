@@ -18,6 +18,7 @@ class Settings:
     IS_TEST: Final = os.getenv('IS_TEST', 'need_to_define')
     CACHE_SHORT: Final = os.getenv('CACHE_SHORT', 'need_to_define')
     CACHE_LONG: Final = os.getenv('CACHE_LONG', 'need_to_define')
+    WEBHOOK_HOST: Final = os.getenv('WEBHOOK_HOST', 'need_to_define')
 
     @property
     def url_constructor(self):

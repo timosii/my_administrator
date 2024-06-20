@@ -11,9 +11,9 @@ from app.middlewares.main import ErrorProcessMiddleware, FSMMiddleware
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiogram.client.bot import DefaultBotProperties
 from aiohttp import web
-import asyncio
+from app.config import settings
 
-WEBHOOK_HOST = 'https://ample-infinitely-crow.ngrok-free.app' 
+WEBHOOK_HOST = settings.WEBHOOK_HOST 
 WEBHOOK_PATH = '/webhook'
 WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 WEBAPP_HOST = settings.NGROK_HOST
@@ -33,9 +33,11 @@ async def set_main(bot: Bot):
     if not settings.IS_TEST:
         await bot.set_webhook(WEBHOOK_URL)
     logger.info('bot started')
+    await bot.send_message(settings.DEV_ID, "Bot is started!")
 
-async def on_shutdown() -> None:
+async def on_shutdown(bot: Bot) -> None:
     logger.info('bot stopped')
+    await bot.send_message(settings.DEV_ID, "Bot is stopped!")
 
 
 def all_register():
@@ -71,6 +73,7 @@ def start_bot() -> None:
     webhook_requests_handler.register(app, path=WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)
     web.run_app(app, host=WEBAPP_HOST, port=WEBAPP_PORT)
+    
 
 @logger.catch
 async def start_local() -> None:
