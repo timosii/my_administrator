@@ -14,6 +14,7 @@ from app.database.schemas.check_schema import (
     CheckInDB,
     CheckOut,
     CheckOutUnfinished,
+    CheckTestCreate
 )
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -32,6 +33,11 @@ class CheckService:
     async def add_check(self, check_create: CheckCreate) -> CheckInDB:
         result = await self.db_repository.add_check(check_create=check_create)
         return result
+    
+    async def add_test_check(self, check_test_create: CheckTestCreate) -> CheckInDB:
+        result = await self.db_repository.add_check(check_create=check_test_create)
+        return result
+
 
     async def check_exists(self, check_id: int) -> bool:
         result = await self.db_repository.check_exists(check_id=check_id)
@@ -185,17 +191,3 @@ class CheckService:
             ),
         )
         return check_out
-
-    # async def form_check_card(
-    #     self,
-    #     check: CheckOut,
-    # ) -> str:
-    #     text_mes = FormCards().check_card(check=check)
-    #     return text_mes
-
-    # async def form_check_card_unfinished(
-    #     self,
-    #     check: CheckOutUnfinished,
-    # ) -> str:
-    #     text_mes = check.form_card_out()
-    #     return text_mes

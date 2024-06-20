@@ -7,7 +7,6 @@ load_dotenv()
 
 class Settings:
     BOT_TOKEN: Final = os.getenv('BOT_TOKEN', 'need to define')
-    # ADMIN_ID: Final = int(os.getenv('ADMIN_ID'))
     DB_USER: Final = os.getenv('POSTGRES_USER', 'need to define')
     DB_PASSWORD: Final = os.getenv('POSTGRES_PASSWORD', 'need to define')
     DB_HOST: Final = os.getenv('POSTGRES_HOST', 'need to define')

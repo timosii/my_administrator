@@ -1,5 +1,4 @@
-import json
-import datetime as dt
+import time
 from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
@@ -13,13 +12,9 @@ from app.handlers.states import MfcStates
 from app.filters.mfc_filters import MfcFilter
 from app.filters.default import not_constants, is_digit
 from app.filters.form_menu import IsInFilials, IsInViolations, IsInZones, IsInMos
-# from app.database.db_helpers.form_menu import get_zones, get_violations, get_filials
-# from app.database.db_helpers.form_menu import ZONES, VIOLATIONS, FILIALS
-from app.database.services.users import UserService
 from app.database.services.check import CheckService
 from app.database.services.violations_found import ViolationFoundService
 from app.database.services.helpers import HelpService
-from app.database.schemas.check_schema import CheckCreate, CheckInDB, CheckUpdate
 from app.database.schemas.violation_found_schema import (
     ViolationFoundCreate,
     ViolationFoundOut,
@@ -505,6 +500,7 @@ async def save_violation(
         callback=callback,
         violation_found_out=violation_found_out,
     )
+    
     await violation_obj.send_vio_notification_to_fil_performers(
             callback=callback,
             violation=violation_found_out
@@ -526,6 +522,7 @@ async def save_violation(
     await callback.message.answer(
         text=MfcMessages.continue_check,
     )
+    time.sleep(1)
     await callback.message.answer(
         text=MfcMessages.choose_violation(zone=vio_data['zone']),
         reply_markup=await MfcKeyboards().choose_violation(
@@ -557,6 +554,10 @@ async def finish_check(
             await state.clear()
             return
         else:
+            await message.answer_sticker(
+                sticker=MfcMessages.save_sticker
+            )
+            time.sleep(1)
             await message.answer(
                 text=MfcMessages.notification_saved,
                 )
@@ -567,6 +568,10 @@ async def finish_check(
         state=state,
         check_id=check_id
         )
+    await message.answer_sticker(
+        sticker=MfcMessages.save_sticker
+        )
+    time.sleep(1)
     await message.answer(
         text=MfcMessages.finish_check, reply_markup=ReplyKeyboardRemove()
     )

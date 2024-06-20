@@ -17,6 +17,7 @@ async def not_menu_filter(message: Message) -> bool:
 async def not_buttons_filter(message: Message) -> bool:
     buttons = [
         'Добавить пользователя',
+        'Перенесенные нарушения',
         'Удалить пользователя',
         'Посмотреть пользователей',
         'Посмотреть отчеты',

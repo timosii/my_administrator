@@ -1,5 +1,4 @@
 import time
-import json
 import datetime as dt
 from loguru import logger
 from aiogram import Router, F
@@ -13,19 +12,17 @@ from app.keyboards.default import DefaultKeyboards
 from app.handlers.messages import MoPerformerMessages, DefaultMessages
 from app.handlers.states import MoPerformerStates
 from app.filters.mo_filters import MoPerformerFilter
-from app.filters.default import not_constants
 from app.database.services.check import CheckService
 from app.database.services.violations_found import ViolationFoundService
 from app.database.services.users import UserService
-from app.view.cards import FormCards
 from app.database.schemas.check_schema import CheckOut, CheckUpdate
 from app.database.schemas.violation_found_schema import (
     ViolationFoundOut,
     ViolationFoundUpdate,
-    ViolationFoundPendingMo
+    ViolationFoundClearData,
 )
-from app.utils.utils import get_index_by_violation_id
-from app.handlers.user.mo_part.performer_card_constructor import DataMoPerformerConstructor
+from app.handlers.user.mo_part.performer_card_constructor import MoPerformerCard
+
 
 router = Router()
 router.message.filter(MoPerformerFilter())
@@ -66,6 +63,10 @@ async def get_active_violations(
     fil_ = data["fil_"]
     checks = await check_obj.get_all_active_checks_by_fil(fil_=fil_)
     if not checks:
+        await message.answer_sticker(
+            sticker=MoPerformerMessages.find_sticker
+        )
+        time.sleep(1)
         await message.answer(
             text=MoPerformerMessages.form_no_checks_answer(fil_=fil_),
             reply_markup=message.reply_markup,
@@ -115,15 +116,25 @@ async def get_active_tasks(
         message=message,
         state=state
     )
+
     data = await state.get_data()
-    fil_ = data["fil_"]
-    tasks = await violation_obj.get_active_violations_by_fil(fil_=fil_)
-    await violation_obj.form_task_replies(
+    await violation_obj.update_data_violations_found_active(
         message=message,
         state=state,
-        fil_=fil_,
-        tasks=tasks,
+        data=data,
     )
+    data = await state.get_data()
+
+    reply_obj = MoPerformerCard(data=data).all_violations_task_start(
+    )
+    if not reply_obj:
+        await message.answer(
+            text=MoPerformerMessages.form_no_tasks_answer(fil_=data['fil_']),
+        )
+    else:    
+        await message.answer_photo(
+            **reply_obj.model_dump(mode='json')
+            )
 
 
 @router.message(
@@ -141,14 +152,22 @@ async def get_pending_violations_found(
         state=state
     )
     data = await state.get_data()
-    fil_ = data["fil_"]
-    violations_found_pending = await violation_obj.get_pending_violations_by_fil(fil_=fil_)
-    await violation_obj.form_violations_pending_replies(
+    await violation_obj.update_data_violations_found_pending(
         message=message,
         state=state,
-        fil_=fil_,
-        violations_pending=violations_found_pending,
+        data=data,
     )
+    data = await state.get_data()
+    reply_obj = MoPerformerCard(data=data).all_violations_pending_start()
+    if not reply_obj:
+        await message.answer(
+            text=MoPerformerMessages.no_pending,
+            )
+    else:    
+        await message.answer_photo(
+            **reply_obj.model_dump(mode='json')
+            )
+
 
 @router.callback_query(
     F.data.startswith('pending_'),
@@ -162,11 +181,6 @@ async def move_to_pending(callback: CallbackQuery,
     violation_found_id = int(callback.data.split("_")[1])
 
     data = await state.get_data()
-    await callback.message.answer(
-        text=MoPerformerMessages.move_to_pending,
-        reply_markup=MoPerformerKeyboards().check_or_tasks()
-    )
-    await callback.answer(text=MoPerformerMessages.move_to_pending_alert, show_alert=True)
     
     violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
     if violation_found_out.is_task:
@@ -176,40 +190,24 @@ async def move_to_pending(callback: CallbackQuery,
             mo_start=current_time,
             mo_finish=current_time,
         )
-        check_id = data["check_id"]
+        check_id = data[f"vio_{violation_found_id}"]['check_id']
         await check_obj.update_check(check_id=check_id, check_update=check_upd)
         await state.update_data(mo_start=None)
-        # await state.update_data(
-        #     **ViolationFoundPendingMo().model_dump()
-        # )
-        await state.update_data(
-        {   
-            'check_id': None,
-            "violation_found_id": None,
-            "photo_id_mo": None,
-            "comm_mo": None,
-            "comm_mfc": None,
-            "is_take": None,
-            "is_task": None,
-            "photo_id_mfc": None,
-            "photo_id_mo": None,
-            "time_to_correct": None,
-            "violation_detected": None,
-            "violation_dict_id": None,
-            "violation_found_id": None,
-            "violation_name": None,
-            "zone": None,
-            'is_pending': None,
-            'violation_pending': None
-        }
-    )
 
-    violation_found_out.is_pending = True
+        await state.update_data(
+            **ViolationFoundClearData().model_dump(mode='json')
+        )
+
+    order_before_pending = MoPerformerCard(
+        data=data
+    ).get_index_violation_found(violation_found_out=violation_found_out)
+
+    violation_found_out_after_pending = violation_found_out.model_copy()
+    violation_found_out_after_pending.is_pending = True
     await state.update_data(
-        {f"vio_{violation_found_id}": violation_found_out.model_dump(mode='json')}
+        {f"vio_{violation_found_id}": violation_found_out_after_pending.model_dump(mode='json')}
     )
     data = await state.get_data()
-    is_task = violation_found_out.is_task
     await violation_found_obj.update_violation(
         violation_found_id=violation_found_id,
         violation_update=ViolationFoundUpdate(
@@ -217,42 +215,28 @@ async def move_to_pending(callback: CallbackQuery,
             violation_pending=dt.datetime.now(dt.timezone.utc)
         )
     )
+    reply_obj = MoPerformerCard(
+        data=data
+    ).get_pending_process(
+        order=order_before_pending,
+        violation_found_out=violation_found_out
+    )
 
-    if is_task:
-        violation_out_objects = sorted(
-            [
-                ViolationFoundOut(**v)
-                for k, v in data.items()
-                if (k.startswith("vio_") and v and (v['is_task'] == True) and (v['is_pending'] == False))
-            ],
-            key=lambda x: x.violation_dict_id,
-        )
-    else:
-        violation_out_objects = sorted(
-            [
-                ViolationFoundOut(**v)
-                for k, v in data.items()
-                if (k.startswith("vio_") and v and (v['is_task'] == False) and (v['is_pending'] == False))
-            ],
-            key=lambda x: x.violation_dict_id,
-        )
-    if not violation_out_objects:
+    await callback.message.answer(
+        text=MoPerformerMessages.move_to_pending,
+        reply_markup=MoPerformerKeyboards().check_or_tasks()
+    )
+    await callback.answer(
+        text=MoPerformerMessages.move_to_pending_alert, show_alert=True)
+
+    if not reply_obj:
         await callback.message.delete()
-        return
-    
-    order = get_index_by_violation_id(
-        objects=violation_out_objects,
-        violation_found_id=violation_found_id
-    )
-    reply_obj = FormCards().form_reply(
-        violations_out=violation_out_objects, order=order + 1 if len(violation_out_objects) > 1 else 0
-    )
-
-    photo_id = reply_obj.photo_id
-    text_mes = reply_obj.text_mes
-    keyboard = reply_obj.keyboard   
-    await callback.message.edit_media(
-        media=InputMediaPhoto(media=photo_id, caption=text_mes), reply_markup=keyboard
+    else:
+        await callback.message.edit_media(
+        media=InputMediaPhoto(
+            media=reply_obj.photo,
+            caption=reply_obj.caption),
+            reply_markup=reply_obj.reply_markup
     )
 
 
@@ -286,8 +270,6 @@ async def take_to_work(
     )
     violation_out = await violation_obj.form_violation_out(violation_in_db)
     current_time = dt.datetime.now(dt.timezone.utc)
-    # TODO: сделать сохранение в стейт сразу в виде "vio_{id}": {**data} 
-    # или отдельно вынести процесс "взятия"
     if violation_out.is_task:
         await state.update_data(
             **violation_out.model_dump(mode="json"),
@@ -326,7 +308,7 @@ async def correct_first_violation(
     F.data.startswith("violations_"),
     StateFilter(MoPerformerStates.mo_performer)
 )
-async def get_violations(
+async def get_check_violations(
     callback: CallbackQuery,
     state: FSMContext,
     violation_obj: ViolationFoundService = ViolationFoundService(),
@@ -336,16 +318,37 @@ async def get_violations(
         check_id=check_id,
     )
     data = await state.get_data()
-    await state.update_data({k: None for k in data.keys() if k.startswith("vio_")})
-    violations = await violation_obj.get_violations_found_by_check(check_id=check_id)
-    data = await state.get_data()
-    current_time = dt.datetime.now(dt.timezone.utc)
-    if not data.get("mo_start"):
-        await state.update_data(mo_start=current_time.isoformat())
-
-    await violation_obj.form_violations_replies(
-        violations=violations, callback=callback, state=state
+    await state.update_data(
+        {
+            k: None for k in data.keys() if k.startswith("vio_")
+        }
     )
+    data= await state.get_data()
+    current_time = dt.datetime.now(dt.timezone.utc)
+    await state.update_data(
+        mo_start=current_time.isoformat()
+        )
+
+    await violation_obj.update_data_violations_found_in_check(
+        callback=callback,
+        state=state,
+        data=data
+    )
+    data_updated = await state.get_data()
+    reply_obj = MoPerformerCard(data=data_updated).all_violations_check_start()
+    if not reply_obj:
+        await callback.message.answer(
+            text=MoPerformerMessages.no_violations,
+            reply_markup=MoPerformerKeyboards().check_finished()
+        )
+        await callback.answer()
+        return
+
+    await callback.message.answer_photo(
+        **reply_obj.model_dump(mode='json')
+        )
+
+    await callback.answer()
 
 @router.callback_query(
     F.data.startswith("next_") | F.data.startswith("prev_"),
@@ -357,76 +360,23 @@ async def get_violations_next_prev(
 ):
     violation_found_id = int(callback.data.split("_")[1])
     data = await state.get_data()
+
     violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
-    is_pending = violation_found_obj.is_pending
-    is_task = violation_found_obj.is_task
-
-    if is_pending:
-        violation_out_objects = sorted(
-            [
-                ViolationFoundOut(**v)
-                for k, v in data.items()
-                if (k.startswith("vio_") and v and (v['is_pending'] == True))
-            ],
-            key=lambda x: x.violation_dict_id,
-        )
-        if len(violation_out_objects) == 1:
-            await callback.answer(text=MoPerformerMessages.no_violations_buttons)
-            return
-
-        order = get_index_by_violation_id(
-            objects=violation_out_objects, violation_found_id=violation_found_id
-        )
-        reply_obj = FormCards().form_violation_pending_reply(
-            violations_out=violation_out_objects, order=order
-        )
-
-    elif is_task:
-        violation_out_objects = sorted(
-            [
-                ViolationFoundOut(**v)
-                for k, v in data.items()
-                if (k.startswith("vio_") and v and (v['is_task'] == True) and (v['is_pending'] == False))
-            ],
-            key=lambda x: x.violation_dict_id,
-        )
-        if len(violation_out_objects) == 1:
-            await callback.answer(text=MoPerformerMessages.no_violations_buttons)
-            return
-        order = get_index_by_violation_id(
-            objects=violation_out_objects, violation_found_id=violation_found_id
-        )
-        reply_obj = FormCards().form_reply(
-            violations_out=violation_out_objects, order=order
-        )
-
-    else:
-        violation_out_objects = sorted(
-            [
-                ViolationFoundOut(**v)
-                for k, v in data.items()
-                if (k.startswith("vio_") and v and (v['is_task'] == False) and (v['is_pending'] == False))
-            ],
-            key=lambda x: x.violation_dict_id,
-        )
-        if len(violation_out_objects) == 1:
-            await callback.answer(text=MoPerformerMessages.no_violations_buttons)
-            return
-        order = get_index_by_violation_id(
-            objects=violation_out_objects, violation_found_id=violation_found_id
-        )
-        reply_obj = FormCards().form_reply(
-            violations_out=violation_out_objects, order=order
-        )
-
-
-    photo_id = reply_obj.photo_id
-    text_mes = reply_obj.text_mes
-    keyboard = reply_obj.keyboard
-    await callback.message.edit_media(
-        media=InputMediaPhoto(media=photo_id, caption=text_mes), reply_markup=keyboard
+    
+    reply_obj = MoPerformerCard(data=data).get_next_prev_reply(
+        violation_found_out=violation_found_obj
     )
-    await callback.answer()
+
+    if not reply_obj:
+        await callback.answer(text=MoPerformerMessages.no_violations_buttons)
+    else:
+        await callback.message.edit_media(
+            media=InputMediaPhoto(
+                media=reply_obj.photo,
+                caption=reply_obj.caption),
+                reply_markup=reply_obj.reply_markup
+        )
+        await callback.answer()
 
 
 @router.callback_query(
@@ -452,9 +402,9 @@ async def process_correct_callback(
         violation_found_id=violation_found_id
     )
     if is_fixed:
-        await callback.answer(text="Нарушение уже исправлено")
+        await callback.answer(text=MoPerformerMessages.violation_already_fixed)
         return
-
+    
     violation_out = ViolationFoundOut(**data[f"vio_{violation_found_id}"])
     await state.update_data(
         **violation_out.model_dump(mode="json")
@@ -487,79 +437,22 @@ async def process_cancel_correct(
 ):
     violation_found_id = int(callback.data.split("_")[1])
     data = await state.get_data()
-    violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
-    is_pending = violation_found_obj.is_pending
-    is_task = violation_found_obj.is_task
 
-    if is_pending:
-        violation_out_objects = sorted(
-            [
-                ViolationFoundOut(**v)
-                for k, v in data.items()
-                if (k.startswith("vio_") and v and (v['is_pending'] == True))
-            ],
-            key=lambda x: x.violation_dict_id,
-        )
-        if len(violation_out_objects) == 0:
-            await callback.answer(text=MoPerformerMessages.no_violations_buttons)
-            return
-
-        order = get_index_by_violation_id(
-            objects=violation_out_objects, violation_found_id=violation_found_id
-        )
-        reply_obj = FormCards().form_violation_pending_reply(
-            violations_out=violation_out_objects, order=order
-        )
-
-    elif is_task:
-        violation_out_objects = sorted(
-            [
-                ViolationFoundOut(**v)
-                for k, v in data.items()
-                if (k.startswith("vio_") and v and (v['is_task'] == True) and (v['is_pending'] == False))
-            ],
-            key=lambda x: x.violation_dict_id,
-        )
-        if len(violation_out_objects) == 0:
-            await callback.answer(text=MoPerformerMessages.no_violations_buttons)
-            return
-        order = get_index_by_violation_id(
-            objects=violation_out_objects, violation_found_id=violation_found_id
-        )
-        reply_obj = FormCards().form_reply(
-            violations_out=violation_out_objects, order=order
-        )
-
-    else:
-        violation_out_objects = sorted(
-            [
-                ViolationFoundOut(**v)
-                for k, v in data.items()
-                if (k.startswith("vio_") and v and (v['is_task'] == False) and (v['is_pending'] == False))
-            ],
-            key=lambda x: x.violation_dict_id,
-        )
-        if len(violation_out_objects) == 0:
-            await callback.answer(text=MoPerformerMessages.no_violations_buttons)
-            return
-        order = get_index_by_violation_id(
-            objects=violation_out_objects, violation_found_id=violation_found_id
-        )
-        reply_obj = FormCards().form_reply(
-            violations_out=violation_out_objects, order=order
-        )
-
-
-    photo_id = reply_obj.photo_id
-    text_mes = reply_obj.text_mes
-    keyboard = reply_obj.keyboard
-    await callback.message.answer_photo(
-        photo=photo_id,
-        caption=text_mes,
-        reply_markup=keyboard
+    violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
+    reply_obj = MoPerformerCard(data=data).cancel_process(
+        violation_found_out=violation_found_out
     )
+
+    if not reply_obj:
+        await callback.answer(text=MoPerformerMessages.no_violations_buttons)
+        return
+
+    await callback.message.answer_photo(
+        **reply_obj.model_dump(mode='json')
+    )
+
     await callback.answer()
-    if is_task:
+    if violation_found_out.is_task:
         await state.update_data(
             {
                 'mo_start': None
@@ -567,25 +460,9 @@ async def process_cancel_correct(
         )
 
     await state.update_data(
-        {
-            "violation_found_id": None,
-            "photo_id_mo": None,
-            "comm_mo": None,
-            "comm_mfc": None,
-            "is_take": None,
-            "is_task": None,
-            "photo_id_mfc": None,
-            "photo_id_mo": None,
-            "time_to_correct": None,
-            "violation_detected": None,
-            "violation_dict_id": None,
-            "violation_found_id": None,
-            "violation_name": None,
-            "zone": None,
-            'is_pending': None,
-            'violation_pending': None
-        }
-    )
+            **ViolationFoundClearData().model_dump(mode='json')
+        )
+    
     await state.set_state(MoPerformerStates.mo_performer)
 
 
@@ -601,7 +478,7 @@ async def add_photo_handler(
     comm_mo = message.caption
     if not comm_mo:
         await message.answer(
-            text='Вы не добавили комментарий к фотографии. Пожалуйста, повторите'
+            text=MoPerformerMessages.no_photo_added
         )
         return
     await state.update_data(
@@ -617,6 +494,7 @@ async def add_photo_handler(
     )
     await state.set_state(MoPerformerStates.save_vio_update)
 
+
 @router.callback_query(
     F.data.startswith('cancelsave_'),
     StateFilter(MoPerformerStates.save_vio_update)
@@ -627,118 +505,43 @@ async def cancel_save_process(
 ):
     violation_found_id = int(callback.data.split("_")[1])
     data = await state.get_data()
-    violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
-    is_pending = violation_found_obj.is_pending
-    is_task = violation_found_obj.is_task
-
-    if is_pending:
-        violation_out_objects = sorted(
-            [
-                ViolationFoundOut(**v)
-                for k, v in data.items()
-                if (k.startswith("vio_") and v and (v['is_pending'] == True))
-            ],
-            key=lambda x: x.violation_dict_id,
-        )
-        if len(violation_out_objects) == 0:
-            await callback.answer(text=MoPerformerMessages.no_violations_buttons)
-            return
-
-        order = get_index_by_violation_id(
-            objects=violation_out_objects, violation_found_id=violation_found_id
-        )
-        reply_obj = FormCards().form_violation_pending_reply(
-            violations_out=violation_out_objects, order=order
-        )
-
-    elif is_task:
-        violation_out_objects = sorted(
-            [
-                ViolationFoundOut(**v)
-                for k, v in data.items()
-                if (k.startswith("vio_") and v and (v['is_task'] == True) and (v['is_pending'] == False))
-            ],
-            key=lambda x: x.violation_dict_id,
-        )
-        if len(violation_out_objects) == 0:
-            await callback.answer(text=MoPerformerMessages.no_violations_buttons)
-            return
-        order = get_index_by_violation_id(
-            objects=violation_out_objects, violation_found_id=violation_found_id
-        )
-        reply_obj = FormCards().form_reply(
-            violations_out=violation_out_objects, order=order
-        )
-
-    else:
-        violation_out_objects = sorted(
-            [
-                ViolationFoundOut(**v)
-                for k, v in data.items()
-                if (k.startswith("vio_") and v and (v['is_task'] == False) and (v['is_pending'] == False))
-            ],
-            key=lambda x: x.violation_dict_id,
-        )
-        if len(violation_out_objects) == 0:
-            await callback.answer(text=MoPerformerMessages.no_violations_buttons)
-            return
-        order = get_index_by_violation_id(
-            objects=violation_out_objects, violation_found_id=violation_found_id
-        )
-        reply_obj = FormCards().form_reply(
-            violations_out=violation_out_objects, order=order
-        )
-
-
-    photo_id = reply_obj.photo_id
-    text_mes = reply_obj.text_mes
-    keyboard = reply_obj.keyboard
-    await callback.message.answer_photo(
-        photo=photo_id,
-        caption=text_mes,
-        reply_markup=keyboard
+    violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
+    reply_obj = MoPerformerCard(data=data).cancel_process(
+        violation_found_out=violation_found_out
     )
+
+    if not reply_obj:
+        await callback.answer(text=MoPerformerMessages.no_violations_buttons)
+        return
+
+    await callback.message.answer_photo(
+        **reply_obj.model_dump(mode='json')
+    )
+
     await callback.answer()
-    if is_task:
+    if violation_found_out.is_task:
         await state.update_data(
             {
                 'mo_start': None
             }
         )
+
     await state.update_data(
-        {
-            # 'check_id': None,
-            "violation_found_id": None,
-            "photo_id_mo": None,
-            "comm_mo": None,
-            "comm_mfc": None,
-            "is_take": None,
-            "is_task": None,
-            "photo_id_mfc": None,
-            "photo_id_mo": None,
-            "time_to_correct": None,
-            "violation_detected": None,
-            "violation_dict_id": None,
-            "violation_found_id": None,
-            "violation_name": None,
-            "zone": None,
-            'is_pending': None,
-            'violation_pending': None
-        }
-    )
+            **ViolationFoundClearData().model_dump(mode='json')
+        )
+ 
     await state.set_state(MoPerformerStates.mo_performer)
 
 
 @router.message(
     F.text,
-    not_constants,
     StateFilter(MoPerformerStates.correct_violation)
 )
 async def add_text_wrong(
     message: Message,
 ):
     await message.answer(
-        text='Добавьте фотографию и комментарий к нарушению в качестве подписи к фото'
+        text=MoPerformerMessages.exit_first
     )
 
 @router.message(
@@ -749,7 +552,7 @@ async def wrong_add_content(
     message: Message,
 ):
     await message.answer(
-        text='Поддерживается только фото и текст (в качестве подписи к фото)'
+        text=MoPerformerMessages.only_photo_text
     )
 
 @router.callback_query(
@@ -776,43 +579,44 @@ async def save_violation_found_process(
     await violation_obj.update_violation(
         violation_found_id=violation_found_id, violation_update=vio_upd
     )
+    await state.update_data({
+        f"vio_{violation_found_id}": None,
+    })
     await state.update_data(
-        {
-            "violation_found_id": None,
-            "photo_id_mo": None,
-            "comm_mo": None,
-            "comm_mfc": None,
-            f"vio_{violation_found_id}": None,
-            "is_take": None,
-            "is_task": None,
-            "photo_id_mfc": None,
-            "photo_id_mo": None,
-            "time_to_correct": None,
-            "violation_detected": None,
-            "violation_dict_id": None,
-            "violation_found_id": None,
-            "violation_name": None,
-            "zone": None,
-            'is_pending': None,
-            'violation_pending': None
-        }
-    )
-    data = await state.get_data()
-
-    if is_pending:
-        await callback.message.answer(
-            text=MoPerformerMessages.can_continue_or_finish,
-            reply_markup=MoPerformerKeyboards().back_to_menu(),
+        **ViolationFoundClearData().model_dump(mode='json')
         )
-      
-        fil_ = data["fil_"]
-        violations_pending = await violation_obj.get_pending_violations_by_fil(fil_=fil_)
-        await violation_obj.form_violations_pending_replies(
+    data = await state.get_data()
+    
+    if is_pending:     
+        await violation_obj.update_data_violations_found_pending(
             message=callback.message,
             state=state,
-            fil_=fil_,
-            violations_pending=violations_pending,
+            data=data
         )
+        data = await state.get_data()
+        reply_obj = MoPerformerCard(data=data).all_violations_pending_start()
+        await callback.answer()
+        if not reply_obj:
+            await callback.answer()
+            await callback.message.answer(
+                text=MoPerformerMessages.no_pending,
+                reply_markup=MoPerformerKeyboards().back_to_menu(),
+                )
+        else:
+            await callback.answer()
+            await callback.message.answer_sticker(
+                sticker=MoPerformerMessages.save_sticker,
+                )
+            time.sleep(1)
+            await callback.message.answer(text=MoPerformerMessages.photo_comm_added)
+            await callback.message.answer(
+                text=MoPerformerMessages.can_continue_pending,
+                reply_markup=MoPerformerKeyboards().back_to_menu(),
+                )
+            time.sleep(1)
+            await callback.message.answer_photo(
+                **reply_obj.model_dump(mode='json')
+                )
 
     elif is_task:
         check_id = data["check_id"]
@@ -823,33 +627,54 @@ async def save_violation_found_process(
             mo_finish=current_time,
         )
         await check_obj.update_check(check_id=check_id, check_update=check_upd)
-        await state.update_data(mo_start=None, check_id=None)
-        await callback.message.answer(
-            text=MoPerformerMessages.can_continue_or_finish,
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        fil_ = data["fil_"]
-        tasks = await violation_obj.get_active_violations_by_fil(fil_=fil_)
-        await violation_obj.form_task_replies(
-            message=callback.message,
+        await state.update_data(
+            mo_start=None,
+            check_id=None
+            )
+
+        await violation_obj.update_data_violations_found_active(
+            callback=callback,
             state=state,
-            fil_=fil_,
-            tasks=tasks,
+            data=data
         )
+        data = await state.get_data()
+        reply_obj = MoPerformerCard(data=data).all_violations_task_start()
+        if not reply_obj:
+            await callback.answer()
+            await callback.message.answer(
+                text=MoPerformerMessages.tasks_work_finish,
+                )
+        else:
+            await callback.answer()
+            await callback.message.answer_sticker(
+                sticker=MoPerformerMessages.save_sticker,
+                )
+            time.sleep(1)
+            await callback.message.answer(text=MoPerformerMessages.photo_comm_added)
+            await callback.message.answer_photo(
+                **reply_obj.model_dump(mode='json')
+                )
 
     elif not is_take:
+        await callback.answer()
+        await callback.message.answer_sticker(
+            sticker=MoPerformerMessages.save_sticker,
+            )
+        time.sleep(1)
+        await callback.message.answer(text=MoPerformerMessages.photo_comm_added)
+        time.sleep(1)
         await callback.message.answer(
-            text=MoPerformerMessages.can_continue_or_finish,
+            text=MoPerformerMessages.can_continue_check,
             reply_markup=MoPerformerKeyboards().back_to_violations(),
         )
     else:
-        await callback.message.answer(
-            text=MoPerformerMessages.can_continue_or_finish,
-            reply_markup=ReplyKeyboardRemove(),
-        )
-
-
-    await callback.answer(text=MoPerformerMessages.photo_comm_added, show_alert=True)
+        await callback.answer()
+        await callback.message.answer_sticker(
+            sticker=MoPerformerMessages.save_sticker,
+            )
+        time.sleep(1)
+        await callback.message.answer(text=MoPerformerMessages.photo_comm_added)  
+    
     await state.set_state(MoPerformerStates.mo_performer)
 
 
@@ -887,31 +712,15 @@ async def correct_vio_process_continue(
     )
     time.sleep(1)
     data = await state.get_data()
-    check_id = data['check_id']
-    violation_out_objects = sorted(
-        [
-            ViolationFoundOut(**v)
-            for k, v in data.items()
-            if (k.startswith("vio_") and v and (v['is_task'] == False) and (v['is_pending'] == False) and (v['check_id'] == check_id))
-        ],
-        key=lambda x: x.violation_dict_id,
-    )
-
-    if not violation_out_objects:
+    reply_obj = MoPerformerCard(data=data).all_violations_check_start()
+    if not reply_obj:
         await message.answer(
             text=MoPerformerMessages.no_violations,
             reply_markup=MoPerformerKeyboards().check_finished(),
         )
-
     else:
-        reply_obj = FormCards().form_reply(
-            violations_out=violation_out_objects, order=0
-        )
-        photo_id = reply_obj.photo_id
-        text_mes = reply_obj.text_mes
-        keyboard = reply_obj.keyboard
         await message.answer_photo(
-            photo=photo_id, caption=text_mes, reply_markup=keyboard
+            **reply_obj.model_dump(mode='json')
         )
 
 
@@ -926,14 +735,7 @@ async def correct_vio_process_finish(
 ):
     data = await state.get_data()
     check_id = data['check_id']
-    violation_out_objects = sorted(
-        [
-            ViolationFoundOut(**v)
-            for k, v in data.items()
-            if (k.startswith("vio_") and v and (v['is_task'] == False) and (v['is_pending'] == False) and (v['check_id'] == check_id))
-        ],
-        key=lambda x: x.violation_dict_id,
-    )
+    violation_out_objects = MoPerformerCard(data=data).get_current_check_violations(check_id=check_id)
     if violation_out_objects:
         await message.answer(
             text=MoPerformerMessages.cant_finish, reply_markup=message.reply_markup
@@ -950,9 +752,14 @@ async def correct_vio_process_finish(
     fil_ = data["fil_"]
     checks = await check_obj.get_all_active_checks_by_fil(fil_=fil_)
     await message.answer(
+        text=MoPerformerMessages.finish_check_zero_violations,
+        )
+    await message.answer(
         text=MoPerformerMessages.back_to_checks,
         reply_markup=MoPerformerKeyboards().check_or_tasks(),
         )
+    time.sleep(1)
+    
     if not checks:
         await message.answer(
             text=MoPerformerMessages.form_no_checks_answer(fil_=fil_),
@@ -965,132 +772,6 @@ async def correct_vio_process_finish(
             text_mes = check_out.form_card_check_out()
             keyboard = MoPerformerKeyboards().get_under_check(check_id=check.check_id)
             await message.answer(text=text_mes, reply_markup=keyboard)
-
-
-##############
-# back_logic #
-##############
-
-
-@router.message(F.text.lower() == "назад", StateFilter(MoPerformerStates))
-async def back_command(
-    message: Message,
-    state: FSMContext,
-    user_obj: UserService=UserService()
-):
-    current_state = await state.get_state()
-    if current_state == MoPerformerStates.mo_performer:
-        await state.clear()
-        user = message.from_user
-        mo = await user_obj.get_user_mo(user_id=user.id)
-        fil_ = await user_obj.get_user_fil(user_id=user.id)
-        await state.clear()
-        await state.update_data(mo_user_id=user.id,
-                                mo=mo,
-                                fil_=fil_
-                                )
-        await message.answer(
-            text=await MoPerformerMessages.welcome_message(user_id=user.id),
-            reply_markup=MoPerformerKeyboards().check_or_tasks()
-        )
-
-    elif current_state in (
-        MoPerformerStates.correct_violation,
-    ):
-        data = await state.get_data()
-        if data.get("is_take"):
-            await state.clear()
-            await message.answer(text=MoPerformerMessages.exit_take)
-            return
-        await message.answer(
-            text=MoPerformerMessages.choose_vio,
-            reply_markup=MoPerformerKeyboards().check_or_tasks()
-        )
-        await state.set_state(MoPerformerStates.mo_performer)
-        violation_found_obj = ViolationFoundOut(
-            **data
-        )
-        is_pending = violation_found_obj.is_pending
-        is_task = violation_found_obj.is_task
-
-        if is_pending:
-            violation_out_objects = sorted(
-                [
-                    ViolationFoundOut(**v)
-                    for k, v in data.items()
-                    if (k.startswith("vio_") and v and (v['is_pending'] == True))
-                ],
-                key=lambda x: x.violation_dict_id,
-            )
-            order_back = get_index_by_violation_id(
-                violation_found_id=data["violation_found_id"],
-                objects=violation_out_objects, 
-            )
-            reply_obj = FormCards().form_violation_pending_reply(
-                violations_out=violation_out_objects, order=order_back
-            )
-
-        elif is_task:
-            violation_out_objects = sorted(
-                [
-                    ViolationFoundOut(**v)
-                    for k, v in data.items()
-                    if (k.startswith("vio_") and v and (v['is_task'] == True))
-                ],
-                key=lambda x: x.violation_dict_id,
-            )
-            order_back = get_index_by_violation_id(
-                violation_found_id=data["violation_found_id"],
-                objects=violation_out_objects, 
-            )
-            reply_obj = FormCards().form_reply(
-                violations_out=violation_out_objects, order=order_back
-            )
-
-        else:
-            violation_out_objects = sorted(
-                [
-                    ViolationFoundOut(**v)
-                    for k, v in data.items()
-                    if (k.startswith("vio_") and v)
-                ],
-                key=lambda x: x.violation_dict_id,
-            )
-            order_back = get_index_by_violation_id(
-                violation_found_id=data["violation_found_id"],
-                objects=violation_out_objects, 
-            )
-            reply_obj = FormCards().form_reply(
-                violations_out=violation_out_objects, order=order_back
-            )
-
-        await state.update_data(
-            violation_found_id=None,
-            photo_id_mo=None,
-            comm_mo=None,
-            violation_detected=None,
-            violation_dict_id=None,
-            violation_name=None,
-            violation_pending=None,
-            zone=None,
-            # check_id=None,
-            comm_mfc=None,
-            is_pending=None,
-            is_task=None,
-            photo_id_mfc=None,
-            time_to_correct=None,
-            )
-        photo_id = reply_obj.photo_id
-        text_mes = reply_obj.text_mes
-        keyboard = reply_obj.keyboard
-        await message.answer_photo(
-            photo=photo_id, caption=text_mes, reply_markup=keyboard
-        )
-
-    else:
-        await state.clear()
-        await message.answer(text=MoPerformerMessages.exit_take)
-
 
 @router.message()
 async def something_wrong(message: Message, state: FSMContext):

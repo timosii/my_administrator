@@ -11,6 +11,10 @@ class CheckBase(BaseModel):
 class CheckCreate(CheckBase):
     pass
 
+class CheckTestCreate(CheckCreate):
+    mfc_finish: dt.datetime
+
+
 class CheckUpdate(BaseModel):
     mo_user_id: Optional[int] = None
     mfc_finish: Optional[dt.datetime] = None

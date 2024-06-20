@@ -1,6 +1,6 @@
 from aiocache.serializers import PickleSerializer
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Union
 from sqlalchemy import select, update, delete, func, and_, text
 from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,7 +9,8 @@ from app.database.models.data import ViolationFound, Check
 from app.database.schemas.violation_found_schema import (
     ViolationFoundCreate,
     ViolationFoundUpdate,
-    ViolationFoundInDB
+    ViolationFoundInDB,
+    ViolationFoundTestCreate
 )
 from loguru import logger
 from aiocache import cached, Cache
@@ -25,7 +26,7 @@ class ViolationFoundRepo:
         self.cache = Cache(Cache.REDIS, namespace='violation_found', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
 
     async def add_violation_found(
-        self, violation_create: ViolationFoundCreate
+        self, violation_create: Union[ViolationFoundCreate, ViolationFoundTestCreate]
     ) -> ViolationFoundInDB:
         async with self.session_maker() as session:
             new_violation = ViolationFound(**violation_create.model_dump())
@@ -108,7 +109,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
     
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    # @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
     async def get_violations_found_by_check(self, check_id: int) -> Optional[List[ViolationFoundInDB]]:
         async with self.session_maker() as session:
             query = select(ViolationFound).where(
@@ -218,6 +219,16 @@ class ViolationFoundRepo:
         )
         result = await self._get_scalar(query=query)
         logger.info('is violation already fixed')
+        return bool(result)
+    
+    async def is_violation_already_pending(self, violation_found_id: int) -> bool:
+        query = select(ViolationFound.violation_pending).where(
+            and_(
+                ViolationFound.violation_found_id == violation_found_id,
+            )
+        )
+        result = await self._get_scalar(query=query)
+        logger.info('is violation already pending')
         return bool(result)
     
     async def _get_scalar(self, query) -> any:

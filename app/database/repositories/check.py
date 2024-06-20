@@ -1,10 +1,10 @@
 from aiocache.serializers import PickleSerializer
-from typing import Optional, List
+from typing import Optional, List, Union
 from sqlalchemy import select, update, delete, func, not_, and_, text
 from app.database.database import session_maker
 from app.database.models.data import Check, ViolationFound
 from loguru import logger
-from app.database.schemas.check_schema import CheckCreate, CheckUpdate, CheckInDB
+from app.database.schemas.check_schema import CheckCreate, CheckUpdate, CheckInDB, CheckTestCreate
 from aiocache import cached, Cache
 from app.config import settings
 
@@ -17,7 +17,7 @@ class CheckRepo:
         self.session_maker = session_maker
         self.cache = Cache(Cache.REDIS, namespace='check', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
     
-    async def add_check(self, check_create: CheckCreate) -> CheckInDB:
+    async def add_check(self, check_create: Union[CheckCreate, CheckTestCreate]) -> CheckInDB:
         async with self.session_maker() as session:
             new_check = Check(**check_create.model_dump())
             session.add(new_check)
@@ -26,6 +26,8 @@ class CheckRepo:
             logger.info('check adding to db')
             await self.clear_cache()
             return CheckInDB.model_validate(new_check)
+        
+
     
     @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
     async def check_exists(self, check_id: int) -> bool:

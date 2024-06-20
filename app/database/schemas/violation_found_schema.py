@@ -11,6 +11,12 @@ class ViolationFoundBase(BaseModel):
 class ViolationFoundCreate(ViolationFoundBase):
     pass
 
+class ViolationFoundTestCreate(ViolationFoundCreate):
+    violation_dict_id: int
+    violation_detected: dt.datetime
+    photo_id_mfc: str
+    comm_mfc: str
+
 class ViolationFoundUpdate(BaseModel):
     photo_id_mfc: Optional[str] = None
     comm_mfc: Optional[str] = None
@@ -41,8 +47,8 @@ class ViolationFoundDeleteMfc(BaseModel):
     photo_id_mfc: None=None
     comm_mfc: None=None
 
-class ViolationFoundPendingMo(BaseModel):
-    check_id: None=None
+class ViolationFoundClearData(BaseModel):
+    # check_id: None=None
     violation_found_id: None=None
     photo_id_mo: None=None
     comm_mo: None=None
@@ -59,6 +65,26 @@ class ViolationFoundPendingMo(BaseModel):
     zone: None=None
     is_pending: None=None
     violation_pending: None=None
+
+
+class ViolationFoundRedisSaved(BaseModel):
+    check_id: Optional[int]=None
+    violation_found_id: Optional[int]=None
+    photo_id_mo: Optional[str]=None
+    comm_mo: Optional[str]=None
+    comm_mfc: Optional[str]=None
+    is_take: Optional[None]=None
+    is_task: Optional[bool]=None
+    photo_id_mfc: Optional[str]=None
+    photo_id_mo: Optional[str]=None
+    time_to_correct: Optional[str]=None
+    violation_detected: Optional[str]=None
+    violation_dict_id: Optional[int]=None
+    violation_found_id: Optional[int]=None
+    violation_name: Optional[str]=None
+    is_pending: bool
+    violation_pending: Optional[str]=None
+
 
 class ViolationFoundOut(ViolationFoundBase):
     mo: str

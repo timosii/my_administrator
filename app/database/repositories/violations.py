@@ -46,4 +46,3 @@ class ViolationsRepo:
             logger.info('get dict vio obj by id')
             return ViolationInDB.model_validate(violation)
         
-    
