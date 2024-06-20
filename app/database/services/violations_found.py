@@ -27,9 +27,6 @@ from app.database.schemas.user_schema import UserInDB
 from app.handlers.user.mo_part.performer_card_constructor import MoPerformerCard
 
 
-
-# moscow_tz = pytz.timezone('Europe/Moscow')
-
 class ViolationFoundService:
     def __init__(self, db_repository: ViolationFoundRepo = ViolationFoundRepo()):
         self.session_maker = session_maker
@@ -159,6 +156,17 @@ class ViolationFoundService:
     ) -> bool:
         result = await ViolationFoundRepo().is_violation_already_pending(
             violation_found_id=violation_found_id
+        )
+        return result
+    
+    async def get_pending_violations_by_fil_n_dict_id(
+        self,
+        fil_: str,
+        violation_dict_id: int
+    ) -> Optional[List[ViolationFoundInDB]]:
+        result = await ViolationFoundRepo().get_pending_violations_by_fil_n_dict_id(
+            fil_=fil_,
+            violation_dict_id=violation_dict_id
         )
         return result
      

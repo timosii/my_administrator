@@ -1,7 +1,7 @@
 import time
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
+from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery, InputMediaPhoto
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.state import default_state, State, StatesGroup
@@ -21,6 +21,7 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundDeleteMfc
 )
 from loguru import logger
+from app.handlers.user.mfc_part.mfc_pending_logic import MfcPendingCard
 from aiogram.exceptions import TelegramBadRequest
 
 
@@ -325,6 +326,33 @@ async def choose_violation_handler(
             reply_markup=message.reply_markup,
         )
         return
+
+    violations_pending_by_dict_id = await violation_obj.get_pending_violations_by_fil_n_dict_id(
+        fil_=data['fil_'],
+        violation_dict_id=violation_dict_id
+    )
+    if violations_pending_by_dict_id:
+        await MfcPendingCard().save_to_data_process(
+            state=state,
+            pending_violations_in=violations_pending_by_dict_id
+        )
+        violations_out = await MfcPendingCard().get_violations_out_from_data(state=state)
+        reply_obj = MfcPendingCard().form_reply(violations_out=violations_out)
+        await message.answer(
+            text=MfcMessages.add_violation_whatever,
+            reply_markup=ReplyKeyboardRemove()
+        )
+        await message.answer_sticker(
+            sticker=MfcMessages.watch_sticker
+        )
+        time.sleep(7)
+        await message.answer_photo(
+            **reply_obj.model_dump(mode='json')
+        )
+        await state.set_state(MfcStates.get_pending)
+        return
+
+
     violation_in_db = await violation_obj.add_violation(violation_create=violation_create_obj)
     violation_out = await violation_obj.form_violation_out(violation=violation_in_db)
     await state.update_data(
@@ -339,6 +367,98 @@ async def choose_violation_handler(
         text=MfcMessages.add_photo_comm(violation_name=violation_name),
         reply_markup=MfcKeyboards().get_description(violation_id=violation_out.violation_dict_id),
     )
+    await state.set_state(MfcStates.add_content)
+
+
+@router.callback_query(
+    F.data.startswith("next_") | F.data.startswith("prev_"),
+    StateFilter(MfcStates.get_pending),
+)
+async def get_violations_next_prev(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    violation_found_id = int(callback.data.split("_")[1])
+    data = await state.get_data()
+
+    violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
+    
+    reply_obj = await MfcPendingCard().get_next_prev_reply(
+        state=state,
+        violation_found_out=violation_found_out
+    )
+
+    if not reply_obj:
+        await callback.answer(text=MfcMessages.no_violations)
+    else:
+        await callback.message.edit_media(
+            media=InputMediaPhoto(
+                media=reply_obj.photo,
+                caption=reply_obj.caption),
+                reply_markup=reply_obj.reply_markup
+        )
+        await callback.answer()
+
+@router.callback_query(
+    F.data.startswith("back_"),
+    StateFilter(MfcStates.get_pending),
+)
+async def get_back(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    data = await state.get_data()
+    zone = data['zone']
+    violations_completed = data.get('violations_completed', [])
+    await state.update_data(
+        {
+            k: None for k,_ in data.items() if k.startswith('vio_')
+        }
+    )
+    await callback.message.answer(
+        text=MfcMessages.choose_violation(zone=zone),
+        reply_markup=await MfcKeyboards().choose_violation(
+            zone=zone,
+            completed_violations=violations_completed),
+    )
+    await callback.answer()
+    await state.set_state(MfcStates.choose_violation)     
+
+
+@router.callback_query(
+    F.data.startswith("new_"),
+    StateFilter(MfcStates.get_pending),
+)
+async def add_new_violation(
+    callback: CallbackQuery,
+    state: FSMContext,
+    violation_obj: ViolationFoundService=ViolationFoundService()
+):
+    violation_create_obj = ViolationFoundCreate(
+        **(await state.get_data()),
+    )
+    
+    violation_in_db = await violation_obj.add_violation(violation_create=violation_create_obj)
+    violation_out = await violation_obj.form_violation_out(violation=violation_in_db)
+    await state.update_data(
+        violation_out.model_dump(mode='json')
+    )
+    data = await state.get_data()
+    await state.update_data(
+        {
+            k: None for k,_ in data.items() if k.startswith('vio_')
+        }
+    )
+
+    await callback.message.answer(
+        text=MfcMessages.problem_detection,
+        reply_markup=MfcKeyboards().just_cancel()
+    )
+    await callback.message.answer(
+        text=MfcMessages.add_photo_comm(violation_name=violation_out.violation_name),
+        reply_markup=MfcKeyboards().get_description(violation_id=violation_out.violation_dict_id),
+    )
+    await callback.answer()
     await state.set_state(MfcStates.add_content)
 
 

@@ -8,6 +8,7 @@ class MfcStates(StatesGroup):
     choose_type_checking = State()
     choose_zone = State()
     choose_violation = State()
+    get_pending = State()
     add_content = State()
     continue_state = State()
   

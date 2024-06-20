@@ -182,8 +182,6 @@ class ViolationFoundRepo:
                 .filter(
                     Check.fil_ == fil_,
                     Check.mfc_finish.is_not(None),
-                    # Check.mo_finish.is_(None),
-                    # Check.is_task.is_(True),
                     ViolationFound.violation_fixed.is_(None),
                     ViolationFound.is_pending.is_(True)
                     )
@@ -193,7 +191,7 @@ class ViolationFoundRepo:
             result = await session.execute(query)
             
             violations = result.scalars().all()
-            logger.info('get_active_violations_by_fil')
+            logger.info('get_pending_violations_by_fil')
             
             return [
                 ViolationFoundInDB.model_validate(violation) for violation in violations
@@ -231,6 +229,32 @@ class ViolationFoundRepo:
         logger.info('is violation already pending')
         return bool(result)
     
+    async def get_pending_violations_by_fil_n_dict_id(self,
+                                                    fil_: str,
+                                                    violation_dict_id: int) -> Optional[List[ViolationFoundInDB]]:
+        async with self.session_maker() as session:
+            query = (
+                select(ViolationFound)
+                .join(ViolationFound.check)
+                .filter(
+                    Check.fil_ == fil_,
+                    Check.mfc_finish.is_not(None),
+                    ViolationFound.violation_fixed.is_(None),
+                    ViolationFound.is_pending.is_(True),
+                    ViolationFound.violation_dict_id == violation_dict_id
+                    )
+                .options(joinedload(ViolationFound.check))
+            )
+            
+            result = await session.execute(query)
+            
+            violations = result.scalars().all()
+            logger.info('get_pending_violations_by_fil_n_dict_id')
+            
+            return [
+                ViolationFoundInDB.model_validate(violation) for violation in violations
+            ] if violations else None 
+
     async def _get_scalar(self, query) -> any:
         async with self.session_maker() as session:
             result = await session.execute(query)

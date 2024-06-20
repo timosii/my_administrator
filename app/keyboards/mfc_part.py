@@ -119,6 +119,26 @@ class MfcKeyboards:
             ]
         ])
         return self.kb
+    
+    @staticmethod
+    def get_violation_pending_menu(
+        violation_id: int,
+        prev_violation_id: int,
+        next_violation_id: int
+        ) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text="⬅️", callback_data=f"prev_{prev_violation_id}"),
+                InlineKeyboardButton(text="➡️", callback_data=f"next_{next_violation_id}")
+            ],
+            [
+                InlineKeyboardButton(text="Добавить новое нарушение", callback_data=f"new_"),
+            ],
+            [
+                InlineKeyboardButton(text='Вернуться к нарушениям', callback_data=f"back_{violation_id}"),
+            ]
+        ])
+        return kb
 
 
 class MfcLeaderKeyboards:

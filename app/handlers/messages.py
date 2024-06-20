@@ -59,6 +59,9 @@ class MfcMessages:
     zero_performers = "Отправка уведомления в МО невозможна: нет зарегистрированных исполнителей в филиале"
     cant_delete = 'Проверка не может быть удалена, есть зарегистрированные нарушения'
     save_sticker = 'CAACAgEAAxkBAAEGSyRmdAuwBUQuDe3UOYfTRab8RpLFzQACCAIAAoCN0UbbYuEuHFi7_DUE'
+    no_violations = 'Больше нарушений нет'
+    add_violation_whatever = 'Это нарушение ранее <b>уже было зарегистрировано и перенесено сотрудником МО</b>\nНиже вы можете ознакомиться с деталями. Если хотите добавить <b><u>новое нарушение</u></b>, нажмите <b>"Добавить новое нарушение"</b>'
+    watch_sticker = 'CAACAgEAAxkBAAEGSuBmdAVl03axNZqRKohxhbiwzs1D6AACgAIAAqFjGUSrWD-iBcJN3DUE'
 
     @staticmethod
     async def welcome_message(user_id: int, user_obj: UserService=UserService()) -> str:
