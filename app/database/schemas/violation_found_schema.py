@@ -30,6 +30,7 @@ class ViolationFoundInDB(ViolationFoundBase):
     violation_found_id: int
     photo_id_mfc: Optional[str]
     comm_mfc: Optional[str]
+    comm_mo: Optional[str]
     violation_detected: dt.datetime
     violation_fixed: Optional[dt.datetime]
     is_pending: bool
@@ -111,12 +112,13 @@ class ViolationFoundOut(ViolationFoundBase):
 <b>Время выявления нарушения:</b>
 {to_moscow_time(self.violation_detected).strftime('%d.%m.%Y %H:%M')}
 
-Комментарий: {self.comm_mfc if self.comm_mfc else 'отсутствует'}
-Время на исправление: {format_timedelta(self.time_to_correct)}
+Комментарий <b>при выявлении</b>: {self.comm_mfc if self.comm_mfc else 'отсутствует'}
+<b>Время на исправление</b>: {format_timedelta(self.time_to_correct)}
         """
         return result
 
     def violation_card_pending(self) -> str:
+        comm_mo_format = self.comm_mo.split('\n')[-1]
         result = f"""
 <b>Зона:</b>
 {self.zone}
@@ -127,8 +129,9 @@ class ViolationFoundOut(ViolationFoundBase):
 <b>Время переноса нарушения:</b>
 {to_moscow_time(self.violation_pending).strftime('%d.%m.%Y %H:%M')}
 
-Комментарий: {self.comm_mfc if self.comm_mfc else 'отсутствует'}
-Время на исправление: {format_timedelta(self.time_to_correct)}
+Комментарий <b>при выявлении</b>: {self.comm_mfc if self.comm_mfc else 'отсутствует'}
+Комментарий <b>при переносе</b>: {comm_mo_format if comm_mo_format else 'отсутствует'}
+<b>Время на исправление</b>: {format_timedelta(self.time_to_correct)}
         """
         return result
 

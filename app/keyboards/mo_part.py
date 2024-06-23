@@ -17,6 +17,11 @@ class MoPerformerKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
     
+    def just_cancel(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Отменить')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+    
     def back_to_violations(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Продолжить проверку')
         self.kb.button(text='Закончить проверку')
@@ -45,19 +50,6 @@ class MoPerformerKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    
-    # @staticmethod
-    # def get_under_violation_photo(violation_id: int) -> InlineKeyboardMarkup:
-    #     kb = InlineKeyboardMarkup(inline_keyboard=[
-    #         [
-    #             InlineKeyboardButton(text="Посмотреть фото", callback_data=f"photo_{violation_id}")
-    #         ], 
-    #         [
-    #             InlineKeyboardButton(text='Нарушение исправлено', callback_data=f"correct_{violation_id}")
-    #         ]
-    #     ])
-    #     return kb
-    
     @staticmethod
     def get_violation_menu(
         violation_id: int,

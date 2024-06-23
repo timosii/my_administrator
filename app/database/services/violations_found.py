@@ -325,7 +325,7 @@ class ViolationFoundService:
             time.sleep(1)
             violations_found_out_pending_data = MoPerformerCard(data=data).get_pending_violations()
             await state.update_data(
-                    {f"vio_{violation_out.violation_found_id}": None for violation_out in violations_found_out_pending_data}
+                {f"vio_{violation_out.violation_found_id}": None for violation_out in violations_found_out_pending_data}
                 )
         else:
             for violation_found in violations_found_pending:
@@ -356,6 +356,7 @@ class ViolationFoundService:
             violation_detected=violation.violation_detected,
             comm_mfc=violation.comm_mfc,
             photo_id_mfc=violation.photo_id_mfc,
+            comm_mo=violation.comm_mo,
             is_pending=violation.is_pending,
             violation_pending=violation.violation_pending
         )

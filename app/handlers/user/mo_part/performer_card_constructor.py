@@ -4,7 +4,8 @@ from app.database.schemas.violation_found_schema import (
     ViolationFoundOut,
 )
 from app.database.schemas.helpers import Reply
-   
+from loguru import logger
+
 
 class MoPerformerCard:
     def __init__(self,
@@ -177,6 +178,7 @@ class MoPerformerCard:
         violation_found_out_lst = self.get_violation_found_out_objects(
             violation_found_out=violation_found_out
             )
+        
         if not violation_found_out_lst:
             return None
         

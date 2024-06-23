@@ -19,7 +19,7 @@ class Name:
             return f'{self.first_name}'
 
 
-def time_determiner():
+def time_determiner() -> str:
     tz = dt.timezone(dt.timedelta(hours=3), name='Europe/Moscow')
     current_date = dt.datetime.now(tz=tz).strftime('%d.%m.%Y')
     return current_date

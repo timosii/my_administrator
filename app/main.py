@@ -4,7 +4,7 @@ from aiogram.fsm.storage.redis import RedisStorage, Redis
 from app.config import settings
 from app.handlers import default, dev, additional
 from app.handlers.admin import admin
-from app.handlers.user.mo_part import mo_controler, mo_performer
+from app.handlers.user.mo_part import mo_controler, mo_performer, pending_process
 from app.handlers.user.mfc_part import mfc_main, mfc_leader
 from aiogram.types import BotCommand
 from app.middlewares.main import ErrorProcessMiddleware, FSMMiddleware
@@ -51,6 +51,7 @@ def all_register():
         dev.router,
         mfc_leader.router,
         mfc_main.router,
+        pending_process.router,
         mo_performer.router,
         mo_controler.router,
         default.router,

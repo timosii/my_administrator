@@ -66,3 +66,6 @@ if __name__=='__main__':
     asyncio.get_event_loop().run_until_complete(atd.insert_violation_found())
     asyncio.get_event_loop().run_until_complete(atd.insert_violation_found())
     asyncio.get_event_loop().run_until_complete(atd.insert_violation_found())
+    atd_ = AddTestData()
+    asyncio.get_event_loop().run_until_complete(atd_.insert_check_task())
+    asyncio.get_event_loop().run_until_complete(atd_.insert_violation_found())

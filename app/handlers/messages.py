@@ -125,19 +125,21 @@ class MfcLeaderMessages:
 class MoPerformerMessages:
     choose_fil = 'Выберите филиал:'
     add_photo = 'Отправьте фотографию. Она будет сохранена в качестве фотофиксации исправления нарушения.'
-    add_comm = 'Напишите и отправьте текст. Он будет сохранен в качестве комментария к нарушению.'
+    add_comm_pending = 'Напишите и отправьте <b>текст</b>. Он будет сохранен в качестве комментария к переносу нарушения.'
     photo_added = 'Фото добавлено!'
     comm_added = 'Комментарий добавлен!'
     choose_another = 'Вы можете выбрать другое нарушение из списка нарушений'
     no_violations = 'Для этой проверки активных нарушений нет 🔥'
     no_violations_buttons = 'Больше нарушений нет'
+    no_violations_after_pending = 'Больше нарушений нет.\nПожалуйста, убедитесь, что для филиала нет <b>активных проверок</b> ✅'
     back_to_checks = 'Возвращаемся к списку проверок...'
     find_sticker = 'CAACAgEAAxkBAAEGSuZmdAWRe57jsx-P0BhfRfCxOQagvgACRgMAAiqHGURoXzCXdu7QsTUE'
     technic_sticker = 'CAACAgEAAxkBAAEGSupmdAWynChQQsSPGf7Iy6vadr3S-AACMQIAAsOjKEdLBVdiYsQQXzUE'
     send_sticker = 'CAACAgEAAxkBAAEGSuJmdAV0CQfWJxBE-WC0KiENXGFoGAACBwUAArgvIUS1HNBHhQnpPjUE'
     top_sticker = 'CAACAgEAAxkBAAEGSvhmdAZZ0WnNe6NdE8eZw9sCMxmS9AACVAIAAnPDMURXjXgfqUkMFjUE'
-    # watch_sticker = 'CAACAgEAAxkBAAEGSuBmdAVl03axNZqRKohxhbiwzs1D6AACgAIAAqFjGUSrWD-iBcJN3DUE'
+    watch_sticker = 'CAACAgEAAxkBAAEGSuBmdAVl03axNZqRKohxhbiwzs1D6AACgAIAAqFjGUSrWD-iBcJN3DUE'
     save_sticker = 'CAACAgEAAxkBAAEGSyRmdAuwBUQuDe3UOYfTRab8RpLFzQACCAIAAoCN0UbbYuEuHFi7_DUE'
+    add_pending_comm = 'Добавьте комментарий для переноса нарушения.\nВ нём вы можете указать <b>причину переноса</b>'
     continue_check = 'Загружаю нарушения...'
     wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
     choose_vio = 'Вы вышли из режима исправления. Выберите нарушение:'
@@ -157,6 +159,7 @@ class MoPerformerMessages:
     no_pending = 'Перенесенных нарушений нет 👌'
     can_continue_pending = 'Вы можете продолжить работу с перенесенными нарушениями'
     can_continue_check = 'Вы можете продолжить проверку или закончить её (доступно, если нет активных нарушений)'
+    pending_continue = 'Нарушение сохранено в статусе <b>перенесено</b>.\nВозвращаемся к списку нарушений ...'
 
     @staticmethod
     async def welcome_message(user_id: int, user_obj: UserService=UserService()) -> str:
