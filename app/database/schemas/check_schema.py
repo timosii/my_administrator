@@ -16,7 +16,7 @@ class CheckTestCreate(CheckCreate):
 
 
 class CheckUpdate(BaseModel):
-    mo_user_id: Optional[int] = None
+    # mo_user_id: Optional[int] = None
     mfc_finish: Optional[dt.datetime] = None
     mo_start: Optional[dt.datetime] = None
     mo_finish: Optional[dt.datetime] = None

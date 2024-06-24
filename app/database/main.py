@@ -18,7 +18,7 @@ from app.database.insert_dicts.update_dicts import DictsUpdate
 
 # накатить алембик сначала
 DictsInsert().insert_dicts_to_db()
-DictsUpdate().update_dicts_to_db()
+# DictsUpdate().update_dicts_to_db()
 # asyncio.get_event_loop().run_until_complete(clear_data())
 asyncio.get_event_loop().run_until_complete(insert_data_user())
 # asyncio.run(insert_data_user())

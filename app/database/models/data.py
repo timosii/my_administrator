@@ -57,12 +57,15 @@ class ViolationFound(Base):
     violation_dict_id: Mapped[int] = mapped_column(ForeignKey("dicts.violations.violation_dict_id", ondelete='CASCADE', onupdate='CASCADE'))
     photo_id_mfc: Mapped[str_255] = mapped_column(nullable=True)
     comm_mfc: Mapped[str] = mapped_column(nullable=True)
+    mo_user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.user_id", ondelete='CASCADE', onupdate='CASCADE'), nullable=True)
     photo_id_mo: Mapped[str_255] = mapped_column(nullable=True)
     comm_mo: Mapped[str] = mapped_column(nullable=True)
     violation_detected: Mapped[datetime_now]
     violation_fixed: Mapped[dt.datetime] = mapped_column(nullable=True)
     is_pending: Mapped[bool] = mapped_column(default=False)
     violation_pending: Mapped[dt.datetime] = mapped_column(nullable=True)
+
+    mo_user: Mapped["User"] = relationship('User', foreign_keys=[mo_user_id])
 
     check: Mapped['Check'] = relationship(
         back_populates="violations"
@@ -72,7 +75,6 @@ class ViolationFound(Base):
 class Check(Base):
     __tablename__ = 'check'
     __table_args__ = (
-        # CheckConstraint('mo_start > mfc_finish', name='check_time_mo_check'),
         {'schema': 'data'},
     )
 
@@ -81,13 +83,11 @@ class Check(Base):
     mfc_user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.user_id", ondelete='CASCADE', onupdate='CASCADE'))
     mfc_start: Mapped[datetime_now]
     mfc_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
-    mo_user_id: Mapped[bigint] = mapped_column(ForeignKey("data.user.user_id", ondelete='CASCADE', onupdate='CASCADE'), nullable=True)
     mo_start: Mapped[dt.datetime] = mapped_column(nullable=True)
     mo_finish: Mapped[dt.datetime] = mapped_column(nullable=True)
     is_task: Mapped[bool] = mapped_column(default=False)
     
     mfc_user: Mapped["User"] = relationship('User', foreign_keys=[mfc_user_id])
-    mo_user: Mapped["User"] = relationship('User', foreign_keys=[mo_user_id])
 
     violations: Mapped[list['ViolationFound']] = relationship(
         back_populates="check"

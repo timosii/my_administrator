@@ -35,7 +35,7 @@ async def cmd_start(
 ):
     await state.clear()
     await user_obj.save_default_user_info(
-        message=message,
+        event=message,
         state=state
     )
     user = message.from_user
@@ -57,7 +57,7 @@ async def get_active_violations(
     user_obj: UserService=UserService()
 ):
     await user_obj.save_default_user_info(
-        message=message,
+        event=message,
         state=state
     )
     data = await state.get_data()
@@ -95,8 +95,7 @@ async def check_zero_violations(callback: CallbackQuery,
     )
     current_time = dt.datetime.now(dt.timezone.utc)
     check_upd = CheckUpdate(
-        mo_user_id=data["mo_user_id"],
-        mo_start=current_time,
+        mo_start=current_time if not data.get('mo_start') else dt.datetime.fromisoformat(data["mo_start"]),
         mo_finish=current_time,
     )
     await check_obj.update_check(check_id=check_id, check_update=check_upd)
@@ -114,11 +113,14 @@ async def get_active_tasks(
     user_obj: UserService=UserService()
 ):
     await user_obj.save_default_user_info(
-        message=message,
+        event=message,
         state=state
     )
 
     data = await state.get_data()
+    await state.update_data(
+        mo_start=None
+    )
     await violation_obj.update_data_violations_found_active(
         message=message,
         state=state,
@@ -149,7 +151,7 @@ async def get_pending_violations_found(
     user_obj: UserService=UserService()
 ):
     await user_obj.save_default_user_info(
-        message=message,
+        event=message,
         state=state
     )
     data = await state.get_data()
@@ -183,7 +185,7 @@ async def take_to_work(
     await state.set_state(MoPerformerStates.mo_performer)
     await state.clear()
     await user_obj.save_default_user_info(
-        callback=callback,
+        event=callback,
         state=state,
     )
     violation_found_id = int(callback.data.split("_")[1])
@@ -198,7 +200,11 @@ async def take_to_work(
     violation_in_db = await violation_obj.get_violation_found_by_id(
         violation_found_id=violation_found_id
     )
-    violation_out = await violation_obj.form_violation_out(violation_in_db)
+    data = await state.get_data()
+    mo_user_id = data['mo_user_id']
+    violation_out = await violation_obj.form_violation_out(
+        mo_user_id=mo_user_id,
+        violation=violation_in_db)
     current_time = dt.datetime.now(dt.timezone.utc)
     if violation_out.is_task:
         await state.update_data(
@@ -255,9 +261,9 @@ async def get_check_violations(
     )
     data= await state.get_data()
     current_time = dt.datetime.now(dt.timezone.utc)
-    await state.update_data(
-        mo_start=current_time.isoformat()
-        )
+    # await state.update_data(
+    #     mo_start=current_time.isoformat()
+    #     )
 
     await violation_obj.update_data_violations_found_in_check(
         callback=callback,
@@ -335,7 +341,9 @@ async def process_correct_callback(
         await callback.answer(text=MoPerformerMessages.violation_already_fixed)
         return
     
-    violation_out = ViolationFoundOut(**data[f"vio_{violation_found_id}"])
+    violation_out = ViolationFoundOut(
+        **data[f"vio_{violation_found_id}"],
+        )
     await state.update_data(
         **violation_out.model_dump(mode="json")
         )
@@ -503,12 +511,14 @@ async def save_violation_found_process(
     violation_found_id = int(callback.data.split("_")[1])
     current_time = dt.datetime.now(dt.timezone.utc)
     vio_upd = ViolationFoundUpdate(
+        mo_user_id=data['mo_user_id'],
         photo_id_mo=data["photo_id_mo"],
         comm_mo=data["comm_mo"],
         violation_fixed=current_time,
     )
     await violation_obj.update_violation(
-        violation_found_id=violation_found_id, violation_update=vio_upd
+        violation_found_id=violation_found_id,
+        violation_update=vio_upd
     )
     await state.update_data({
         f"vio_{violation_found_id}": None,
@@ -553,7 +563,6 @@ async def save_violation_found_process(
         check_id = data["check_id"]
         current_time = dt.datetime.now(dt.timezone.utc)
         check_upd = CheckUpdate(
-            mo_user_id=data['mo_user_id'],
             mo_start=dt.datetime.fromisoformat(data["mo_start"]),
             mo_finish=current_time,
         )
@@ -674,7 +683,7 @@ async def correct_vio_process_finish(
         return
     current_time = dt.datetime.now(dt.timezone.utc)
     check_upd = CheckUpdate(
-        mo_user_id=data["mo_user_id"],
+        # mo_user_id=data["mo_user_id"],
         mo_start=dt.datetime.fromisoformat(data["mo_start"]),
         mo_finish=current_time,
     )

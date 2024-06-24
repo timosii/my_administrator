@@ -1,8 +1,8 @@
 """initial migration
 
-Revision ID: 20716cd8712b
-Revises: b51c0eb2531d
-Create Date: 2024-06-18 19:16:46.694641
+Revision ID: 4cc96cf91f97
+Revises: 20716cd8712b
+Create Date: 2024-06-24 21:45:48.367875
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '20716cd8712b'
+revision: str = '4cc96cf91f97'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -125,13 +125,11 @@ def upgrade() -> None:
     sa.Column('mfc_user_id', sa.BigInteger(), nullable=False),
     sa.Column('mfc_start', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
     sa.Column('mfc_finish', sa.DateTime(), nullable=True),
-    sa.Column('mo_user_id', sa.BigInteger(), nullable=True),
     sa.Column('mo_start', sa.DateTime(), nullable=True),
     sa.Column('mo_finish', sa.DateTime(), nullable=True),
     sa.Column('is_task', sa.Boolean(), nullable=False),
     sa.ForeignKeyConstraint(['fil_'], ['dicts.filials.fil_'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['mfc_user_id'], ['data.user.user_id'], onupdate='CASCADE', ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['mo_user_id'], ['data.user.user_id'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('check_id'),
     schema='data'
     )
@@ -141,6 +139,7 @@ def upgrade() -> None:
     sa.Column('violation_dict_id', sa.Integer(), nullable=False),
     sa.Column('photo_id_mfc', sa.String(length=255), nullable=True),
     sa.Column('comm_mfc', sa.String(), nullable=True),
+    sa.Column('mo_user_id', sa.BigInteger(), nullable=True),
     sa.Column('photo_id_mo', sa.String(length=255), nullable=True),
     sa.Column('comm_mo', sa.String(), nullable=True),
     sa.Column('violation_detected', sa.DateTime(), server_default=sa.text("TIMEZONE('utc', now())"), nullable=False),
@@ -148,6 +147,7 @@ def upgrade() -> None:
     sa.Column('is_pending', sa.Boolean(), nullable=False),
     sa.Column('violation_pending', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['check_id'], ['data.check.check_id'], onupdate='CASCADE', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['mo_user_id'], ['data.user.user_id'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['violation_dict_id'], ['dicts.violations.violation_dict_id'], onupdate='CASCADE', ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('violation_found_id'),
     schema='data'

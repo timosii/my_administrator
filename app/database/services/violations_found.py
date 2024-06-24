@@ -268,6 +268,7 @@ class ViolationFoundService:
         callback: Optional[CallbackQuery]=None,
     ):
         fil_=data['fil_']
+        mo_user_id = data['mo_user_id']
         violations_found_active = await self.get_active_violations_by_fil(fil_=fil_)
         if not violations_found_active:
             if callback:
@@ -284,7 +285,7 @@ class ViolationFoundService:
                 time.sleep(1)
         else:
             for violation_found in violations_found_active:
-                violation_out = await self.form_violation_out(violation=violation_found)
+                violation_out = await self.form_violation_out(mo_user_id=mo_user_id, violation=violation_found)
                 await state.update_data(
                     {f"vio_{violation_out.violation_found_id}": violation_out.model_dump(mode='json')}
                 )
@@ -297,6 +298,7 @@ class ViolationFoundService:
         data: dict,
     ):
         check_id = data['check_id']
+        mo_user_id = data['mo_user_id']
         violations_found_check = await self.get_violations_found_by_check(check_id=check_id)
         if not violations_found_check:
             await callback.message.answer_sticker(
@@ -306,7 +308,7 @@ class ViolationFoundService:
             time.sleep(1)
         else:
             for violation_found in violations_found_check:
-                violation_out = await self.form_violation_out(violation=violation_found)
+                violation_out = await self.form_violation_out(mo_user_id=mo_user_id,violation=violation_found)
                 await state.update_data(
                     {f"vio_{violation_out.violation_found_id}": violation_out.model_dump(mode='json')}
                 )
@@ -317,6 +319,7 @@ class ViolationFoundService:
         state: FSMContext,
         data: dict,
     ) -> None:
+        mo_user_id = data['mo_user_id']
         violations_found_pending = await self.get_pending_violations_by_fil(fil_=data['fil_'])
         if not violations_found_pending:
             await message.answer_sticker(
@@ -329,7 +332,7 @@ class ViolationFoundService:
                 )
         else:
             for violation_found in violations_found_pending:
-                violation_out = await self.form_violation_out(violation=violation_found)
+                violation_out = await self.form_violation_out(mo_user_id=mo_user_id, violation=violation_found)
                 await state.update_data(
                     {f"vio_{violation_out.violation_found_id}": violation_out.model_dump(mode='json')}
                 )
@@ -337,6 +340,7 @@ class ViolationFoundService:
     async def form_violation_out(
         self,
         violation: ViolationFoundInDB,
+        mo_user_id: int,
         check_obj: CheckService = CheckService(),
         help_obj: HelpService=HelpService()
     ) -> ViolationFoundOut:
@@ -346,6 +350,7 @@ class ViolationFoundService:
         vio_found = ViolationFoundOut(
             mo=mo,
             fil_=check.fil_,
+            mo_user_id=mo_user_id,
             is_task=check.is_task,
             check_id=violation.check_id,
             violation_found_id=violation.violation_found_id,

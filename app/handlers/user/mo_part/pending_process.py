@@ -40,6 +40,12 @@ async def move_to_pending(callback: CallbackQuery,
     await state.update_data(
         pending_vio = violation_found_id
     )
+    data = await state.get_data()
+    current_time = dt.datetime.now(dt.timezone.utc)
+    await state.update_data(
+        mo_user_id=callback.from_user.id,
+        mo_start=current_time.isoformat() if not data.get('mo_start') else data["mo_start"]
+    )
     await callback.answer(
         text=MoPerformerMessages.move_to_pending_alert, show_alert=True)
     await callback.message.answer(
@@ -64,13 +70,13 @@ async def add_comm_pending(
     comm_mo = message.text
     
     data = await state.get_data()
+    mo_user_id = data['mo_user_id']
     violation_found_id = data['pending_vio']
     violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
 
     if violation_found_out.is_task:
         current_time = dt.datetime.now(dt.timezone.utc)
         check_upd = CheckUpdate(
-            mo_user_id=data["mo_user_id"],
             mo_start=current_time,
             mo_finish=current_time,
         )
@@ -93,12 +99,12 @@ async def add_comm_pending(
         {f"vio_{violation_found_id}": violation_found_out_after_pending.model_dump(mode='json')}
     )
 
-    logger.debug(violation_found_out_after_pending)
     data = await state.get_data()
     await violation_found_obj.update_violation(
         violation_found_id=violation_found_id,
         violation_update=ViolationFoundUpdate(
             is_pending=True,
+            mo_user_id=mo_user_id,
             comm_mo=f'При переносе:\n{comm_mo}',
             violation_pending=dt.datetime.now(dt.timezone.utc)
         )

@@ -104,14 +104,9 @@ class UserService:
     async def save_default_user_info(
             self,
             state: FSMContext,
-            message: Message=None,
-            callback: CallbackQuery=None
+            event: Message | CallbackQuery
     ):
-        if callback:
-            user = callback.from_user
-        else:
-            user = message.from_user
-
+        user = event.from_user
         mo = await self.get_user_mo(user_id=user.id)
         fil_ = await self.get_user_fil(user_id=user.id)
         await state.update_data(mo_user_id=user.id,
