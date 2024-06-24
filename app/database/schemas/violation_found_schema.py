@@ -118,7 +118,7 @@ class ViolationFoundOut(ViolationFoundBase):
         return result
 
     def violation_card_pending(self) -> str:
-        comm_mo_format = self.comm_mo.split('\n')[-1]
+        comm_mo_format = self.comm_mo.split('\n')[-1] if self.comm_mo else None
         result = f"""
 <b>Зона:</b>
 {self.zone}
