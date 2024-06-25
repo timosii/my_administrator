@@ -106,6 +106,20 @@ class ViolationFoundService:
         if not result:
             return None
         return result
+    
+    async def user_empty_violations_found_process(
+            self, user_id: int
+    ) -> Optional[List[ViolationFoundInDB]]:
+        result = await self.db_repository.get_user_empty_violations(
+            user_id=user_id
+        )
+        if not result:
+            return None
+        else:
+            for violation in result:
+                await self.delete_violation(violation_id=violation.violation_found_id)
+        return
+        
 
     async def get_active_violations_by_fil(
         self, fil_: str
@@ -340,7 +354,7 @@ class ViolationFoundService:
     async def form_violation_out(
         self,
         violation: ViolationFoundInDB,
-        mo_user_id: int,
+        mo_user_id: Optional[int]=None,
         check_obj: CheckService = CheckService(),
         help_obj: HelpService=HelpService()
     ) -> ViolationFoundOut:

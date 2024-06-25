@@ -260,11 +260,6 @@ async def get_check_violations(
         }
     )
     data= await state.get_data()
-    current_time = dt.datetime.now(dt.timezone.utc)
-    # await state.update_data(
-    #     mo_start=current_time.isoformat()
-    #     )
-
     await violation_obj.update_data_violations_found_in_check(
         callback=callback,
         state=state,

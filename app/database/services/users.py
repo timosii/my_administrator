@@ -100,7 +100,7 @@ class UserService:
     async def is_mo_controler(self, user_id: int) -> bool:
         result = await self.db_repository.is_mo_controler(user_id=user_id)
         return result
-    
+        
     async def save_default_user_info(
             self,
             state: FSMContext,

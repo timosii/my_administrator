@@ -12,6 +12,7 @@ from app.handlers.states import MfcStates
 from app.filters.mfc_filters import MfcFilter
 from app.filters.default import not_constants, is_digit
 from app.filters.form_menu import IsInFilials, IsInViolations, IsInZones, IsInMos
+from app.database.services.users import UserService
 from app.database.services.check import CheckService
 from app.database.services.violations_found import ViolationFoundService
 from app.database.services.helpers import HelpService
@@ -30,12 +31,15 @@ router.message.filter(MfcFilter())
 
 @router.message(Command('start'))
 async def cmd_start(
-    message: Message, state: FSMContext
+    message: Message,
+    state: FSMContext,
+    violation_found_obj: ViolationFoundService=ViolationFoundService()
 ):
     user = message.from_user
     logger.info("User {0} {1} passed authorization".format(user.id, user.username))
     await state.clear()
     await state.update_data(mfc_user_id=user.id)
+    await violation_found_obj.user_empty_violations_found_process(user_id=user.id)
     await message.answer(
         text=await MfcMessages.welcome_message(user_id=user.id),
         reply_markup=ReplyKeyboardRemove()

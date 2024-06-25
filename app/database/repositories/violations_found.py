@@ -1,7 +1,7 @@
 from aiocache.serializers import PickleSerializer
 from pydantic import BaseModel
 from typing import Optional, List, Union
-from sqlalchemy import select, update, delete, func, and_, text
+from sqlalchemy import select, update, delete, func, and_, text, or_
 from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.database import session_maker
@@ -132,7 +132,7 @@ class ViolationFoundRepo:
             checks = await session.execute(
                 select(Check).filter_by(fil_=fil_)
             )
-            check_ids = [check.id for check in checks.scalars().all()]
+            check_ids = [check.check_id for check in checks.scalars().all()]
             if not check_ids:
                 return None
             
@@ -144,6 +144,28 @@ class ViolationFoundRepo:
             return [
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
+        
+    async def get_user_empty_violations(self, user_id: int) -> Optional[List[ViolationFoundInDB]]:
+        async with self.session_maker() as session:
+            checks = await session.execute(
+                select(Check).filter_by(mfc_user_id=user_id)
+            )
+            check_ids = [check.check_id for check in checks.scalars().all()]
+            if not check_ids:
+                return None
+            
+            result = await session.execute(
+                select(ViolationFound).where(
+                    ViolationFound.check_id.in_(check_ids),
+                    ViolationFound.comm_mfc.is_(None),
+                    ViolationFound.photo_id_mfc.is_(None)
+                    )
+            )
+            violations = result.scalars().all()
+            logger.info('get empty violations found by user')
+            return [
+                ViolationFoundInDB.model_validate(violation) for violation in violations
+            ] if violations else None
         
     async def get_active_violations_by_fil(
             self, fil_: str
