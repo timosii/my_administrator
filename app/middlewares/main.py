@@ -35,25 +35,22 @@ class ErrorProcessMiddleware(BaseMiddleware):
             await self.send_message_dev(text='TelegramBadRequest ERROR!')
             await self.error_process(user=user, e=e)
             await self.handle_error(update=event, error_message=ErrorMessages.too_long_message)
-            raise e
 
         except TelegramNetworkError as e:
             await self.send_message_dev(text='TelegramNetworkError ERROR!')
             await self.error_process(user=user, e=e)
             await self.handle_error(update=event, error_message=ErrorMessages.network_error)
-            raise e
         
         except TelegramServerError as e:
             await self.send_message_dev(text='TelegramServerError ERROR!')
             await self.error_process(user=user, e=e)
             await self.handle_error(update=event, error_message=ErrorMessages.server_error)
-            raise e        
-        
+ 
         except TelegramAPIError as e:
             await self.send_message_dev(text='Another TelegramAPIError ERROR!')
             await self.error_process(user=user, e=e)
-            await self.handle_error(update=event, error_message=ErrorMessages.server_error)
-            raise e      
+            await self.handle_error(update=event, error_message=ErrorMessages.tg_error)
+
 
         except AttributeError as e:
             await self.send_message_dev(text='Attribute ERROR!')
@@ -62,12 +59,12 @@ class ErrorProcessMiddleware(BaseMiddleware):
                 await self.handle_error(update=event, error_message=ErrorMessages.attribute_error_process)
             else:                
                 await self.send_message_dev(text='Неизвестная ошибка AttributeError, обрати внимание')
-            raise e 
+                raise e 
 
         except Exception as e:
             await self.send_message_dev(text='Another ERROR!')
             await self.error_process(user=user, e=e)
-            await self.send_message_dev(text='Необрабатываемая ошибка, обрати внимание')
+            await self.send_message_dev(text='!!Необрабатываемая ошибка!!')
             raise e
 
     async def error_process(self, user: User, e: Exception):
@@ -91,7 +88,6 @@ class ErrorProcessMiddleware(BaseMiddleware):
     async def send_message_dev(self, text: str):
         await self.bot.send_message(self.dev_id, text=text)
 
-        
     async def handle_error(self,
                            update,
                            error_message: str):
