@@ -315,7 +315,7 @@ async def get_violations_next_prev(
     ~StateFilter(MoPerformerStates.mo_performer),
 )
 async def wrong_state(callback: CallbackQuery):
-    await callback.answer(text="Вернитесь в режим выбора нарушений")
+    await callback.answer(text=DefaultMessages.not_good_time)
 
 
 @router.callback_query(

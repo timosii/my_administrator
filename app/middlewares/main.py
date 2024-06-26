@@ -20,7 +20,7 @@ class ErrorProcessMiddleware(BaseMiddleware):
         self.bot = bot
         self.dev_id = settings.DEV_ID
         self.log_file = os.path.join(("logs/debug.log"))
-        self.prev_lines_count = 30
+        self.prev_lines_count = 10
 
     async def __call__(
         self,
@@ -34,29 +34,40 @@ class ErrorProcessMiddleware(BaseMiddleware):
         except TelegramBadRequest as e:
             await self.send_message_dev(text='TelegramBadRequest ERROR!')
             await self.error_process(user=user, e=e)
-            await self.handle_error(event=event, error_message=ErrorMessages.too_long_message)
+            await self.handle_error(update=event, error_message=ErrorMessages.too_long_message)
             raise e
 
         except TelegramNetworkError as e:
             await self.send_message_dev(text='TelegramNetworkError ERROR!')
             await self.error_process(user=user, e=e)
-            await self.handle_error(event=event, error_message=ErrorMessages.network_error)
+            await self.handle_error(update=event, error_message=ErrorMessages.network_error)
             raise e
         
         except TelegramServerError as e:
             await self.send_message_dev(text='TelegramServerError ERROR!')
             await self.error_process(user=user, e=e)
-            await self.handle_error(event=event, error_message=ErrorMessages.server_error)
+            await self.handle_error(update=event, error_message=ErrorMessages.server_error)
             raise e        
         
         except TelegramAPIError as e:
             await self.send_message_dev(text='Another TelegramAPIError ERROR!')
             await self.error_process(user=user, e=e)
-            raise e       
+            await self.handle_error(update=event, error_message=ErrorMessages.server_error)
+            raise e      
+
+        except AttributeError as e:
+            await self.send_message_dev(text='Attribute ERROR!')
+            await self.error_process(user=user, e=e)
+            if "'NoneType' object has no attribute" in str(e):
+                await self.handle_error(update=event, error_message=ErrorMessages.attribute_error_process)
+            else:                
+                await self.send_message_dev(text='Неизвестная ошибка AttributeError, обрати внимание')
+            raise e 
 
         except Exception as e:
             await self.send_message_dev(text='Another ERROR!')
             await self.error_process(user=user, e=e)
+            await self.send_message_dev(text='Необрабатываемая ошибка, обрати внимание')
             raise e
 
     async def error_process(self, user: User, e: Exception):
@@ -82,13 +93,16 @@ class ErrorProcessMiddleware(BaseMiddleware):
 
         
     async def handle_error(self,
-                           event,
+                           update,
                            error_message: str):
-        if isinstance(event, Message):
-            await event.answer(error_message)
-        elif isinstance(event, CallbackQuery):
-            await event.message.answer(error_message)
-
+        if isinstance(update.event, Message):
+            await update.event.answer(error_message)
+        elif isinstance(update.event, CallbackQuery):
+            await update.event.answer(error_message, show_alert=True)
+        else:
+            await self.send_message_dev(text=f'Получил ошибку и необрабатываемый тип апдейта: {type(update.event)}')
+            return
+     
 
 class FSMMiddleware(BaseMiddleware):
     async def __call__(
