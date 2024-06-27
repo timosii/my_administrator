@@ -678,8 +678,7 @@ async def correct_vio_process_finish(
         return
     current_time = dt.datetime.now(dt.timezone.utc)
     check_upd = CheckUpdate(
-        # mo_user_id=data["mo_user_id"],
-        mo_start=dt.datetime.fromisoformat(data["mo_start"]),
+        mo_start=current_time if not data.get('mo_start') else dt.datetime.fromisoformat(data["mo_start"]),
         mo_finish=current_time,
     )
     await check_obj.update_check(check_id=check_id, check_update=check_upd)
