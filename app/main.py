@@ -83,8 +83,22 @@ def start_bot() -> None:
     web.run_app(app, host=WEBAPP_HOST, port=WEBAPP_PORT)
 
 
+# @logger.catch
+# async def start_local() -> None:
+#     bot, dp = all_register()
+#     await bot.delete_webhook(drop_pending_updates=True)
+#     await dp.start_polling(bot)
+
 @logger.catch
-async def start_local() -> None:
+def start_local() -> None:
     bot, dp = all_register()
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    app = web.Application()
+    webhook_requests_handler = SimpleRequestHandler(
+        dispatcher=dp,
+        bot=bot,
+    )
+    webhook_requests_handler.register(app, path=WEBHOOK_PATH)
+    setup_application(app, dp, bot=bot)
+    web.run_app(app, host=WEBAPP_HOST, port=WEBAPP_PORT)
+    # await bot.delete_webhook(drop_pending_updates=True)
+    # await dp.start_polling(bot)

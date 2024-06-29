@@ -1,5 +1,4 @@
 #!/usr/bin/python
-import asyncio
 import os
 
 from loguru import logger
@@ -19,10 +18,17 @@ def set_logger_config():
     )
 
 
+# def main():
+#     set_logger_config()
+#     if settings.IS_TEST:
+#         asyncio.run(start_local())
+#     else:
+#         start_bot()
+
 def main():
     set_logger_config()
     if settings.IS_TEST:
-        asyncio.run(start_local())
+        start_local()
     else:
         start_bot()
 
