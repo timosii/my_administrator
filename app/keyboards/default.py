@@ -1,11 +1,10 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 
 class DefaultKeyboards:
     def __init__(self) -> None:
         self.kb = ReplyKeyboardBuilder()
-
 
     def feedback_kb(self) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -14,7 +13,7 @@ class DefaultKeyboards:
             ]
         ])
         return self.kb
-    
+
 
 class DevKeyboards:
     def __init__(self) -> None:
@@ -33,4 +32,3 @@ class DevKeyboards:
             ],
         ])
         return self.kb
-    

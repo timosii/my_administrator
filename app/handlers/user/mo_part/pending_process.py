@@ -1,32 +1,30 @@
-import time
 import datetime as dt
-from loguru import logger
-from aiogram import Router, F
-from aiogram.filters import Command
-from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery, InputMediaPhoto
+import time
+
+from aiogram import F, Router
+from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import Command, CommandStart, StateFilter
-from app.filters.default import not_constants
-from aiogram.fsm.state import default_state, State, StatesGroup
-from app.keyboards.mo_part import MoPerformerKeyboards
-from app.keyboards.default import DefaultKeyboards
-from app.handlers.messages import MoPerformerMessages, DefaultMessages
-from app.handlers.states import MoPerformerStates
-from app.filters.mo_filters import MoPerformerFilter
-from app.database.services.check import CheckService
-from app.database.services.violations_found import ViolationFoundService
-from app.database.services.users import UserService
-from app.database.schemas.check_schema import CheckOut, CheckUpdate
+from aiogram.types import CallbackQuery, Message
+from loguru import logger
+
+from app.database.schemas.check_schema import CheckUpdate
 from app.database.schemas.violation_found_schema import (
+    ViolationFoundClearData,
     ViolationFoundOut,
     ViolationFoundUpdate,
-    ViolationFoundClearData,
 )
+from app.database.services.check import CheckService
+from app.database.services.violations_found import ViolationFoundService
+from app.filters.default import not_constants
+from app.filters.mo_filters import MoPerformerFilter
+from app.handlers.messages import MoPerformerMessages
+from app.handlers.states import MoPerformerStates
 from app.handlers.user.mo_part.performer_card_constructor import MoPerformerCard
-
+from app.keyboards.mo_part import MoPerformerKeyboards
 
 router = Router()
 router.message.filter(MoPerformerFilter())
+
 
 @router.callback_query(
     F.data.startswith('pending_'),
@@ -36,15 +34,15 @@ async def move_to_pending(callback: CallbackQuery,
                           state: FSMContext,
                           ):
 
-    violation_found_id = int(callback.data.split("_")[1])
+    violation_found_id = int(callback.data.split('_')[1])
     await state.update_data(
-        pending_vio = violation_found_id
+        pending_vio=violation_found_id
     )
     data = await state.get_data()
     current_time = dt.datetime.now(dt.timezone.utc)
     await state.update_data(
         mo_user_id=callback.from_user.id,
-        mo_start=current_time.isoformat() if not data.get('mo_start') else data["mo_start"]
+        mo_start=current_time.isoformat() if not data.get('mo_start') else data['mo_start']
     )
     await callback.answer(
         text=MoPerformerMessages.move_to_pending_alert, show_alert=True)
@@ -61,14 +59,14 @@ async def move_to_pending(callback: CallbackQuery,
     not_constants,
     StateFilter(MoPerformerStates.pending_process)
 )
-async def add_comm_pending(
-    message: Message,
-    state: FSMContext,
-    violation_found_obj: ViolationFoundService=ViolationFoundService(),
-    check_obj:CheckService=CheckService()):
-    
+async def add_comm_pending_text(
+        message: Message,
+        state: FSMContext,
+        violation_found_obj: ViolationFoundService = ViolationFoundService(),
+        check_obj: CheckService = CheckService()):
+
     comm_mo = message.text
-    
+
     data = await state.get_data()
     mo_user_id = data['mo_user_id']
     violation_found_id = data['pending_vio']
@@ -80,7 +78,7 @@ async def add_comm_pending(
             mo_start=current_time,
             mo_finish=current_time,
         )
-        check_id = data[f"vio_{violation_found_id}"]['check_id']
+        check_id = data[f'vio_{violation_found_id}']['check_id']
         await check_obj.update_check(check_id=check_id, check_update=check_upd)
         await state.update_data(mo_start=None)
 
@@ -91,12 +89,15 @@ async def add_comm_pending(
     order_before_pending = MoPerformerCard(
         data=data
     ).get_index_violation_found(violation_found_out=violation_found_out)
+    logger.debug(f'order before pending is: {order_before_pending}')
+    if order_before_pending is None:
+        return
 
     violation_found_out_after_pending = violation_found_out.model_copy()
     violation_found_out_after_pending.is_pending = True
     violation_found_out_after_pending.comm_mo = comm_mo
     await state.update_data(
-        {f"vio_{violation_found_id}": violation_found_out_after_pending.model_dump(mode='json')}
+        {f'vio_{violation_found_id}': violation_found_out_after_pending.model_dump(mode='json')}
     )
 
     data = await state.get_data()
@@ -131,11 +132,11 @@ async def add_comm_pending(
         await message.answer(
             text=MoPerformerMessages.no_violations_after_pending,
             reply_markup=MoPerformerKeyboards().check_or_tasks()
-    )
+        )
     else:
         await message.answer_photo(
-        **reply_obj.model_dump(mode='json')
-    )
+            **reply_obj.model_dump(mode='json')
+        )
     await state.set_state(MoPerformerStates.mo_performer)
 
 
@@ -143,7 +144,7 @@ async def add_comm_pending(
     F.text.lower() == 'отменить',
     StateFilter(MoPerformerStates.pending_process)
 )
-async def add_comm_pending(
+async def add_comm_pending_cancel(
     message: Message,
     state: FSMContext,
 ):
@@ -158,7 +159,7 @@ async def add_comm_pending(
     if not reply_obj:
         await message.answer(text=MoPerformerMessages.no_violations_after_pending)
         return
-    
+
     await message.answer(
         text=MoPerformerMessages.continue_check,
         reply_markup=MoPerformerKeyboards().check_or_tasks()
@@ -176,19 +177,19 @@ async def add_comm_pending(
         )
 
     await state.update_data(
-            **ViolationFoundClearData().model_dump(mode='json')
-        )
+        **ViolationFoundClearData().model_dump(mode='json')
+    )
     await state.update_data(
         pending_vio=None
     )
-    
+
     await state.set_state(MoPerformerStates.mo_performer)
 
 
 @router.message(
-        ~F.text,
-        StateFilter(MoPerformerStates.pending_process)
-        )
+    ~F.text,
+    StateFilter(MoPerformerStates.pending_process)
+)
 async def wrong_add_content(
     message: Message,
 ):

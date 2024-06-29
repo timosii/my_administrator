@@ -1,33 +1,30 @@
-import time
-from aiogram import Router, F, Bot
-from aiogram.filters import Command, or_f
-from aiogram.types import Message, ReplyKeyboardRemove, CallbackQuery
+from aiogram import Bot, F, Router
+from aiogram.filters import Command, StateFilter, or_f
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import Command, CommandStart, StateFilter
-from aiogram.fsm.state import default_state, State, StatesGroup
-from app.keyboards.default import DefaultKeyboards
-# from app.keyboards.mfc_inline import MfcKeyboards
-from app.handlers.messages import DefaultMessages
-from app.handlers.states import MfcStates, Feedback
-from app.filters.mfc_filters import MfcFilter, MfcLeaderFilter
-from app.filters.mo_filters import MoControlerFilter, MoPerformerFilter
+from aiogram.types import CallbackQuery, Message
+
+from app.config import settings
 from app.filters.admin import AdminFilter
 from app.filters.default import not_constants
-from loguru import logger
-from app.config import settings
+from app.filters.mfc_filters import MfcFilter, MfcLeaderFilter
+from app.filters.mo_filters import MoControlerFilter, MoPerformerFilter
+from app.handlers.messages import DefaultMessages
+from app.handlers.states import Feedback
+from app.keyboards.default import DefaultKeyboards
 
 router = Router()
 router.message.filter(
     or_f(
-    MoPerformerFilter(),
-    MoControlerFilter(),
-    MfcFilter(),
-    MfcLeaderFilter(),
-    AdminFilter()
+        MoPerformerFilter(),
+        MoControlerFilter(),
+        MfcFilter(),
+        MfcLeaderFilter(),
+        AdminFilter()
     )
 )
 
-@router.message(Command("feedback"))
+
+@router.message(Command('feedback'))
 async def get_feedback(message: Message, state: FSMContext):
     current_state = await state.get_state()
     await message.answer(
@@ -40,16 +37,17 @@ async def get_feedback(message: Message, state: FSMContext):
     await state.set_state(Feedback.feedback)
 
 
-@router.message(Command("changelog"))
+@router.message(Command('changelog'))
 async def changelog(message: Message, state: FSMContext):
     await message.answer(
         text=DefaultMessages.send_changelog,
     )
 
+
 @router.message(F.text,
                 not_constants,
                 StateFilter(Feedback.feedback))
-async def take_feedback(message: Message, state: FSMContext, bot: Bot):
+async def take_feedback_text(message: Message, bot: Bot):
     res = message.text
     await bot.send_message(
         chat_id=settings.DEV_ID,
@@ -60,9 +58,10 @@ async def take_feedback(message: Message, state: FSMContext, bot: Bot):
         reply_markup=DefaultKeyboards().feedback_kb()
     )
 
+
 @router.message(F.photo,
                 StateFilter(Feedback.feedback))
-async def take_feedback(message: Message, state: FSMContext, bot: Bot):
+async def take_feedback_photo(message: Message, bot: Bot):
     photo_id = message.photo[-1].file_id
     caption_ = message.caption
     await bot.send_photo(
@@ -75,6 +74,7 @@ async def take_feedback(message: Message, state: FSMContext, bot: Bot):
         text=DefaultMessages.feedback_answer,
         reply_markup=DefaultKeyboards().feedback_kb()
     )
+
 
 @router.callback_query(
     F.data == 'finish_feedback_',
@@ -92,14 +92,13 @@ async def cancel_feedback(
     if state_back != Feedback.feedback:
         await state.set_state(state_back)
     else:
-        await state.clear()        
+        await state.clear()
     await callback.answer()
 
 
 @router.message(~F.text & ~F.photo,
                 StateFilter(Feedback.feedback))
-async def take_feedback(message: Message,
-                        state: FSMContext):
+async def take_feedback_wrong(message: Message):
     await message.answer(
         text=DefaultMessages.not_good_time,
     )

@@ -1,15 +1,19 @@
-from pydantic import BaseModel
-from typing import Optional
 import datetime as dt
+
+from pydantic import BaseModel
+
 from app.utils.utils import format_timedelta, to_moscow_time
+
 
 class CheckBase(BaseModel):
     fil_: str
     mfc_user_id: int
     is_task: bool
 
+
 class CheckCreate(CheckBase):
     pass
+
 
 class CheckTestCreate(CheckCreate):
     mfc_finish: dt.datetime
@@ -17,19 +21,21 @@ class CheckTestCreate(CheckCreate):
 
 class CheckUpdate(BaseModel):
     # mo_user_id: Optional[int] = None
-    mfc_finish: Optional[dt.datetime] = None
-    mo_start: Optional[dt.datetime] = None
-    mo_finish: Optional[dt.datetime] = None
+    mfc_finish: dt.datetime | None = None
+    mo_start: dt.datetime | None = None
+    mo_finish: dt.datetime | None = None
+
 
 class CheckInDB(CheckBase):
     check_id: int
     mfc_start: dt.datetime
-    mfc_finish: Optional[dt.datetime] = None
-    mo_start: Optional[dt.datetime] = None
-    mo_finish: Optional[dt.datetime] = None
-    
+    mfc_finish: dt.datetime | None = None
+    mo_start: dt.datetime | None = None
+    mo_finish: dt.datetime | None = None
+
     class Config:
         from_attributes = True
+
 
 class CheckOut(BaseModel):
     check_id: int
@@ -55,6 +61,7 @@ class CheckOut(BaseModel):
     class Config:
         from_attributes = True
 
+
 class CheckOutUnfinished(BaseModel):
     fil_: str
     mfc_start: dt.datetime
@@ -73,5 +80,3 @@ class CheckOutUnfinished(BaseModel):
 
     class Config:
         from_attributes = True
-
-

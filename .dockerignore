@@ -3,3 +3,4 @@
 logs
 logs/*
 tmp.xlsx
+.mypy_cache

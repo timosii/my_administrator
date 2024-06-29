@@ -21,4 +21,3 @@ insert-dicts:
 
 insert-users:
 	docker exec my_administrator-app-1 python app/database/db_helpers/insert_users.py
-

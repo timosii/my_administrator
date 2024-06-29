@@ -1,18 +1,9 @@
 import asyncio
-import datetime as dt
-from app.database.database import engine, session_maker, Base
-from app.database.models.data import (
-    User,
-    Check,
-    ViolationFound
-)
-from app.database.services.users import UserService
-from app.database.services.check import CheckService
-from app.database.services.violations_found import ViolationFoundService
-from app.database.schemas.user_schema import UserCreate, UserUpdate
-from app.database.schemas.check_schema import CheckCreate
-from app.database.schemas.violation_found_schema import ViolationFoundCreate
+
 from loguru import logger
+
+from app.database.schemas.user_schema import UserCreate, UserUpdate
+from app.database.services.users import UserService
 
 
 async def insert_data_user(user: UserService = UserService()):
@@ -304,7 +295,7 @@ async def insert_data_user(user: UserService = UserService()):
     for u in user_tests:
         existing_user = await user.user_exists(u.user_id)
         if not existing_user:
-            await user.add_user(u)    
+            await user.add_user(u)
         else:
             current_user = await user.get_user_by_id(u.user_id)
             fields_changed = any(
@@ -318,9 +309,9 @@ async def insert_data_user(user: UserService = UserService()):
                 logger.info(f'User with id {u.user_id} updated in db')
             else:
                 logger.info(f'User with id {u.user_id} already exists in db and no fields have changed')
-    
+
     logger.info('users process finished')
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     asyncio.get_event_loop().run_until_complete(insert_data_user())

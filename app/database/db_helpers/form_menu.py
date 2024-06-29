@@ -1,21 +1,13 @@
-import datetime as dt
-import asyncio
-from sqlalchemy import func, select, update
-from app.database.database import engine, session_maker, Base
-from app.database.models.dicts import (
-    Zones,
-    Violations,
-    Filials,
-    Mos
-)
+from aiocache import Cache, cached
 from loguru import logger
-from aiocache import cached, Cache
-import redis.asyncio as redis
-from app.config import settings
-import redis.asyncio as redis
+from sqlalchemy import select
 
-CACHE_EXPIRE_SHORT=settings.CACHE_SHORT
-CACHE_EXPIRE_LONG=settings.CACHE_LONG
+from app.config import settings
+from app.database.database import session_maker
+from app.database.models.dicts import Filials, Mos, Violations, Zones
+
+CACHE_EXPIRE_SHORT = settings.CACHE_SHORT
+CACHE_EXPIRE_LONG = settings.CACHE_LONG
 
 
 @cached(ttl=CACHE_EXPIRE_LONG, cache=Cache.REDIS, namespace='dicts_info', endpoint=settings.REDIS_HOST)
@@ -27,6 +19,7 @@ async def get_all_zones():
         logger.info('get all zones')
         return list(zones)
 
+
 @cached(ttl=CACHE_EXPIRE_LONG, cache=Cache.REDIS, namespace='dicts_info', endpoint=settings.REDIS_HOST)
 async def get_zone_violations(zone: str):
     async with session_maker() as session:
@@ -36,6 +29,7 @@ async def get_zone_violations(zone: str):
         logger.info('get zone violations')
         return list(violations)
 
+
 @cached(ttl=CACHE_EXPIRE_LONG, cache=Cache.REDIS, namespace='dicts_info', endpoint=settings.REDIS_HOST)
 async def get_all_violations() -> list[str]:
     async with session_maker() as session:
@@ -43,7 +37,8 @@ async def get_all_violations() -> list[str]:
         result = await session.execute(query)
         violations = result.scalars().all()
         logger.info('get all violations')
-        return violations
+        return list(violations)
+
 
 @cached(ttl=CACHE_EXPIRE_LONG, cache=Cache.REDIS, namespace='dicts_info', endpoint=settings.REDIS_HOST)
 async def get_all_filials():
@@ -53,7 +48,8 @@ async def get_all_filials():
         filials = result.scalars().all()
         logger.info('get all filials')
         return filials
-    
+
+
 @cached(ttl=CACHE_EXPIRE_LONG, cache=Cache.REDIS, namespace='dicts_info', endpoint=settings.REDIS_HOST)
 async def get_all_mos():
     async with session_maker() as session:
@@ -62,6 +58,7 @@ async def get_all_mos():
         mos = result.scalars().all()
         logger.info('get all mos')
         return mos
+
 
 @cached(ttl=CACHE_EXPIRE_LONG, cache=Cache.REDIS, namespace='dicts_info', endpoint=settings.REDIS_HOST)
 async def get_fils_by_mo(mo: str):

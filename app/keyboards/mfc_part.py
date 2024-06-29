@@ -1,8 +1,18 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+)
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
-from app.database.db_helpers.form_menu import get_zone_violations, get_fils_by_mo, get_all_zones
-from typing import Optional
+
+from app.database.db_helpers.form_menu import (
+    get_all_zones,
+    get_fils_by_mo,
+    get_zone_violations,
+)
 from app.view.menu_beautify import ICONS_MAPPING
+
 
 class DefaultKeyboards:
     def __init__(self) -> None:
@@ -28,7 +38,7 @@ class MfcKeyboards:
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
-    
+
     async def choose_mo(self, mos: list[str]) -> ReplyKeyboardMarkup:
         buttons = [KeyboardButton(text=mo) for mo in mos]
         self.kb.add(*buttons)
@@ -44,9 +54,10 @@ class MfcKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    async def choose_violation(self, zone: str, completed_violations: Optional[list]=None) -> ReplyKeyboardMarkup:
+    async def choose_violation(self, zone: str, completed_violations: list) -> ReplyKeyboardMarkup:
         violations = await get_zone_violations(zone=zone)
-        buttons = [KeyboardButton(text=f'✅ {violation}' if violation in completed_violations else f'{violation}') for violation in violations]
+        buttons = [KeyboardButton(
+            text=f'✅ {violation}' if violation in completed_violations else f'{violation}') for violation in violations]
         self.kb.button(text='⬅️ К выбору зоны')
         self.kb.add(*buttons)
         self.kb.adjust(1)
@@ -63,7 +74,7 @@ class MfcKeyboards:
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
-    
+
     def just_cancel(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Отменить')
         self.kb.adjust(1)
@@ -76,7 +87,7 @@ class MfcKeyboards:
             ]
         ])
         return self.kb
-    
+
     def take_task_to_work(self, violation_id: int, is_task: int) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
             [
@@ -84,7 +95,7 @@ class MfcKeyboards:
             ]
         ])
         return self.kb
-    
+
     def get_description(self, violation_id: int) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
             [
@@ -92,7 +103,7 @@ class MfcKeyboards:
             ]
         ])
         return self.kb
-    
+
     def unfinished_check(self, check_id) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
             [
@@ -103,7 +114,7 @@ class MfcKeyboards:
             ],
         ])
         return self.kb
-    
+
     def comm_added(self) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
             [
@@ -111,7 +122,7 @@ class MfcKeyboards:
             ]
         ])
         return self.kb
-    
+
     def save_or_cancel(self) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
             [
@@ -119,23 +130,23 @@ class MfcKeyboards:
             ]
         ])
         return self.kb
-    
+
     @staticmethod
     def get_violation_pending_menu(
         violation_id: int,
         prev_violation_id: int,
         next_violation_id: int
-        ) -> InlineKeyboardMarkup:
+    ) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text="⬅️", callback_data=f"prev_{prev_violation_id}"),
-                InlineKeyboardButton(text="➡️", callback_data=f"next_{next_violation_id}")
+                InlineKeyboardButton(text='⬅️', callback_data=f'prev_{prev_violation_id}'),
+                InlineKeyboardButton(text='➡️', callback_data=f'next_{next_violation_id}')
             ],
             [
-                InlineKeyboardButton(text="Добавить новое нарушение", callback_data=f"new_"),
+                InlineKeyboardButton(text='Добавить новое нарушение', callback_data='new_'),
             ],
             [
-                InlineKeyboardButton(text='Вернуться к нарушениям', callback_data=f"back_{violation_id}"),
+                InlineKeyboardButton(text='Вернуться к нарушениям', callback_data=f'back_{violation_id}'),
             ]
         ])
         return kb

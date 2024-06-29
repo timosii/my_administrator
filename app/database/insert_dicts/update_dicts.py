@@ -1,18 +1,14 @@
-import os
 import asyncio
-import pandas as pd
 import glob
-from app.database.database import engine, session_maker, Base
-from app.database.models.dicts import (
-    Mos,
-    Filials,
-    Zones,
-    Violations,
-    ProblemBlocs
-)
-from sqlalchemy import select, delete, update
-from sqlalchemy.dialects.postgresql import insert as pg_insert
+import os
+
+import pandas as pd
 from loguru import logger
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+from app.database.database import session_maker
+from app.database.models.dicts import Filials, Mos, ProblemBlocs, Violations, Zones
+
 
 class DictsUpdate():
     def __init__(self,
@@ -21,38 +17,38 @@ class DictsUpdate():
             raise FileNotFoundError('Папки со словарями не существует')
         self.path = path
         self.get_dfs()
-        
+
     def get_dfs(self):
         excel_files = glob.glob(
             os.path.join(
                 self.path,
                 '*.xlsx'
-                )
             )
+        )
         self.dfs = {
             os.path.basename(file).split('.')[0]: pd.read_excel(
                 file, engine='openpyxl'
-                ) for file in excel_files
-            }        
+            ) for file in excel_files
+        }
 
     async def update_mos(self):
         async with session_maker() as session:
             for _, row in self.dfs['mos_dict'].iterrows():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
-                
+
                 stmt = pg_insert(Mos).values(**stripped_row).on_conflict_do_update(
                     index_elements=['mo_'],  # assuming 'id' is the primary key or unique constraint
                     set_=stripped_row
                 )
                 await session.execute(stmt)
             await session.commit()
-        logger.info('MOS_UPDATED')    
+        logger.info('MOS_UPDATED')
 
     async def update_fils(self):
         async with session_maker() as session:
             for _, row in self.dfs['fils_dict'].iterrows():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
-                
+
                 stmt = pg_insert(Filials).values(**stripped_row).on_conflict_do_update(
                     index_elements=['fil_'],  # assuming 'id' is the primary key or unique constraint
                     set_=stripped_row
@@ -65,7 +61,7 @@ class DictsUpdate():
         async with session_maker() as session:
             for _, row in self.dfs['zones_dict'].iterrows():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
-                
+
                 stmt = pg_insert(Zones).values(**stripped_row).on_conflict_do_update(
                     index_elements=['zone_name'],  # assuming 'id' is the primary key or unique constraint
                     set_=stripped_row
@@ -78,30 +74,30 @@ class DictsUpdate():
         async with session_maker() as session:
             for _, row in self.dfs['problems_dict'].iterrows():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
-                
+
                 stmt = pg_insert(ProblemBlocs).values(**stripped_row).on_conflict_do_update(
                     index_elements=['problem_name'],  # assuming 'id' is the primary key or unique constraint
                     set_=stripped_row
                 )
-                
+
                 await session.execute(stmt)
             await session.commit()
         logger.info('PROBLEMS_UPDATED')
-            
 
     async def update_violations(self):
-        self.dfs['violations_dict']['time_to_correct'] = pd.to_timedelta(self.dfs['violations_dict']['time_to_correct']).astype(str)
+        self.dfs['violations_dict']['time_to_correct'] = pd.to_timedelta(
+            self.dfs['violations_dict']['time_to_correct']).astype(str)
         self.dfs['violations_dict']['violation_dict_id'] = self.dfs['violations_dict']['violation_dict_id'].astype(int)
         async with session_maker() as session:
             for _, row in self.dfs['violations_dict'].iterrows():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
-                
+
                 stmt = pg_insert(Violations).values(**stripped_row).on_conflict_do_update(
                     index_elements=['violation_dict_id'],  # assuming 'id' is the primary key or unique constraint
                     set_=stripped_row
                 )
                 await session.execute(stmt)
-            
+
             await session.commit()
         logger.info('VIOLATIONS_UPDATED')
 
@@ -113,6 +109,5 @@ class DictsUpdate():
         asyncio.get_event_loop().run_until_complete(self.update_violations())
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     DictsUpdate().update_dicts_to_db()
-        

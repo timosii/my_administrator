@@ -1,30 +1,15 @@
 import datetime as dt
-import enum
-from typing import Optional, Annotated
-from sqlalchemy import (
-    Table,
-    Column,
-    Integer,
-    String,
-    MetaData,
-    ForeignKey,
-    Interval,
-    func,
-    Enum
-)
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.database.database import (
-    Base,
-    intpk,
-    str_pk,
-    str_255
-)
+
+from sqlalchemy import ForeignKey, Interval
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.database.database import Base, intpk, str_255, str_pk
 
 
 class Mos(Base):
     __tablename__ = 'mos'
     __table_args__ = {'schema': 'dicts'}
-    
+
     mo_: Mapped[str_pk]
     mo_population: Mapped[str_255]
     mo_type: Mapped[str_255]
@@ -37,7 +22,7 @@ class Filials(Base):
     fil_: Mapped[str_pk]
     fil_population: Mapped[str_255]
     fil_type: Mapped[str_255]
-    mo_: Mapped[str_255] = mapped_column(ForeignKey("dicts.mos.mo_", ondelete="CASCADE", onupdate='CASCADE'))
+    mo_: Mapped[str_255] = mapped_column(ForeignKey('dicts.mos.mo_', ondelete='CASCADE', onupdate='CASCADE'))
 
 
 class ProblemBlocs(Base):
@@ -60,8 +45,9 @@ class Violations(Base):
 
     violation_dict_id: Mapped[intpk]
     violation_name: Mapped[str_255]
-    zone: Mapped[str_255] = mapped_column(ForeignKey("dicts.zones.zone_name", ondelete="CASCADE", onupdate='CASCADE'))
-    problem: Mapped[str_255] = mapped_column(ForeignKey("dicts.problems.problem_name", ondelete="CASCADE", onupdate='CASCADE'))
+    zone: Mapped[str_255] = mapped_column(ForeignKey('dicts.zones.zone_name', ondelete='CASCADE', onupdate='CASCADE'))
+    problem: Mapped[str_255] = mapped_column(ForeignKey(
+        'dicts.problems.problem_name', ondelete='CASCADE', onupdate='CASCADE'))
     description: Mapped[str] = mapped_column(nullable=True)
     is_photo_mfc: Mapped[bool]
     is_comment_mfc: Mapped[bool]

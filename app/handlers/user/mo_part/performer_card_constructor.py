@@ -1,10 +1,8 @@
 from typing import Optional
-from app.keyboards.mo_part import MoPerformerKeyboards
-from app.database.schemas.violation_found_schema import (
-    ViolationFoundOut,
-)
+
 from app.database.schemas.helpers import Reply
-from loguru import logger
+from app.database.schemas.violation_found_schema import ViolationFoundOut
+from app.keyboards.mo_part import MoPerformerKeyboards
 
 
 class MoPerformerCard:
@@ -17,15 +15,15 @@ class MoPerformerCard:
         self.violations_found_out_objects = [
             ViolationFoundOut(**v)
             for k, v in self.data.items()
-            if (k.startswith("vio_") and v)
+            if (k.startswith('vio_') and v)
         ]
 
     def is_pending(self, obj: ViolationFoundOut) -> bool:
         return obj.is_pending
-    
+
     def is_task(self, obj: ViolationFoundOut) -> bool:
         return (obj.is_task and not obj.is_pending)
-    
+
     def is_check_violation(self, obj: ViolationFoundOut) -> bool:
         result = (not obj.is_task and not obj.is_pending)
         return result
@@ -36,11 +34,11 @@ class MoPerformerCard:
             key=lambda x: x.violation_dict_id,
         )
         return res
-    
+
     def get_pending_violations(self) -> list[ViolationFoundOut]:
         result = self.get_sorted_violations(
             list(filter(self.is_pending, self.violations_found_out_objects))
-            )
+        )
         return result
 
     def get_task_violations(self) -> list[ViolationFoundOut]:
@@ -48,13 +46,13 @@ class MoPerformerCard:
             list(filter(self.is_task, self.violations_found_out_objects))
         )
         return result
-    
+
     def get_check_violations(self) -> list[ViolationFoundOut]:
         result = self.get_sorted_violations(
             list(filter(self.is_check_violation, self.violations_found_out_objects))
         )
         return result
-    
+
     def get_current_check_violations(self,
                                      check_id: int) -> list[ViolationFoundOut]:
         result = self.get_sorted_violations(
@@ -62,9 +60,8 @@ class MoPerformerCard:
         )
         result_ = [el for el in result if el.check_id == check_id]
         return result_
-    
 
-    def all_violations_pending_start(self) -> Optional[Reply]:
+    def all_violations_pending_start(self) -> Reply | None:
         pending_violations_found = self.get_pending_violations()
         if not pending_violations_found:
             return None
@@ -74,9 +71,9 @@ class MoPerformerCard:
             is_pending=True
         )
         return result
-    
-    def all_violations_check_start(self) -> Optional[Reply]:
-        check_violations=self.get_check_violations()
+
+    def all_violations_check_start(self) -> Reply | None:
+        check_violations = self.get_check_violations()
         if not check_violations:
             return None
         result = self.form_reply(
@@ -85,9 +82,8 @@ class MoPerformerCard:
             is_pending=False
         )
         return result
-    
 
-    def all_violations_task_start(self) -> Optional[Reply]:
+    def all_violations_task_start(self) -> Reply | None:
         violations_out = self.get_task_violations()
         if not violations_out:
             return None
@@ -97,7 +93,6 @@ class MoPerformerCard:
             is_pending=False
         )
         return result
-
 
     def form_reply(self,
                    violations_out: list[ViolationFoundOut],
@@ -109,7 +104,7 @@ class MoPerformerCard:
         else:
             text_mes_func = violations_out[order].violation_card
             kb_func = MoPerformerKeyboards().get_violation_menu
-        
+
         photo_id = violations_out[order].photo_id_mfc
         text_mes = text_mes_func()
         prev_order = order - 1
@@ -129,18 +124,18 @@ class MoPerformerCard:
             reply_markup=keyboard
         )
 
-
     def get_index_violation_found(self,
-                                  violation_found_out: ViolationFoundOut) -> int:
+                                  violation_found_out: ViolationFoundOut) -> Optional[int]:
         # получаем индекс нарушения в отсортированном списке нарушений
         violation_found_out_lst = self.get_violation_found_out_objects(
             violation_found_out=violation_found_out
-            )
+        )
+        if not violation_found_out_lst:
+            return None
         for index, obj in enumerate(violation_found_out_lst):
             if obj.violation_found_id == violation_found_out.violation_found_id:
                 return index
         return None
-
 
     def _get_index_violation_found(self,
                                    violation_found_out_lst: list[ViolationFoundOut],
@@ -149,39 +144,37 @@ class MoPerformerCard:
             if obj.violation_found_id == violation_found_id:
                 return index
         return 0
-    
 
     def get_violation_found_out_objects(self,
-                                         violation_found_out: ViolationFoundOut
-                                         ) -> list[ViolationFoundOut]:
+                                        violation_found_out: ViolationFoundOut
+                                        ) -> Optional[list[ViolationFoundOut]]:
         is_task = violation_found_out.is_task
         is_pending = violation_found_out.is_pending
-        
+
         if is_pending:
             violation_found_out_lst = self.get_pending_violations()
         elif is_task:
             violation_found_out_lst = self.get_task_violations()
-        else: # is_check_violation
+        else:  # is_check_violation
             violation_found_out_lst = self.get_check_violations()
 
         if not violation_found_out_lst:
             return None
 
-        return violation_found_out_lst    
+        return violation_found_out_lst
 
-    
     def get_pending_process(self,
                             order: int,
                             violation_found_out: ViolationFoundOut
-                               ):
-        
+                            ):
+
         violation_found_out_lst = self.get_violation_found_out_objects(
             violation_found_out=violation_found_out
-            )
-        
+        )
+
         if not violation_found_out_lst:
             return None
-        
+
         reply_obj = self.form_reply(
             violations_out=violation_found_out_lst,
             order=order if order <= (len(violation_found_out_lst) - 1) else 0,
@@ -191,10 +184,12 @@ class MoPerformerCard:
 
     def get_next_prev_reply(self,
                             violation_found_out: ViolationFoundOut,
-                            ):
+                            ) -> Optional[Reply]:
         violations_found_out_lst = self.get_violation_found_out_objects(
             violation_found_out=violation_found_out,
         )
+        if not violations_found_out_lst:
+            return None
 
         if len(violations_found_out_lst) == 1:
             return None
@@ -207,10 +202,9 @@ class MoPerformerCard:
             violations_out=violations_found_out_lst,
             order=order,
             is_pending=violation_found_out.is_pending
-        )            
+        )
 
         return reply_obj
-
 
     def cancel_process(self,
                        violation_found_out: ViolationFoundOut,
@@ -221,10 +215,8 @@ class MoPerformerCard:
         if is_pending:
             violation_found_out_lst = self.get_pending_violations()
 
-
         elif is_task:
             violation_found_out_lst = self.get_task_violations()
-
 
         else:
             violation_found_out_lst = self.get_check_violations()
@@ -240,7 +232,6 @@ class MoPerformerCard:
             violations_out=violation_found_out_lst,
             order=order,
             is_pending=violation_found_out.is_pending
-        )            
+        )
 
         return reply_obj
-

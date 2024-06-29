@@ -1,16 +1,15 @@
-import datetime as dt
 from dataclasses import dataclass
 from typing import Optional
-from app.utils.utils import format_timedelta
-from app.database.schemas.check_schema import CheckOut, CheckOutUnfinished
+
+from aiogram.types import InlineKeyboardMarkup
+
 from app.database.schemas.violation_found_schema import ViolationFoundOut
 from app.keyboards.mo_part import MoPerformerKeyboards
-from aiogram.types import InlineKeyboardMarkup
 
 
 @dataclass
 class Reply:
-    photo_id: str
+    photo_id: Optional[str]
     text_mes: str
     keyboard: InlineKeyboardMarkup
 
@@ -20,7 +19,7 @@ class FormCards:
         pass
 
     def form_reply(self, violations_out: list[ViolationFoundOut], order: int):
-        photo_id = violations_out[order].photo_id_mfc                
+        photo_id = violations_out[order].photo_id_mfc
         text_mes = violations_out[order].violation_card()
         prev_order = order - 1
         next_order = order + 1
@@ -35,9 +34,9 @@ class FormCards:
         )
 
         return Reply(photo_id=photo_id, text_mes=text_mes, keyboard=keyboard)
-    
+
     def form_violation_pending_reply(self, violations_out: list[ViolationFoundOut], order: int):
-        photo_id = violations_out[order].photo_id_mfc                
+        photo_id = violations_out[order].photo_id_mfc
         text_mes = violations_out[order].violation_card_pending()
         prev_order = order - 1
         next_order = order + 1

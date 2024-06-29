@@ -1,9 +1,10 @@
 import os
-from abc import ABC
 from typing import Final
+
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 class Settings:
     BOT_TOKEN: Final = os.getenv('BOT_TOKEN', 'need to define')
@@ -22,8 +23,7 @@ class Settings:
 
     @property
     def url_constructor(self):
-        return f"postgresql+psycopg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        return f'postgresql+psycopg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}'
+
 
 settings = Settings()
-
-

@@ -1,21 +1,26 @@
-from loguru import logger
 from aiogram import Bot, Dispatcher
-from aiogram.fsm.storage.redis import RedisStorage, Redis
-from app.config import settings
-from app.handlers import default, dev, additional
-from app.handlers.admin import admin
-from app.handlers.user.mo_part import mo_controler, mo_performer, pending_process, take_process
-from app.handlers.user.mfc_part import mfc_main, mfc_leader
-from aiogram.types import BotCommand
-from app.middlewares.main import ErrorProcessMiddleware, FSMMiddleware
-from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiogram.client.bot import DefaultBotProperties
+from aiogram.fsm.storage.redis import Redis, RedisStorage
+from aiogram.types import BotCommand
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
-from app.config import settings
+from loguru import logger
 
-WEBHOOK_HOST = settings.WEBHOOK_HOST 
+from app.config import settings
+from app.handlers import additional, default, dev
+from app.handlers.admin import admin
+from app.handlers.user.mfc_part import mfc_leader, mfc_main
+from app.handlers.user.mo_part import (
+    mo_controler,
+    mo_performer,
+    pending_process,
+    take_process,
+)
+from app.middlewares.main import ErrorProcessMiddleware, FSMMiddleware
+
+WEBHOOK_HOST = settings.WEBHOOK_HOST
 WEBHOOK_PATH = '/webhook'
-WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
+WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
 WEBAPP_HOST = settings.NGROK_HOST
 WEBAPP_PORT = 8080
 
@@ -33,11 +38,12 @@ async def set_main(bot: Bot):
     if not settings.IS_TEST:
         await bot.set_webhook(WEBHOOK_URL)
     logger.info('bot started')
-    await bot.send_message(settings.DEV_ID, "Bot is started!")
+    await bot.send_message(settings.DEV_ID, 'Bot is started!')
+
 
 async def on_shutdown(bot: Bot) -> None:
     logger.info('bot stopped')
-    await bot.send_message(settings.DEV_ID, "Bot is stopped!")
+    await bot.send_message(settings.DEV_ID, 'Bot is stopped!')
 
 
 def all_register():
@@ -75,7 +81,7 @@ def start_bot() -> None:
     webhook_requests_handler.register(app, path=WEBHOOK_PATH)
     setup_application(app, dp, bot=bot)
     web.run_app(app, host=WEBAPP_HOST, port=WEBAPP_PORT)
-    
+
 
 @logger.catch
 async def start_local() -> None:

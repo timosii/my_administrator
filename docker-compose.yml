@@ -11,13 +11,13 @@ services:
       ngrok:
         condition: service_started
       db:
-        condition: service_healthy  
+        condition: service_healthy
       redis:
         condition: service_healthy
     volumes:
       - type: bind
         source: ./
-        target: /code   
+        target: /code
 
     networks:
       - my_admin
@@ -48,7 +48,7 @@ services:
       ngrok:
         condition: service_started
       db:
-        condition: service_healthy  
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "redis-cli","ping"]
       interval: 5s
