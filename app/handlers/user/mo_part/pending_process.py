@@ -1,5 +1,5 @@
+import asyncio
 import datetime as dt
-import time
 
 from aiogram import F, Router
 from aiogram.filters import StateFilter
@@ -126,7 +126,7 @@ async def add_comm_pending_text(
     await message.answer_sticker(
         sticker=MoPerformerMessages.watch_sticker
     )
-    time.sleep(3)
+    await asyncio.sleep(3)
 
     if not reply_obj:
         await message.answer(

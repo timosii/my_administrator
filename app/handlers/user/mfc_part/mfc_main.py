@@ -1,4 +1,4 @@
-import time
+import asyncio
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
@@ -348,7 +348,7 @@ async def choose_violation_handler(
         await message.answer_sticker(
             sticker=MfcMessages.watch_sticker
         )
-        time.sleep(7)
+        await asyncio.sleep(7)
         await message.answer_photo(
             **reply_obj.model_dump(mode='json')
         )
@@ -639,7 +639,7 @@ async def save_violation(
     await callback.message.answer(
         text=MfcMessages.continue_check,
     )
-    time.sleep(1)
+    await asyncio.sleep(1)
     await callback.message.answer(
         text=MfcMessages.choose_violation(zone=vio_data['zone']),
         reply_markup=await MfcKeyboards().choose_violation(
@@ -674,7 +674,7 @@ async def finish_check(
             await message.answer_sticker(
                 sticker=MfcMessages.save_sticker
             )
-            time.sleep(1)
+            await asyncio.sleep(1)
             await message.answer(
                 text=MfcMessages.notification_saved,
             )
@@ -688,7 +688,7 @@ async def finish_check(
     await message.answer_sticker(
         sticker=MfcMessages.save_sticker
     )
-    time.sleep(1)
+    await asyncio.sleep(1)
     await message.answer(
         text=MfcMessages.finish_check, reply_markup=ReplyKeyboardRemove()
     )

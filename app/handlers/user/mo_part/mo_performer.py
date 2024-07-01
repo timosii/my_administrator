@@ -1,5 +1,5 @@
+import asyncio
 import datetime as dt
-import time
 
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
@@ -64,7 +64,7 @@ async def get_active_violations(
         await message.answer_sticker(
             sticker=MoPerformerMessages.find_sticker
         )
-        time.sleep(1)
+        await asyncio.sleep(1)
         await message.answer(
             text=MoPerformerMessages.form_no_checks_answer(fil_=fil_),
             reply_markup=message.reply_markup,
@@ -486,13 +486,13 @@ async def save_violation_found_process(
             await callback.message.answer_sticker(
                 sticker=MoPerformerMessages.save_sticker,
             )
-            time.sleep(1)
+            await asyncio.sleep(1)
             await callback.message.answer(text=MoPerformerMessages.photo_comm_added)
             await callback.message.answer(
                 text=MoPerformerMessages.can_continue_pending,
                 reply_markup=MoPerformerKeyboards().back_to_menu(),
             )
-            time.sleep(1)
+            await asyncio.sleep(1)
             await callback.message.answer_photo(
                 **reply_obj.model_dump(mode='json')
             )
@@ -527,7 +527,7 @@ async def save_violation_found_process(
             await callback.message.answer_sticker(
                 sticker=MoPerformerMessages.save_sticker,
             )
-            time.sleep(1)
+            await asyncio.sleep(1)
             await callback.message.answer(text=MoPerformerMessages.photo_comm_added)
             await callback.message.answer_photo(
                 **reply_obj.model_dump(mode='json')
@@ -538,9 +538,9 @@ async def save_violation_found_process(
         await callback.message.answer_sticker(
             sticker=MoPerformerMessages.save_sticker,
         )
-        time.sleep(1)
+        await asyncio.sleep(1)
         await callback.message.answer(text=MoPerformerMessages.photo_comm_added)
-        time.sleep(1)
+        await asyncio.sleep(1)
         await callback.message.answer(
             text=MoPerformerMessages.can_continue_check,
             reply_markup=MoPerformerKeyboards().back_to_violations(),
@@ -550,7 +550,7 @@ async def save_violation_found_process(
         await callback.message.answer_sticker(
             sticker=MoPerformerMessages.save_sticker,
         )
-        time.sleep(1)
+        await asyncio.sleep(1)
         await callback.message.answer(text=MoPerformerMessages.photo_comm_added)
 
     await state.set_state(MoPerformerStates.mo_performer)
@@ -590,7 +590,7 @@ async def correct_vio_process_continue(
     await message.answer(
         text=MoPerformerMessages.continue_check, reply_markup=ReplyKeyboardRemove()
     )
-    time.sleep(1)
+    await asyncio.sleep(1)
     data = await state.get_data()
     reply_obj = MoPerformerCard(data=data).all_violations_check_start()
     if not reply_obj:
@@ -637,7 +637,7 @@ async def correct_vio_process_finish(
         text=MoPerformerMessages.back_to_checks,
         reply_markup=MoPerformerKeyboards().check_or_tasks(),
     )
-    time.sleep(1)
+    await asyncio.sleep(1)
 
     if not checks:
         await message.answer(

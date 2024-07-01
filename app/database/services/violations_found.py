@@ -1,4 +1,4 @@
-import time
+import asyncio
 from typing import Optional
 
 from aiogram.exceptions import TelegramBadRequest
@@ -208,7 +208,7 @@ class ViolationFoundService:
             await callback.message.answer_sticker(
                 sticker=MoPerformerMessages.send_sticker
             )
-            time.sleep(1)
+            await asyncio.sleep(1)
             norm_users_count = 0
             troubles_user_count = 0
             for performer in performers:
@@ -282,13 +282,13 @@ class ViolationFoundService:
                     sticker=MoPerformerMessages.find_sticker,
                     reply_markup=MoPerformerKeyboards().check_or_tasks(),
                 )
-                time.sleep(1)
+                await asyncio.sleep(1)
             if message:
                 await message.answer_sticker(
                     sticker=MoPerformerMessages.find_sticker,
                     reply_markup=MoPerformerKeyboards().check_or_tasks(),
                 )
-                time.sleep(1)
+                await asyncio.sleep(1)
         else:
             for violation_found in violations_found_active:
                 violation_out = await self.form_violation_out(mo_user_id=mo_user_id, violation=violation_found)
@@ -310,7 +310,7 @@ class ViolationFoundService:
                 sticker=MoPerformerMessages.find_sticker,
                 reply_markup=MoPerformerKeyboards().check_finished(),
             )
-            time.sleep(1)
+            await asyncio.sleep(1)
         else:
             for violation_found in violations_found_check:
                 violation_out = await self.form_violation_out(mo_user_id=mo_user_id, violation=violation_found)
@@ -330,7 +330,7 @@ class ViolationFoundService:
             await message.answer_sticker(
                 sticker=MoPerformerMessages.find_sticker,
             )
-            time.sleep(1)
+            await asyncio.sleep(1)
             violations_found_out_pending_data = MoPerformerCard(data=data).get_pending_violations()
             await state.update_data(
                 {f'vio_{violation_out.violation_found_id}': None for violation_out in violations_found_out_pending_data}
