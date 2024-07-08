@@ -58,17 +58,6 @@ redis = ["redis[hiredis] (>=5.0.1,<5.1.0)"]
 test = ["aresponses (>=2.1.6,<2.2.0)", "pycryptodomex (>=3.19.0,<3.20.0)", "pytest (>=7.4.2,<7.5.0)", "pytest-aiohttp (>=1.0.5,<1.1.0)", "pytest-asyncio (>=0.21.1,<0.22.0)", "pytest-cov (>=4.1.0,<4.2.0)", "pytest-html (>=4.0.2,<4.1.0)", "pytest-lazy-fixture (>=0.6.3,<0.7.0)", "pytest-mock (>=3.12.0,<3.13.0)", "pytest-mypy (>=0.10.3,<0.11.0)", "pytz (>=2023.3,<2024.0)"]
 
 [[package]]
-name = "aiogram-tests"
-version = "1.0.3"
-description = "A library for testing your bots on aiogram"
-optional = false
-python-versions = "*"
-files = [
-    {file = "aiogram_tests-1.0.3-py3-none-any.whl", hash = "sha256:b92fc4dbb652ed115bbcef08d2e020a8e86e575217fb44876d926b5cd681aca0"},
-    {file = "aiogram_tests-1.0.3.tar.gz", hash = "sha256:cdc78e9a65e205a744e944361a844c0f764f7777718dde087821000d49d354b3"},
-]
-
-[[package]]
 name = "aiohttp"
 version = "3.9.5"
 description = "Async http client/server framework (asyncio)"
@@ -2750,4 +2739,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "651868745bb39c97e3f9c313a42116b6599829fe21f35ecef366d8c133ce0b29"
+content-hash = "10aa60134bf6f2671a2641d089fb91aabdc6cf5ba4cc6b58cef9a9128d2bdc0a"

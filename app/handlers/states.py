@@ -20,7 +20,9 @@ class Feedback(StatesGroup):
 class MoPerformerStates(StatesGroup):
     mo_performer = State()
     pending_process = State()
+    take_correct = State()
     correct_violation = State()
+    take_save = State()
     save_vio_update = State()
 
 

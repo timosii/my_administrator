@@ -1,4 +1,3 @@
-
 from collections import deque
 from typing import TYPE_CHECKING, Any, AsyncGenerator, Deque, Dict, Optional, Type
 
@@ -11,7 +10,7 @@ from aiogram.types import UNSET_PARSE_MODE, ResponseParameters, User
 
 class MockedSession(BaseSession):
     def __init__(self):
-        super(MockedSession, self).__init__()
+        super().__init__()
         self.responses: Deque[Response[TelegramType]] = deque()
         self.requests: Deque[TelegramMethod[TelegramType]] = deque()
         self.closed = True
@@ -51,7 +50,7 @@ class MockedSession(BaseSession):
         chunk_size: int = 65536,
         raise_for_status: bool = True,
     ) -> AsyncGenerator[bytes, None]:  # pragma: no cover
-        yield b""
+        yield b''
 
 
 class MockedBot(Bot):
@@ -59,16 +58,16 @@ class MockedBot(Bot):
         session: MockedSession
 
     def __init__(self, **kwargs):
-        super(MockedBot, self).__init__(
-            kwargs.pop("token", "42:TEST"), session=MockedSession(), **kwargs
+        super().__init__(
+            kwargs.pop('token', '42:TEST'), session=MockedSession(), **kwargs
         )
         self._me = User(
             id=self.id,
             is_bot=True,
-            first_name="BotName",
-            last_name="BotSurname",
-            username="bot",
-            language_code="en-US",
+            first_name='BotName',
+            last_name='BotSurname',
+            username='bot',
+            language_code='en-US',
         )
 
     def add_result_for(

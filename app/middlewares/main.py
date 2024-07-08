@@ -38,7 +38,7 @@ class ErrorProcessMiddleware(BaseMiddleware):
         except TelegramBadRequest as e:
             await self.send_message_dev(text='TelegramBadRequest ERROR!')
             await self.error_process(user=user, e=e)
-            await self.handle_error(update=event, error_message=ErrorMessages.too_long_message)
+            await self.handle_error(update=event, error_message=ErrorMessages.bad_request)
 
         except TelegramNetworkError as e:
             await self.send_message_dev(text='TelegramNetworkError ERROR!')

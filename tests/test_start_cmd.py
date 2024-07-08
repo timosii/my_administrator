@@ -5,7 +5,8 @@ from aiogram.dispatcher.event.bases import UNHANDLED
 from aiogram.enums import ChatType
 from aiogram.methods import SendMessage
 from aiogram.methods.base import TelegramType
-from aiogram.types import Update, Chat, User, Message
+from aiogram.types import Chat, Message, Update, User
+
 
 @pytest.mark.asyncio
 async def test_cmd_start(dp, bot):                           # [1]
@@ -15,16 +16,16 @@ async def test_cmd_start(dp, bot):                           # [1]
         # result сейчас можно пропустить
     )
     chat = Chat(id=1234567, type=ChatType.PRIVATE)           # [3]
-    user = User(id=1234567, is_bot=False, first_name="User") # [3]
+    user = User(id=1234567, is_bot=False, first_name='User')  # [3]
     message = Message(                                       # [3]
         message_id=1,
-        chat=chat, 
-        from_user=user, 
-        text="/start", 
+        chat=chat,
+        from_user=user,
+        text='/start',
         date=datetime.now()
     )
     result = await dp.feed_update(                      # [4]
-        bot, 
+        bot,
         Update(message=message, update_id=1)
     )
     assert result is not UNHANDLED                      # [5]

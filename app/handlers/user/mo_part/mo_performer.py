@@ -172,7 +172,8 @@ async def get_pending_violations_found(
 
 @router.callback_query(
     F.data.startswith('take_') | F.data.startswith('correct_'),
-    StateFilter(MoPerformerStates.correct_violation),
+    StateFilter(MoPerformerStates.correct_violation,
+                MoPerformerStates.take_correct),
 )
 async def correct_first_violation(
     callback: CallbackQuery,
@@ -410,7 +411,8 @@ async def cancel_save_process(
 
 @router.message(
     F.text,
-    StateFilter(MoPerformerStates.correct_violation)
+    StateFilter(MoPerformerStates.correct_violation,
+                MoPerformerStates.take_correct)
 )
 async def add_text_wrong(
     message: Message,
@@ -422,7 +424,8 @@ async def add_text_wrong(
 
 @router.message(
     ~F.text & ~F.photo,
-    StateFilter(MoPerformerStates.correct_violation)
+    StateFilter(MoPerformerStates.correct_violation,
+                MoPerformerStates.take_correct)
 )
 async def wrong_add_content(
     message: Message,
@@ -445,7 +448,6 @@ async def save_violation_found_process(
     data = await state.get_data()
     is_pending = data.get('is_pending')
     is_task = data.get('is_task')
-    is_take = data.get('is_take')
     violation_found_id = int(callback.data.split('_')[1])
     current_time = dt.datetime.now(dt.timezone.utc)
     vio_upd = ViolationFoundUpdate(
@@ -533,7 +535,7 @@ async def save_violation_found_process(
                 **reply_obj.model_dump(mode='json')
             )
 
-    elif not is_take:
+    else:
         await callback.answer()
         await callback.message.answer_sticker(
             sticker=MoPerformerMessages.save_sticker,
@@ -545,13 +547,6 @@ async def save_violation_found_process(
             text=MoPerformerMessages.can_continue_check,
             reply_markup=MoPerformerKeyboards().back_to_violations(),
         )
-    else:
-        await callback.answer()
-        await callback.message.answer_sticker(
-            sticker=MoPerformerMessages.save_sticker,
-        )
-        await asyncio.sleep(1)
-        await callback.message.answer(text=MoPerformerMessages.photo_comm_added)
 
     await state.set_state(MoPerformerStates.mo_performer)
 
