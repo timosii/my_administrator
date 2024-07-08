@@ -1,13 +1,13 @@
+import asyncio
 from typing import Any, Optional
 
-from aiocache import Cache, cached
-from aiocache.serializers import PickleSerializer
 from loguru import logger
 from sqlalchemy import and_, delete, func, select, text, update
 
 from app.config import settings
 from app.database.database import session_maker
 from app.database.models.data import Check, ViolationFound
+from app.database.repositories.cache_config import cached, caches
 from app.database.schemas.check_schema import (
     CheckCreate,
     CheckInDB,
@@ -22,7 +22,7 @@ CACHE_EXPIRE_LONG = settings.CACHE_LONG
 class CheckRepo:
     def __init__(self):
         self.session_maker = session_maker
-        self.cache = Cache(Cache.REDIS, namespace='check', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+        self.cache = caches.get('default')
 
     async def add_check(self, check_create: CheckCreate | CheckTestCreate) -> CheckInDB:
         async with self.session_maker() as session:
@@ -34,12 +34,12 @@ class CheckRepo:
             await self.clear_cache()
             return CheckInDB.model_validate(new_check)
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
     async def check_exists(self, check_id: int) -> bool:
         query = select(Check.check_id).filter_by(check_id=check_id)
         return await self._get_scalar(query=query)
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
     async def get_check_by_id(self, check_id: int) -> CheckInDB:
         async with self.session_maker() as session:
             result = await session.execute(select(Check).filter_by(check_id=check_id))
@@ -72,7 +72,7 @@ class CheckRepo:
             logger.info('ALL checks deleted')
             await self.clear_cache()
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
     async def get_all_checks(self) -> list[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check))
@@ -94,7 +94,7 @@ class CheckRepo:
             logger.info('get fil active checks')
             return [CheckInDB.model_validate(check) for check in checks] if checks else None
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='violation_found', endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
     async def get_violations_found_count_by_check(self, check_id: int) -> int:
         query = select(func.count()).select_from(ViolationFound).where(
             and_(
@@ -108,6 +108,7 @@ class CheckRepo:
             await self._get_scalar(query=query) or 0
         )
 
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
     async def get_all_active_checks_by_fil(
         self, fil_: str
     ) -> Optional[list[CheckInDB]]:
@@ -129,13 +130,13 @@ class CheckRepo:
                 else None
             )
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='check', endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
     async def get_checks_count(self) -> int:
         query = select(func.count()).select_from(Check)
         logger.info('get checks count')
         return await self._get_scalar(query=query) or 0
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='check', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
     async def get_checks_by_mfc_user(self, user_id: int) -> list[CheckInDB]:
         async with self.session_maker() as session:
             result = await session.execute(select(Check).filter_by(mfc_user_id=user_id))
@@ -154,9 +155,9 @@ class CheckRepo:
             await session.execute(stmt)
             await session.commit()
 
-    async def clear_cache(self):
-        pattern = 'check:*'
+    async def clear_cache(self, namespace: str = 'check'):
+        pattern = f'{namespace}:*'
         keys = await self.cache.raw('keys', pattern)
-        for key in keys:
-            await self.cache.delete(key)
-        logger.info('Cache cleared (keys: {})', keys)
+        if keys:
+            await asyncio.gather(*(self.cache.delete(key) for key in keys))
+        logger.info(f'Cache cleared (namespace: {namespace}, keys: {keys})')

@@ -314,19 +314,7 @@ async def process_cancel_correct(
     data = await state.get_data()
 
     violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
-    reply_obj = MoPerformerCard(data=data).cancel_process(
-        violation_found_out=violation_found_out
-    )
-
-    if not reply_obj:
-        await callback.answer(text=MoPerformerMessages.no_violations_buttons)
-        return
-
-    await callback.message.answer_photo(
-        **reply_obj.model_dump(mode='json')
-    )
-
-    await callback.answer()
+    await callback.message.delete()
     if violation_found_out.is_task:
         await state.update_data(
             {

@@ -1,11 +1,10 @@
-from aiocache import Cache, cached
-from aiocache.serializers import PickleSerializer
 from loguru import logger
 from sqlalchemy import select
 
 from app.config import settings
 from app.database.database import session_maker
 from app.database.models.dicts import Violations
+from app.database.repositories.cache_config import cached, caches
 from app.database.schemas.violation_schema import ViolationInDB
 
 CACHE_EXPIRE_SHORT = settings.CACHE_SHORT
@@ -15,8 +14,9 @@ CACHE_EXPIRE_LONG = settings.CACHE_LONG
 class ViolationsRepo:
     def __init__(self):
         self.session_maker = session_maker
+        self.cache = caches.get('default')
 
-    @cached(ttl=CACHE_EXPIRE_LONG, cache=Cache.REDIS, namespace='violations', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_LONG, namespace='violations')
     async def get_dict_id_by_name(
         self,
         violation_name: str,
@@ -31,7 +31,7 @@ class ViolationsRepo:
             logger.info('get dict vio id by name and zone')
             return violation_id if violation_id else None
 
-    @cached(ttl=CACHE_EXPIRE_LONG, cache=Cache.REDIS, namespace='violations', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_LONG, namespace='violations')
     async def get_violation_dict_by_id(
         self,
         violation_dict_id: int
@@ -41,5 +41,5 @@ class ViolationsRepo:
                 select(Violations).filter_by(violation_dict_id=violation_dict_id)
             )
             violation = result.scalar_one()
-            logger.info('get dict vio obj by id')
+            logger.info('get_violation_dict_by_id')
             return ViolationInDB.model_validate(violation)

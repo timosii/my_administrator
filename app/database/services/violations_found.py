@@ -5,7 +5,9 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
 
+from app.config import settings
 from app.database.database import session_maker
+from app.database.repositories.cache_config import cached
 from app.database.repositories.users import UserRepo
 from app.database.repositories.violations import ViolationsRepo
 from app.database.repositories.violations_found import ViolationFoundRepo
@@ -24,6 +26,9 @@ from app.handlers.messages import MfcMessages, MoPerformerMessages
 from app.handlers.user.mo_part.performer_card_constructor import MoPerformerCard
 from app.keyboards.mfc_part import MfcKeyboards
 from app.keyboards.mo_part import MoPerformerKeyboards
+
+CACHE_EXPIRE_SHORT = settings.CACHE_SHORT
+CACHE_EXPIRE_LONG = settings.CACHE_LONG
 
 
 class ViolationFoundService:
@@ -342,6 +347,7 @@ class ViolationFoundService:
                     {f'vio_{violation_out.violation_found_id}': violation_out.model_dump(mode='json')}
                 )
 
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='violation_found')
     async def form_violation_out(
         self,
         violation: ViolationFoundInDB,

@@ -7,6 +7,7 @@ from aiohttp import web
 from loguru import logger
 
 from app.config import settings
+from app.database.repositories.cache_config import caches
 from app.handlers import additional, default, dev
 from app.handlers.admin import admin
 from app.handlers.user.mfc_part import mfc_leader, mfc_main
@@ -43,6 +44,8 @@ async def set_main(bot: Bot):
 
 async def on_shutdown(bot: Bot) -> None:
     logger.info('bot stopped')
+    cache = caches.get('default')
+    await cache.close()
     await bot.send_message(settings.DEV_ID, 'Bot is stopped!')
 
 

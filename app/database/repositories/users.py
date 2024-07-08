@@ -1,13 +1,13 @@
+import asyncio
 from typing import Any
 
-from aiocache import Cache, cached
-from aiocache.serializers import PickleSerializer
 from loguru import logger
 from sqlalchemy import and_, delete, func, select, update
 
 from app.config import settings
 from app.database.database import session_maker
 from app.database.models.data import User
+from app.database.repositories.cache_config import cached, caches
 from app.database.schemas.user_schema import UserCreate, UserInDB, UserUpdate
 
 CACHE_EXPIRE_SHORT = settings.CACHE_SHORT
@@ -17,7 +17,7 @@ CACHE_EXPIRE_LONG = settings.CACHE_LONG
 class UserRepo:
     def __init__(self):
         self.session_maker = session_maker
-        self.cache = Cache(Cache.REDIS, namespace='user', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+        self.cache = caches.get('default')
 
     async def add_user(self, user_create: UserCreate) -> UserInDB:
         async with self.session_maker() as session:
@@ -29,14 +29,14 @@ class UserRepo:
             await self.clear_cache()
             return UserInDB.model_validate(new_user)
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
     async def get_user_mo(self, user_id: int) -> str:
         query = select(User.mo_).filter_by(user_id=user_id)
         result = await self._get_scalar(query=query)
         logger.info('get user mo')
         return result
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
     async def get_user_fil(self, user_id: int) -> str:
         query = select(User.fil_).filter_by(user_id=user_id)
         result = await self._get_scalar(query=query)
@@ -88,7 +88,7 @@ class UserRepo:
         logger.info('get user count')
         return await self._get_scalar(query=query) or 0
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='user', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
     async def get_user_performer_by_fil(self, fil_: str) -> list[UserInDB] | None:
         async with self.session_maker() as session:
             query = select(User).where(
@@ -102,31 +102,31 @@ class UserRepo:
             users = result.scalars().all()
             return [UserInDB.model_validate(user) for user in users] if users else None
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
     async def is_admin(self, user_id: int) -> bool:
         query = select(User.is_admin).filter_by(user_id=user_id, is_archived=False)
         logger.info('is admin')
         return await self._get_scalar(query=query)
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
     async def is_mfc(self, user_id: int) -> bool:
         query = select(User.is_mfc).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mfc')
         return await self._get_scalar(query=query)
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
     async def is_mfc_leader(self, user_id: int) -> bool:
         query = select(User.is_mfc_leader).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mfc leader')
         return await self._get_scalar(query=query)
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
     async def is_mo_performer(self, user_id: int) -> bool:
         query = select(User.is_mo_performer).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mo performer')
         return await self._get_scalar(query=query)
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='user', endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
     async def is_mo_controler(self, user_id: int) -> bool:
         query = select(User.is_mo_controler).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mo controler')
@@ -143,9 +143,9 @@ class UserRepo:
             await session.execute(stmt)
             await session.commit()
 
-    async def clear_cache(self):
-        pattern = 'user:*'
+    async def clear_cache(self, namespace: str = 'user'):
+        pattern = f'{namespace}:*'
         keys = await self.cache.raw('keys', pattern)
-        for key in keys:
-            await self.cache.delete(key)
-        logger.info('Cache cleared (keys: {})', keys)
+        if keys:
+            await asyncio.gather(*(self.cache.delete(key) for key in keys))
+        logger.info(f'Cache cleared (namespace: {namespace}, keys: {keys})')

@@ -17,7 +17,7 @@ from tests.mocked_aiogram import MockedBot, MockedSession
 @pytest.fixture(scope='session')
 def dp() -> Dispatcher:
     dispatcher = Dispatcher(storage=MemoryStorage())
-    dispatcher.include_routers(
+    dp.include_routers(
         admin.router,
         additional.router,
         dev.router,

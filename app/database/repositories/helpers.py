@@ -1,7 +1,6 @@
+import asyncio
 from typing import Any
 
-from aiocache import Cache, cached
-from aiocache.serializers import PickleSerializer
 from loguru import logger
 from sqlalchemy import and_, func, select, update
 
@@ -9,6 +8,7 @@ from app.config import settings
 from app.database.database import session_maker
 from app.database.models.data import Check
 from app.database.models.dicts import Filials, Mos
+from app.database.repositories.cache_config import cached, caches
 
 CACHE_EXPIRE_LONG = settings.CACHE_LONG
 
@@ -16,10 +16,9 @@ CACHE_EXPIRE_LONG = settings.CACHE_LONG
 class HelpRepo:
     def __init__(self):
         self.session_maker = session_maker
-        self.cache = Cache(Cache.REDIS, namespace='helpers',
-                           serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+        self.cache = caches.get('default')
 
-    @cached(ttl=CACHE_EXPIRE_LONG, cache=Cache.REDIS, namespace='helpers', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_LONG, namespace='helpers')
     async def get_mo_by_fil(self, fil_: str) -> str:
         query = select(Filials.mo_).where(
             and_(
@@ -56,9 +55,9 @@ class HelpRepo:
             await session.execute(stmt)
             await session.commit()
 
-    async def clear_cache(self):
-        pattern = 'check:*'
+    async def clear_cache(self, namespace: str = 'helpers'):
+        pattern = f'{namespace}:*'
         keys = await self.cache.raw('keys', pattern)
-        for key in keys:
-            await self.cache.delete(key)
-        logger.info('Cache cleared (keys: {})', keys)
+        if keys:
+            await asyncio.gather(*(self.cache.delete(key) for key in keys))
+        logger.info(f'Cache cleared (namespace: {namespace}, keys: {keys})')

@@ -1,7 +1,6 @@
+import asyncio
 from typing import Any, Optional
 
-from aiocache import Cache, cached
-from aiocache.serializers import PickleSerializer
 from loguru import logger
 from sqlalchemy import and_, delete, select, text, update
 from sqlalchemy.orm import joinedload
@@ -9,6 +8,7 @@ from sqlalchemy.orm import joinedload
 from app.config import settings
 from app.database.database import session_maker
 from app.database.models.data import Check, ViolationFound
+from app.database.repositories.cache_config import cached, caches
 from app.database.schemas.violation_found_schema import (
     ViolationFoundCreate,
     ViolationFoundInDB,
@@ -23,8 +23,7 @@ CACHE_EXPIRE_LONG = settings.CACHE_LONG
 class ViolationFoundRepo:
     def __init__(self):
         self.session_maker = session_maker
-        self.cache = Cache(Cache.REDIS, namespace='violation_found',
-                           serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+        self.cache = caches.get('default')
 
     async def add_violation_found(
         self, violation_create: ViolationFoundCreate | ViolationFoundTestCreate
@@ -38,13 +37,13 @@ class ViolationFoundRepo:
             await self.clear_cache()
             return ViolationFoundInDB.model_validate(new_violation)
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='violation_found', endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='violation_found')
     async def violation_found_exists(self, violation_id: int) -> bool:
         query = select(ViolationFound.violation_found_id).filter_by(violation_found_id=violation_id)
         logger.info('is violation found exist')
         return await self._get_scalar(query=query)
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='violation_found')
     async def get_violation_found_by_id(
         self, violation_found_id: int
     ) -> ViolationFoundInDB | None:
@@ -108,7 +107,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ]
 
-    # @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='violation_found')
     async def get_violations_found_by_check(self, check_id: int) -> list[ViolationFoundInDB] | None:
         async with self.session_maker() as session:
             query = select(ViolationFound).where(
@@ -125,7 +124,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ] if violations else None
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='violation_found', serializer=PickleSerializer(), endpoint=settings.REDIS_HOST)
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='violation_found')
     async def get_violations_found_by_fil(self, fil_: str) -> list[ViolationFoundInDB] | None:
         async with self.session_maker() as session:
             checks = await session.execute(
@@ -166,6 +165,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ] if violations else None
 
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='violation_found')
     async def get_active_violations_by_fil(
             self, fil_: str
     ) -> list[ViolationFoundInDB] | None:
@@ -193,6 +193,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ] if violations else None
 
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='violation_found')
     async def get_pending_violations_by_fil(
             self, fil_: str
     ) -> list[ViolationFoundInDB] | None:
@@ -218,7 +219,6 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ] if violations else None
 
-    @cached(ttl=CACHE_EXPIRE_SHORT, cache=Cache.REDIS, namespace='violation_found', endpoint=settings.REDIS_HOST)
     async def is_violation_already_in_check(self, violation_dict_id: int, check_id: int) -> bool:
         query = select(ViolationFound).where(
             and_(
@@ -291,9 +291,9 @@ class ViolationFoundRepo:
             await session.execute(stmt)
             await session.commit()
 
-    async def clear_cache(self):
-        pattern = 'violation_found:*'
+    async def clear_cache(self, namespace: str = 'violation_found'):
+        pattern = f'{namespace}:*'
         keys = await self.cache.raw('keys', pattern)
-        for key in keys:
-            await self.cache.delete(key)
-        logger.info('Cache cleared (keys: {})', keys)
+        if keys:
+            await asyncio.gather(*(self.cache.delete(key) for key in keys))
+        logger.info(f'Cache cleared (namespace: {namespace}, keys: {keys})')
