@@ -5,7 +5,6 @@ from aiogram import F, Router
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-from loguru import logger
 
 from app.database.schemas.check_schema import CheckUpdate
 from app.database.schemas.violation_found_schema import (
@@ -89,7 +88,6 @@ async def add_comm_pending_text(
     order_before_pending = MoPerformerCard(
         data=data
     ).get_index_violation_found(violation_found_out=violation_found_out)
-    logger.debug(f'order before pending is: {order_before_pending}')
     if order_before_pending is None:
         return
 

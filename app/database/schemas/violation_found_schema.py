@@ -57,6 +57,13 @@ class ViolationFoundDeleteMfc(BaseModel):
     comm_mfc: None = None
 
 
+class ViolationFoundClearInfo(ViolationFoundDeleteMfc):
+    check_id: None = None
+    mfc_start: None = None
+    violations_completed: list = []
+    zone: None = None
+
+
 class ViolationFoundClearData(BaseModel):
     violation_found_id: None = None
     photo_id_mo: None = None

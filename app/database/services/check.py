@@ -114,7 +114,6 @@ class CheckService:
         current_time = dt.datetime.now(dt.timezone.utc)
         check_upd = CheckUpdate(mfc_finish=current_time)
         await self.update_check(check_id=check_id, check_update=check_upd)
-        await state.clear()
 
     async def unfinished_checks_process(
         self,

@@ -9,6 +9,7 @@ from aiogram.types import CallbackQuery, InputMediaPhoto, Message, ReplyKeyboard
 from loguru import logger
 
 from app.database.schemas.violation_found_schema import (
+    ViolationFoundClearInfo,
     ViolationFoundCreate,
     ViolationFoundDeleteMfc,
     ViolationFoundOut,
@@ -602,7 +603,8 @@ async def cancel_adding_vio(
     )
 
 
-@router.callback_query(F.data == 'save_and_go', StateFilter(MfcStates.continue_state))
+@router.callback_query(F.data == 'save_and_go',
+                       StateFilter(MfcStates.continue_state))
 async def save_violation(
     callback: CallbackQuery,
     state: FSMContext,
@@ -634,6 +636,14 @@ async def save_violation(
             state=state,
             check_id=check_id
         )
+        await state.update_data(
+            **ViolationFoundClearInfo().model_dump()
+        )
+        await callback.message.answer(
+            text=MfcMessages.cancel_check,
+            reply_markup=MfcKeyboards().main_menu()
+        )
+        await state.set_state(MfcStates.choose_type_checking)
         return
 
     await callback.message.answer(
@@ -666,10 +676,9 @@ async def finish_check(
         if violation_count == 0:
             await check_obj.delete_check(check_id=check_id)
             await message.answer(
-                text=MfcMessages.finish_task_zero_violations, reply_markup=ReplyKeyboardRemove()
+                text=MfcMessages.finish_task_zero_violations,
+                reply_markup=MfcKeyboards().main_menu()
             )
-            await state.clear()
-            return
         else:
             await message.answer_sticker(
                 sticker=MfcMessages.save_sticker
@@ -677,9 +686,13 @@ async def finish_check(
             await asyncio.sleep(1)
             await message.answer(
                 text=MfcMessages.notification_saved,
+                reply_markup=MfcKeyboards().main_menu()
             )
-            await state.clear()
-            return
+        await state.update_data(
+            **ViolationFoundClearInfo().model_dump()
+        )
+        await state.set_state(MfcStates.choose_type_checking)
+        return
 
     await check_obj.finish_check_process(
         state=state,
@@ -690,8 +703,13 @@ async def finish_check(
     )
     await asyncio.sleep(1)
     await message.answer(
-        text=MfcMessages.finish_check, reply_markup=ReplyKeyboardRemove()
+        text=MfcMessages.finish_check,
+        reply_markup=MfcKeyboards().main_menu()
     )
+    await state.update_data(
+        **ViolationFoundClearInfo().model_dump()
+    )
+    await state.set_state(MfcStates.choose_type_checking)
 
 
 @router.message()
