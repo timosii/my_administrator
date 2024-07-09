@@ -98,7 +98,7 @@ class CheckService:
         )
         check_in_obj = await self.add_check(check_create=check_obj)
         await message.answer(
-            text=MfcMessages.choose_zone_with_time,
+            text=MfcMessages.choose_zone_with_time_task if is_task else MfcMessages.choose_zone_with_time,
             reply_markup=await MfcKeyboards().choose_zone(),
         )
         await state.update_data(
