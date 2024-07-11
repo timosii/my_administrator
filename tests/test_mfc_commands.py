@@ -110,7 +110,11 @@ async def test_mfc_start_checking(dp, bot):
     )
     current_state = await fsm_context.get_state()
     assert result is not UNHANDLED
+    current_data = await fsm_context.get_data()
+    current_data_keys = list(current_data.keys())
     outgoing_message: TelegramType = bot.get_request()
     assert isinstance(outgoing_message, SendMessage)
     assert outgoing_message.text == f'Вы начали проверку {time_determiner()}. Выберите зону нарушения: '
     assert current_state == MfcStates.choose_zone
+    assert current_data_keys == ['check_id', 'fil_', 'is_task', 'mfc_finish',
+                                 'mfc_start', 'mfc_user_id', 'mo', 'mo_finish', 'mo_start']
