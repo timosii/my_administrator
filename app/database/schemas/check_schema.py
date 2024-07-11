@@ -1,6 +1,6 @@
 import datetime as dt
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.utils.utils import format_timedelta, to_moscow_time
 
@@ -32,9 +32,7 @@ class CheckInDB(CheckBase):
     mfc_finish: dt.datetime | None = None
     mo_start: dt.datetime | None = None
     mo_finish: dt.datetime | None = None
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CheckOut(BaseModel):
@@ -57,9 +55,7 @@ class CheckOut(BaseModel):
 {self.violations_count}
         """
         return result
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CheckOutUnfinished(BaseModel):
@@ -77,6 +73,4 @@ class CheckOutUnfinished(BaseModel):
 {self.violations_count}
         """
         return result
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

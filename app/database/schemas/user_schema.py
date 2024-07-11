@@ -1,6 +1,6 @@
 import datetime as dt
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class UserBase(BaseModel):
@@ -50,7 +50,5 @@ class UserInDB(UserBase):
     is_mo_controler: bool | None = False
     is_archived: bool | None = False
     created_at: dt.datetime
-    updated_at: dt.datetime | None
-
-    class Config:
-        from_attributes = True
+    updated_at: dt.datetime | None = None
+    model_config = ConfigDict(from_attributes=True)

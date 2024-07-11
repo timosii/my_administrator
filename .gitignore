@@ -5,6 +5,7 @@
 **/__pycache__/
 **/*__pycache__*
 logs/*
+log.txt
 ngrok.yml
 users.xlsx
 tmp.xlsx

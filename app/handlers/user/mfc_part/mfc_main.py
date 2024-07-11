@@ -58,7 +58,6 @@ async def choose_mo(message: Message,
                     ):
     num = message.text
     mos = await helper.mo_define_by_num(num=num)
-    logger.info(f'MO: {mos}')
     if not mos:
         await message.answer(
             text=MfcMessages.does_not_find
@@ -712,9 +711,9 @@ async def finish_check(
     await state.set_state(MfcStates.choose_type_checking)
 
 
-@router.message()
-async def something_wrong_message(message: Message):
-    await message.answer(text=DefaultMessages.something_wrong)
+# @router.message()
+# async def something_wrong_message(message: Message):
+#     await message.answer(text=DefaultMessages.something_wrong)
 
 
 @router.callback_query(StateFilter(MfcStates))

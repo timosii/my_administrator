@@ -41,7 +41,6 @@ class HelpRepo:
             )
             logger.info('mo_define_by_num')
             res = result.scalars().all()
-            logger.info(res)
             return res
 
     async def _get_scalar(self, query) -> Any:

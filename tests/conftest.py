@@ -1,7 +1,8 @@
 import pytest
 from aiogram import Dispatcher
-from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.storage.redis import Redis, RedisStorage
 
+from app.config import settings
 from app.handlers import additional, default, dev
 from app.handlers.admin import admin
 from app.handlers.user.mfc_part import mfc_leader, mfc_main
@@ -16,8 +17,11 @@ from tests.mocked_aiogram import MockedBot, MockedSession
 
 @pytest.fixture(scope='session')
 def dp() -> Dispatcher:
-    dispatcher = Dispatcher(storage=MemoryStorage())
-    dp.include_routers(
+    redis = Redis(host=settings.REDIS_HOST)
+    storage = RedisStorage(redis=redis)
+    dispatcher = Dispatcher(storage=storage)
+    # dispatcher = Dispatcher(storage=MemoryStorage())
+    dispatcher.include_routers(
         admin.router,
         additional.router,
         dev.router,
@@ -37,3 +41,21 @@ def bot() -> MockedBot:
     bot = MockedBot()
     bot.session = MockedSession()
     return bot
+
+
+@pytest.fixture(scope='session', autouse=True)
+async def reset_fsm(dp: Dispatcher):
+    yield
+    storage = dp.fsm.storage
+    if hasattr(storage, 'data'):
+        storage.data.clear()
+    if hasattr(storage, 'states'):
+        storage.states.clear()
+    if hasattr(storage, 'keys'):
+        storage.keys.clear()
+
+# @pytest.fixture(scope='function', autouse=True)
+# async def close_cache():
+#     yield
+#     cache = caches.get('default')
+#     await cache.close()

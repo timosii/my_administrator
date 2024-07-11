@@ -1,6 +1,6 @@
 import datetime as dt
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.utils.utils import format_timedelta, to_moscow_time
 
@@ -34,17 +34,15 @@ class ViolationFoundUpdate(BaseModel):
 
 class ViolationFoundInDB(ViolationFoundBase):
     violation_found_id: int
-    photo_id_mfc: str | None
-    comm_mfc: str | None
-    mo_user_id: int | None
-    comm_mo: str | None
+    photo_id_mfc: str | None = None
+    comm_mfc: str | None = None
+    mo_user_id: int | None = None
+    comm_mo: str | None = None
     violation_detected: dt.datetime
-    violation_fixed: dt.datetime | None
+    violation_fixed: dt.datetime | None = None
     is_pending: bool
-    violation_pending: dt.datetime | None
-
-    class Config:
-        from_attributes = True
+    violation_pending: dt.datetime | None = None
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ViolationFoundDeleteMfc(BaseModel):
@@ -96,7 +94,7 @@ class ViolationFoundOut(ViolationFoundBase):
     photo_id_mo: str | None = None
     comm_mo: str | None = None
     is_pending: bool
-    violation_pending: dt.datetime | None
+    violation_pending: dt.datetime | None = None
 
     def violation_card(self) -> str:
         result = f"""
@@ -129,6 +127,4 @@ class ViolationFoundOut(ViolationFoundBase):
 <b>Время на исправление</b>: {format_timedelta(self.time_to_correct)}
         """
         return result
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

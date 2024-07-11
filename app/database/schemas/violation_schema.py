@@ -1,6 +1,6 @@
 import datetime as dt
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class ViolationBase(BaseModel):
@@ -12,7 +12,5 @@ class ViolationBase(BaseModel):
 
 
 class ViolationInDB(ViolationBase):
-    time_to_correct: dt.timedelta | None
-
-    class Config:
-        from_attributes = True
+    time_to_correct: dt.timedelta | None = None
+    model_config = ConfigDict(from_attributes=True)
