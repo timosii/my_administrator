@@ -11,4 +11,4 @@ class Settings:
     TEST_ID_MO: Final = os.getenv('TEST_ID_MO', 'need_to_define')
 
 
-settings = Settings()
+settings_test = Settings()
