@@ -86,6 +86,111 @@ async def assert_send_message(bot, expected_text):
     return outgoing_message
 
 
+async def assert_save_violation_found(dp, bot, violation_name: str):
+    bot.add_result_for(
+        method=AnswerCallbackQuery,
+        ok=True,
+    )
+    bot.add_result_for(
+        method=EditMessageText,
+        ok=True
+    )
+    bot.add_result_for(
+        method=AnswerCallbackQuery,
+        ok=True
+    )
+    bot.add_result_for(
+        method=AnswerCallbackQuery,
+        ok=True
+    )
+    bot.add_result_for(
+        method=AnswerCallbackQuery,
+        ok=True
+    )
+    bot.add_result_for(
+        method=AnswerCallbackQuery,
+        ok=True
+    )
+    bot.add_result_for(
+        method=AnswerCallbackQuery,
+        ok=True
+    )
+    bot.add_result_for(
+        method=AnswerCallbackQuery,
+        ok=True
+    )
+    description_callback_result = await send_callback_with_message(dp, bot, user_id=user_id, callback_data='save_and_go')
+    assert description_callback_result is not UNHANDLED
+    outgoing_callback = bot.get_request()
+    assert outgoing_callback.text == f'Мы сохранили нарушение <b>"{violation_name}"</b>. Спасибо!'
+    outgoing_callback = bot.get_request()
+    assert outgoing_callback.text == 'Отправляю нарушение сотрудникам ГП 107 ...'
+    outgoing_callback = bot.get_request()
+    assert isinstance(outgoing_callback, SendSticker)
+    outgoing_callback = bot.get_request()
+    assert isinstance(outgoing_callback, SendPhoto)
+    outgoing_callback = bot.get_request()
+    assert outgoing_callback.text == 'Оповещение в телеграм <b>отправлено</b> 1 сотруднику филиала ГП 107.'
+    outgoing_callback = bot.get_request()
+    assert outgoing_callback.text == 'Информация сохранена ✅'
+    assert outgoing_callback.show_alert is True
+    outgoing_callback = bot.get_request()
+    assert outgoing_callback.text == 'Вы можете продолжить проверку'
+    outgoing_callback = bot.get_request()
+    assert outgoing_callback.text == 'Выберите нарушение в зоне <b>"Входная группа"</b>'
+
+
+async def assert_add_content(dp, bot, fsm_context: FSMContext, violation_name: str):
+    bot.add_result_for(
+        method=SendPhoto,
+        ok=True,
+    )
+    result_photo = await send_fake_photo(dp, bot, user_id=user_id)
+    assert result_photo is not UNHANDLED
+    current_state = await fsm_context.get_state()
+    current_data = await fsm_context.get_data()
+    assert current_state == MfcStates.continue_state
+    photo_id_mfc = current_data.get('photo_id_mfc')
+    comm_mfc = current_data.get('comm_mfc')
+    assert comm_mfc == 'Тестовая подпись'
+    assert photo_id_mfc is not None
+    outgoing_message = await assert_send_message(bot, f'Вы приложили фото и написали комментарий по проблеме <b>"{violation_name}"</b>.\nСохранить нарушение?')
+    assert outgoing_message.reply_markup is not None
+    markup = outgoing_message.reply_markup
+    assert isinstance(markup, InlineKeyboardMarkup)
+    button: InlineKeyboardButton = markup.inline_keyboard[0][0]
+    assert button.text == 'Сохранить'
+    assert button.callback_data == 'save_and_go'
+
+
+async def assert_choose_violation(dp, bot, fsm_context, violation_name: str):
+    bot.add_result_for(
+        method=SendMessage,
+        ok=True,
+    )
+    bot.add_result_for(
+        method=SendMessage,
+        ok=True,
+    )
+    result = await send_message(dp, bot, user_id, f'{violation_name}')
+    assert result is not UNHANDLED
+    current_data = await fsm_context.get_data()
+    violation_dict_id = current_data.get('violation_dict_id')
+    first_message: TelegramType = bot.get_request()
+    assert isinstance(first_message, SendMessage)
+    assert first_message.text == 'Вы обнаружили проблему ☑️'
+
+    second_message: TelegramType = bot.get_request()
+    assert isinstance(second_message, SendMessage)
+    assert second_message.text == f'Приложите фото и напишите комментарий по проблеме <b>"{violation_name}"</b>'
+    assert second_message.reply_markup is not None
+    markup = second_message.reply_markup
+    assert isinstance(markup, InlineKeyboardMarkup)
+    button: InlineKeyboardButton = markup.inline_keyboard[0][0]
+    assert button.text == 'Посмотреть описание нарушения'
+    assert button.callback_data == f'description_{violation_dict_id}'
+
+
 @pytest.mark.asyncio(scope='session')
 async def test_mfc_choose_mo(dp, bot):
     fsm_context: FSMContext = dp.fsm.get_context(bot=bot, user_id=user_id, chat_id=user_id)
@@ -174,6 +279,7 @@ async def test_mfc_checking_process(dp, bot):
         ok=True,
     )
     result = await send_message(dp, bot, user_id, '🏥 Входная группа')
+    assert result is not UNHANDLED
     current_state = await fsm_context.get_state()
     current_data = await fsm_context.get_data()
     await assert_send_message(bot, 'Выберите нарушение в зоне <b>"Входная группа"</b>')
@@ -187,34 +293,14 @@ async def test_mfc_checking_process(dp, bot):
     assert current_data.get('mo_start') is None
     assert current_data.get('mo_finish') is None
     assert current_data.get('zone') == 'Входная группа'
-    bot.add_result_for(
-        method=SendMessage,
-        ok=True,
-    )
-    bot.add_result_for(
-        method=SendMessage,
-        ok=True,
-    )
-    result = await send_message(dp, bot, user_id, 'Загрязнения во входной группе')
-    current_state = await fsm_context.get_state()
+
+    await assert_choose_violation(dp, bot, fsm_context, violation_name='Загрязнения во входной группе')
     current_data = await fsm_context.get_data()
+    current_state = await fsm_context.get_state()
+    violation_dict_id = current_data.get('violation_dict_id')
     violation_detected = current_data.get('violation_detected')
     violation_name = current_data.get('violation_name')
-    violation_dict_id = current_data.get('violation_dict_id')
     violation_found_id = current_data.get('violation_found_id')
-    first_message: TelegramType = bot.get_request()
-    assert isinstance(first_message, SendMessage)
-    assert first_message.text == 'Вы обнаружили проблему ☑️'
-
-    second_message: TelegramType = bot.get_request()
-    assert isinstance(second_message, SendMessage)
-    assert second_message.text == 'Приложите фото и напишите комментарий по проблеме <b>"Загрязнения во входной группе"</b>'
-    assert second_message.reply_markup is not None
-    markup = second_message.reply_markup
-    assert isinstance(markup, InlineKeyboardMarkup)
-    button: InlineKeyboardButton = markup.inline_keyboard[0][0]
-    assert button.text == 'Посмотреть описание нарушения'
-    assert button.callback_data == f'description_{violation_dict_id}'
     assert current_state == MfcStates.add_content
     assert current_data.get('check_id') == check_id_test
     assert current_data.get('comm_mfc') is None
@@ -247,77 +333,9 @@ async def test_mfc_checking_process(dp, bot):
     assert outgoing_callback.text == 'Грязный пол во входной группе. Наличие сезонного мусора (листья, реагенты), Ковры на входе грязные, с разводами грязи, присутствует реагент.'
     assert outgoing_callback.show_alert is True
 
-    bot.add_result_for(
-        method=SendPhoto,
-        ok=True,
-    )
-    result_photo = await send_fake_photo(dp, bot, user_id=user_id)
-    assert result_photo is not UNHANDLED
-    current_state = await fsm_context.get_state()
-    current_data = await fsm_context.get_data()
-    assert current_state == MfcStates.continue_state
-    photo_id_mfc = current_data.get('photo_id_mfc')
-    comm_mfc = current_data.get('comm_mfc')
-    assert comm_mfc == 'Тестовая подпись'
-    assert photo_id_mfc is not None
-    outgoing_message = await assert_send_message(bot, 'Вы приложили фото и написали комментарий по проблеме <b>"Загрязнения во входной группе"</b>.\nСохранить нарушение?')
-    assert outgoing_message.reply_markup is not None
-    markup = outgoing_message.reply_markup
-    assert isinstance(markup, InlineKeyboardMarkup)
-    button: InlineKeyboardButton = markup.inline_keyboard[0][0]
-    assert button.text == 'Сохранить'
-    assert button.callback_data == 'save_and_go'
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True,
-    )
-    bot.add_result_for(
-        method=EditMessageText,
-        ok=True
-    )
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True
-    )
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True
-    )
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True
-    )
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True
-    )
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True
-    )
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True
-    )
-    description_callback_result = await send_callback_with_message(dp, bot, user_id=user_id, callback_data='save_and_go')
-    assert description_callback_result is not UNHANDLED
-    outgoing_callback: TelegramType = bot.get_request()
-    assert outgoing_callback.text == 'Мы сохранили нарушение <b>"Загрязнения во входной группе"</b>. Спасибо!'
-    outgoing_callback: TelegramType = bot.get_request()
-    assert outgoing_callback.text == 'Отправляю нарушение сотрудникам ГП 107 ...'
-    outgoing_callback: TelegramType = bot.get_request()
-    assert isinstance(outgoing_callback, SendSticker)
-    outgoing_callback: TelegramType = bot.get_request()
-    assert isinstance(outgoing_callback, SendPhoto)
-    outgoing_callback: TelegramType = bot.get_request()
-    assert outgoing_callback.text == 'Оповещение в телеграм <b>отправлено</b> 1 сотруднику филиала ГП 107.'
-    outgoing_callback: TelegramType = bot.get_request()
-    assert outgoing_callback.text == 'Информация сохранена ✅'
-    assert outgoing_callback.show_alert is True
-    outgoing_callback: TelegramType = bot.get_request()
-    assert outgoing_callback.text == 'Вы можете продолжить проверку'
-    outgoing_callback: TelegramType = bot.get_request()
-    assert outgoing_callback.text == 'Выберите нарушение в зоне <b>"Входная группа"</b>'
+    await assert_add_content(dp, bot, fsm_context, violation_name='Загрязнения во входной группе')
+    await assert_save_violation_found(dp, bot, violation_name='Загрязнения во входной группе')
+
     current_state = await fsm_context.get_state()
     current_data = await fsm_context.get_data()
     assert current_state == MfcStates.choose_violation
@@ -342,23 +360,8 @@ async def test_mfc_checking_process(dp, bot):
     assert current_data.get('violation_pending') is None
     assert current_data.get('violations_completed') == ['Загрязнения во входной группе']
     assert current_data.get('zone') == 'Входная группа'
-    bot.add_result_for(
-        method=SendMessage,
-        ok=True,
-    )
-    bot.add_result_for(
-        method=SendMessage,
-        ok=True,
-    )
-    result = await send_message(dp, bot, user_id=user_id, text='Мусор, посторонние предметы во входной группе')
-    first_message: TelegramType = bot.get_request()
-    assert isinstance(first_message, SendMessage)
-    assert first_message.text == 'Вы обнаружили проблему ☑️'
 
-    second_message: TelegramType = bot.get_request()
-    assert isinstance(second_message, SendMessage)
-    assert second_message.text == 'Приложите фото и напишите комментарий по проблеме <b>"Мусор, посторонние предметы во входной группе"</b>'
-    assert second_message.reply_markup is not None
+    await assert_choose_violation(dp, bot, fsm_context, violation_name='Мусор, посторонние предметы во входной группе')
     current_state = await fsm_context.get_state()
     current_data = await fsm_context.get_data()
     assert current_state == MfcStates.add_content
@@ -371,77 +374,9 @@ async def test_mfc_checking_process(dp, bot):
     assert current_data.get('violations_completed') == ['Загрязнения во входной группе']
     assert current_data.get('zone') == 'Входная группа'
 
-    bot.add_result_for(
-        method=SendPhoto,
-        ok=True,
-    )
-    result_photo = await send_fake_photo(dp, bot, user_id=user_id)
-    assert result_photo is not UNHANDLED
-    current_state = await fsm_context.get_state()
-    current_data = await fsm_context.get_data()
-    assert current_state == MfcStates.continue_state
-    photo_id_mfc = current_data.get('photo_id_mfc')
-    comm_mfc = current_data.get('comm_mfc')
-    assert comm_mfc == 'Тестовая подпись'
-    assert photo_id_mfc is not None
-    outgoing_message_ = await assert_send_message(bot, 'Вы приложили фото и написали комментарий по проблеме <b>"Мусор, посторонние предметы во входной группе"</b>.\nСохранить нарушение?')
-    assert outgoing_message_.reply_markup is not None
-    markup = outgoing_message_.reply_markup
-    assert isinstance(markup, InlineKeyboardMarkup)
-    button: InlineKeyboardButton = markup.inline_keyboard[0][0]
-    assert button.text == 'Сохранить'
+    await assert_add_content(dp, bot, fsm_context, violation_name='Мусор, посторонние предметы во входной группе')
+    await assert_save_violation_found(dp, bot, violation_name='Мусор, посторонние предметы во входной группе')
 
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True,
-    )
-    bot.add_result_for(
-        method=EditMessageText,
-        ok=True
-    )
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True
-    )
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True
-    )
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True
-    )
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True
-    )
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True
-    )
-    bot.add_result_for(
-        method=AnswerCallbackQuery,
-        ok=True
-    )
-    description_callback_result = await send_callback_with_message(dp, bot, user_id=user_id, callback_data='save_and_go')
-    assert description_callback_result is not UNHANDLED
-    outgoing_callback: TelegramType = bot.get_request()
-    assert outgoing_callback.text == 'Мы сохранили нарушение <b>"Мусор, посторонние предметы во входной группе"</b>. Спасибо!'
-    outgoing_callback: TelegramType = bot.get_request()
-    assert outgoing_callback.text == 'Отправляю нарушение сотрудникам ГП 107 ...'
-    outgoing_callback: TelegramType = bot.get_request()
-    assert isinstance(outgoing_callback, SendSticker)
-    outgoing_callback: TelegramType = bot.get_request()
-    assert isinstance(outgoing_callback, SendPhoto)
-    outgoing_callback: TelegramType = bot.get_request()
-    assert outgoing_callback.text == 'Оповещение в телеграм <b>отправлено</b> 1 сотруднику филиала ГП 107.'
-    outgoing_callback: TelegramType = bot.get_request()
-    assert outgoing_callback.text == 'Информация сохранена ✅'
-    assert outgoing_callback.show_alert is True
-    outgoing_callback: TelegramType = bot.get_request()
-    assert outgoing_callback.text == 'Вы можете продолжить проверку'
-    outgoing_callback: TelegramType = bot.get_request()
-    assert outgoing_callback.text == 'Выберите нарушение в зоне <b>"Входная группа"</b>'
     current_state = await fsm_context.get_state()
     current_data = await fsm_context.get_data()
     assert current_state == MfcStates.choose_violation
@@ -467,6 +402,7 @@ async def test_mfc_checking_process(dp, bot):
     assert current_data.get('violations_completed') == [
         'Загрязнения во входной группе', 'Мусор, посторонние предметы во входной группе']
     assert current_data.get('zone') == 'Входная группа'
+
     bot.add_result_for(
         method=SendMessage,
         ok=True,
