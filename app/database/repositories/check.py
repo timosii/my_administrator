@@ -68,6 +68,7 @@ class CheckRepo:
             await session.execute(stmt)
             await session.commit()
             await session.execute(text('ALTER SEQUENCE data.check_check_id_seq RESTART WITH 1'))
+            await session.execute(text('ALTER SEQUENCE data.violation_found_violation_found_id_seq RESTART WITH 1'))
             await session.commit()
             logger.info('ALL checks deleted')
             await self.clear_cache()
