@@ -14,10 +14,10 @@ class AddTestData:
     def __init__(self,
                  check_count: int,
                  violation_by_check_count: int,
-                 task_count: int=0) -> None:
+                 task_count: int = 0) -> None:
         self.check_count = check_count
         self.task_count = task_count
-        self.violation_by_check_count = violation_by_check_count  
+        self.violation_by_check_count = violation_by_check_count
 
     async def insert_check(
             self,
@@ -65,27 +65,17 @@ class AddTestData:
         logger.info(f'TEST_VIOLATION_FOUND_ID {violation_found_in.violation_found_id} ADDED')
 
     async def add_checks(
-            self, 
-            
+            self,
+
     ):
         check_count = self.check_count
         violation_count = self.violation_by_check_count
         for check in range(check_count):
-            asyncio.get_event_loop().run_until_complete(atd.insert_check())
+            await atd.insert_check()
             for violation in range(violation_count):
-                asyncio.get_event_loop().run_until_complete(atd.insert_violation_found())
-
-
-
+                await atd.insert_violation_found()
 
 
 if __name__ == '__main__':
     atd = AddTestData(check_count=4, violation_by_check_count=3)
-    atd.add_checks()
-    # asyncio.get_event_loop().run_until_complete(atd.insert_check())
-    # asyncio.get_event_loop().run_until_complete(atd.insert_violation_found())
-    # asyncio.get_event_loop().run_until_complete(atd.insert_violation_found())
-    # asyncio.get_event_loop().run_until_complete(atd.insert_violation_found())
-    # atd_ = AddTestData()
-    # asyncio.get_event_loop().run_until_complete(atd_.insert_check_task())
-    # asyncio.get_event_loop().run_until_complete(atd_.insert_violation_found())
+    asyncio.get_event_loop().run_until_complete(atd.add_checks())
