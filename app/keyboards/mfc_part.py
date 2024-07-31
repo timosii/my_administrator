@@ -6,7 +6,6 @@ from aiogram.types import (
 )
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-
 from app.database.db_helpers.form_menu import (
     get_all_zones,
     get_fils_by_mo,
@@ -163,16 +162,20 @@ class MfcLeaderKeyboards:
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
-    
+
+    def get_period(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Выбрать период')
+        self.kb.button(text='Назад')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+
     def get_report(self) -> ReplyKeyboardMarkup:
-        self.kb.button(text='Выбрать период')
+        self.kb.button(text='Получить отчет')
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
-    
-    def get_end_of_period(self) -> ReplyKeyboardMarkup:
-        self.kb.button(text='Выбрать период')
-        self.kb.button(text='Назад')
+
+    def finish_process(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Закончить')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
-        

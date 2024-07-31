@@ -263,7 +263,6 @@ async def back_command(message: Message, state: FSMContext):
         await state.update_data(
             fil_=None,
         )
-
     else:
         await message.answer(
             text=DefaultMessages.something_wrong,
