@@ -36,3 +36,7 @@ class AdminStates(StatesGroup):
 
 class MfcLeaderStates(StatesGroup):
     mfc_leader = State()
+    get_report = State()
+    get_start_period = State()
+    get_end_period = State()
+    full_period = State()

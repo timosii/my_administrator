@@ -125,6 +125,7 @@ class MfcMessages:
 
 class MfcLeaderMessages:
     start_message = f'{form_greeting()}, куратор МФЦ!'
+    choose_period = 'Выберите начало периода: '
 
 
 class MoPerformerMessages:
