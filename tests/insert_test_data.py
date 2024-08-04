@@ -77,5 +77,5 @@ class AddTestData:
 
 
 if __name__ == '__main__':
-    atd = AddTestData(check_count=4, violation_by_check_count=3)
+    atd = AddTestData(check_count=40, violation_by_check_count=3)
     asyncio.get_event_loop().run_until_complete(atd.add_checks())

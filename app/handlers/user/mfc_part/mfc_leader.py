@@ -7,6 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback
 
+from app.database.repositories.get_reports import get_mfc_report
 from app.filters.mfc_filters import MfcLeaderFilter
 from app.handlers.messages import DefaultMessages, MfcLeaderMessages
 from app.handlers.states import MfcLeaderStates
@@ -110,7 +111,7 @@ async def end_period_calendar(callback_query: CallbackQuery, callback_data: Call
         await state.update_data(
             finish_period=date.isoformat()
         )
-       
+
         await callback_query.message.answer(
             text=f"Отчетный период: <b>{dt.datetime.fromisoformat(data['start_period']).strftime('%d-%m-%Y')} - {date.strftime('%d-%m-%Y')}</b>\nНажмите <b>Получить отчет</b> для получения отчета",
             reply_markup=MfcLeaderKeyboards().get_report()
@@ -120,10 +121,14 @@ async def end_period_calendar(callback_query: CallbackQuery, callback_data: Call
 
 @router.message(F.text.lower() == 'получить отчет', StateFilter(MfcLeaderStates.full_period))
 async def get_report(message: Message, state: FSMContext):
-    await message.answer(
-        text='Здесь будет отправлен отчет',
-        reply_markup=MfcLeaderKeyboards().finish_process()
-    )
+    mfc_report_doc = await get_mfc_report()
+
+    await message.answer_document(document=mfc_report_doc, caption='Отправляю отчет')
+
+    # await message.answer(
+    #     text='Здесь будет отправлен отчет',
+    #     reply_markup=MfcLeaderKeyboards().finish_process()
+    # )
     await state.set_state(MfcLeaderStates.finish_stage)
 
 

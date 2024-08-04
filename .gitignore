@@ -11,3 +11,4 @@ users.xlsx
 tmp.xlsx
 .mypy_cache
 .pytest_cache
+*.xlsx
