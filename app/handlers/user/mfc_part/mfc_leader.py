@@ -40,7 +40,7 @@ async def back_command(message: Message, state: FSMContext):
             text=MfcLeaderMessages.start_message,
             reply_markup=MfcLeaderKeyboards().main_menu(),
         )
-    elif current_state == MfcLeaderStates.get_start_period:
+    elif current_state == MfcLeaderStates.get_start_date:
         await state.set_state(MfcLeaderStates.mfc_leader)
         await message.answer(
             text=MfcLeaderMessages.start_message,
@@ -50,14 +50,14 @@ async def back_command(message: Message, state: FSMContext):
         MfcLeaderStates.get_end_period,
         MfcLeaderStates.full_period
     ):
-        await state.set_state(MfcLeaderStates.get_start_period)
+        await state.set_state(MfcLeaderStates.get_start_date)
         await message.answer(
             text='<b>Выберите начало периода:</b> ',
             reply_markup=await SimpleCalendar().start_calendar()
         )
         await state.update_data(
-            start_period=None,
-            finish_period=None
+            start_date=None,
+            finish_date=None
         )
     else:
         await message.answer(
@@ -88,7 +88,7 @@ async def start_period_calendar(callback_query: CallbackQuery, callback_data: Ca
     selected, date = await calendar.process_selection(callback_query, callback_data)
     if selected:
         await state.update_data(
-            start_period=date.isoformat()
+            start_date=date.isoformat()
         )
         await callback_query.message.answer(
             text='<b>Выберите конец периода:</b> ',
@@ -100,20 +100,20 @@ async def start_period_calendar(callback_query: CallbackQuery, callback_data: Ca
 @router.callback_query(SimpleCalendarCallback.filter(), StateFilter(MfcLeaderStates.get_end_period))
 async def end_period_calendar(callback_query: CallbackQuery, callback_data: CallbackData, state: FSMContext):
     data = await state.get_data()
-    start_period = dt.datetime.fromisoformat(data['start_period'])
+    start_date = dt.datetime.fromisoformat(data['start_date'])
     calendar = SimpleCalendar(
         show_alerts=True,
-        selected_date=start_period
+        selected_date=start_date
     )
     calendar.set_dates_range(dt.datetime(2022, 1, 1), dt.datetime(2025, 12, 31))
     selected, date = await calendar.process_selection(callback_query, callback_data)
     if selected:
         await state.update_data(
-            finish_period=date.isoformat()
+            end_date=date.isoformat()
         )
 
         await callback_query.message.answer(
-            text=f"Отчетный период: <b>{dt.datetime.fromisoformat(data['start_period']).strftime('%d-%m-%Y')} - {date.strftime('%d-%m-%Y')}</b>\nНажмите <b>Получить отчет</b> для получения отчета",
+            text=f"Отчетный период: <b>{dt.datetime.fromisoformat(data['start_date']).strftime('%d-%m-%Y')} - {date.strftime('%d-%m-%Y')}</b>\nНажмите <b>Получить отчет</b> для получения отчета",
             reply_markup=MfcLeaderKeyboards().get_report()
         )
         await state.set_state(MfcLeaderStates.full_period)
@@ -121,14 +121,21 @@ async def end_period_calendar(callback_query: CallbackQuery, callback_data: Call
 
 @router.message(F.text.lower() == 'получить отчет', StateFilter(MfcLeaderStates.full_period))
 async def get_report(message: Message, state: FSMContext):
-    mfc_report_doc = await get_mfc_report()
+    data = await state.get_data()
+    start_date = dt.datetime.fromisoformat(data['start_date']).strftime('%Y-%m-%d')
+    end_date = dt.datetime.fromisoformat(data['end_date']).strftime('%Y-%m-%d')
+    mfc_report_doc = await get_mfc_report(
+        start_date=start_date,
+        end_date=end_date
+        )
 
-    await message.answer_document(document=mfc_report_doc, caption='Отправляю отчет')
-
-    # await message.answer(
-    #     text='Здесь будет отправлен отчет',
-    #     reply_markup=MfcLeaderKeyboards().finish_process()
-    # )
+    if not mfc_report_doc:
+        await message.answer(text='Нет данных за выбранный период',
+                             reply_markup=MfcLeaderKeyboards().finish_process())
+    else:
+        await message.answer_document(document=mfc_report_doc,
+                                      caption='Отправляю отчет',
+                                      reply_markup=MfcLeaderKeyboards().finish_process())
     await state.set_state(MfcLeaderStates.finish_stage)
 
 
