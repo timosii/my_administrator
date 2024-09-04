@@ -105,7 +105,7 @@ class MoPerformerCard:
             text_mes_func = violations_out[order].violation_card
             kb_func = MoPerformerKeyboards().get_violation_menu
 
-        photo_id = violations_out[order].photo_id_mfc
+        photo_id = violations_out[order].photo_id_mfc[0] if violations_out[order].photo_id_mfc else None  # type: ignore
         text_mes = text_mes_func()
         prev_order = order - 1
         next_order = order + 1

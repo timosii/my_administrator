@@ -1,3 +1,5 @@
+import datetime as dt
+
 from app.database.services.users import UserService
 from app.utils.utils import define_word, ending_define, form_greeting, time_determiner
 from app.view.changelog import CHANGELOG
@@ -145,6 +147,7 @@ class MoPerformerMessages:
     top_sticker = 'CAACAgEAAxkBAAEGSvhmdAZZ0WnNe6NdE8eZw9sCMxmS9AACVAIAAnPDMURXjXgfqUkMFjUE'
     watch_sticker = 'CAACAgEAAxkBAAEGSuBmdAVl03axNZqRKohxhbiwzs1D6AACgAIAAqFjGUSrWD-iBcJN3DUE'
     save_sticker = 'CAACAgEAAxkBAAEGSyRmdAuwBUQuDe3UOYfTRab8RpLFzQACCAIAAoCN0UbbYuEuHFi7_DUE'
+    choose_pending_period = 'Выберите <b>срок переноса:</b>'
     add_pending_comm = 'Добавьте комментарий для переноса нарушения.\nВ нём вы можете указать <b>причину переноса</b>'
     continue_check = 'Загружаю нарушения...'
     wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
@@ -192,6 +195,11 @@ class MoPerformerMessages:
     @staticmethod
     def correct_mode(text_mes: str) -> str:
         res = f'Вы <b>в режиме исправления нарушения</b>:\n{text_mes}\nПожалуйста, приложите фотографию и добавьте комментарий в качестве подписи'
+        return res
+
+    @staticmethod
+    def pending_period(pending_date: dt.datetime) -> str:
+        res = f"Вы выбрали срок переноса: <b>{pending_date.strftime('%d-%m-%Y')}</b>"
         return res
 
 

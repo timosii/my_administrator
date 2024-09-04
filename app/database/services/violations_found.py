@@ -374,6 +374,7 @@ class ViolationFoundService:
             photo_id_mfc=violation.photo_id_mfc,
             comm_mo=violation.comm_mo,
             is_pending=violation.is_pending,
-            violation_pending=violation.violation_pending
+            violation_pending=violation.violation_pending,
+            pending_period=violation.pending_period
         )
         return vio_found

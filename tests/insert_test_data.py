@@ -57,7 +57,7 @@ class AddTestData:
         v = ViolationFoundTestCreate(
             check_id=check_id,
             violation_dict_id=violation_dict_id,
-            photo_id_mfc='AgACAgIAAxkBAAIWaWZzYejf5TuIjTY6k33RG5VXuGnrAALA2jEbxrmYSzsZCXXhT3thAQADAgADeQADNQQ',
+            photo_id_mfc=['AgACAgIAAxkBAAIWaWZzYejf5TuIjTY6k33RG5VXuGnrAALA2jEbxrmYSzsZCXXhT3thAQADAgADeQADNQQ'],
             comm_mfc=f'TEST_VIOLATION_{violation_dict_id}',
             violation_detected=current_time
         )
@@ -77,5 +77,5 @@ class AddTestData:
 
 
 if __name__ == '__main__':
-    atd = AddTestData(check_count=40, violation_by_check_count=3)
+    atd = AddTestData(check_count=10, violation_by_check_count=2)
     asyncio.get_event_loop().run_until_complete(atd.add_checks())

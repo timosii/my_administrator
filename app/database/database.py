@@ -36,6 +36,7 @@ str_pk = Annotated[str, mapped_column(
 str_255 = Annotated[str, mapped_column(
     type_=String(255)
 )]
+
 datetime_now = Annotated[dt.datetime, mapped_column(server_default=text("TIMEZONE('utc', now())"))]
 updated_at = Annotated[dt.datetime, mapped_column(
     server_default=text("TIMEZONE('utc', now())"),

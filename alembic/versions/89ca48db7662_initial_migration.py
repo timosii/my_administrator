@@ -1,21 +1,22 @@
+# mypy: disable-error-code="attr-defined"
 """initial migration
 
-Revision ID: 4cc96cf91f97
-Revises: 20716cd8712b
-Create Date: 2024-06-24 21:45:48.367875
+Revision ID: 89ca48db7662
+Revises: 4cc96cf91f97
+Create Date: 2024-09-04 18:07:53.341287
 
 """
-from typing import Sequence
+from typing import Sequence, Union
 
 import sqlalchemy as sa
 
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '4cc96cf91f97'
-down_revision: str | None = None
-branch_labels: str | Sequence[str] | None = None
-depends_on: str | Sequence[str] | None = None
+revision: str = '89ca48db7662'
+down_revision: Union[str, None] = None
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
@@ -151,7 +152,7 @@ def upgrade() -> None:
                     sa.Column('violation_found_id', sa.BigInteger(), nullable=False),
                     sa.Column('check_id', sa.BigInteger(), nullable=False),
                     sa.Column('violation_dict_id', sa.Integer(), nullable=False),
-                    sa.Column('photo_id_mfc', sa.String(length=255), nullable=True),
+                    sa.Column('photo_id_mfc', sa.ARRAY(sa.String(length=255)), nullable=True),
                     sa.Column('comm_mfc', sa.String(), nullable=True),
                     sa.Column('mo_user_id', sa.BigInteger(), nullable=True),
                     sa.Column('photo_id_mo', sa.String(length=255), nullable=True),
@@ -161,6 +162,7 @@ def upgrade() -> None:
                     sa.Column('violation_fixed', sa.DateTime(), nullable=True),
                     sa.Column('is_pending', sa.Boolean(), nullable=False),
                     sa.Column('violation_pending', sa.DateTime(), nullable=True),
+                    sa.Column('pending_period', sa.DateTime(), nullable=True),
                     sa.ForeignKeyConstraint(['check_id'], ['data.check.check_id'],
                                             onupdate='CASCADE', ondelete='CASCADE'),
                     sa.ForeignKeyConstraint(['mo_user_id'], ['data.user.user_id'],

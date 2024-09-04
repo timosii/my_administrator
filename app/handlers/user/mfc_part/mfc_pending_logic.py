@@ -54,7 +54,7 @@ class MfcPendingCard:
                    violations_out: list[ViolationFoundOut],
                    order: int = 0,
                    ) -> Reply:
-        photo_id = violations_out[order].photo_id_mfc
+        photo_id = violations_out[order].photo_id_mfc[0] if violations_out[order].photo_id_mfc else None  # type: ignore
         text_mes = violations_out[order].violation_card_pending()
         prev_order = order - 1
         next_order = order + 1

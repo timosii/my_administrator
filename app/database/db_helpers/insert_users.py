@@ -292,6 +292,9 @@ async def insert_data_user(user: UserService = UserService()):
 
     ]
 
+    # for u in user_tests:
+    #     await user.add_user(u)
+
     for u in user_tests:
         existing_user = await user.user_exists(u.user_id)
         if not existing_user:
@@ -315,3 +318,4 @@ async def insert_data_user(user: UserService = UserService()):
 
 if __name__ == '__main__':
     asyncio.get_event_loop().run_until_complete(insert_data_user())
+    # asyncio.run(insert_data_user())

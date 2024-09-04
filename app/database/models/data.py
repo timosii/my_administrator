@@ -1,6 +1,6 @@
 import datetime as dt
 
-from sqlalchemy import CheckConstraint, ForeignKey
+from sqlalchemy import ARRAY, CheckConstraint, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.database import (
@@ -53,7 +53,8 @@ class ViolationFound(Base):
     check_id: Mapped[bigint] = mapped_column(ForeignKey('data.check.check_id', ondelete='CASCADE', onupdate='CASCADE'))
     violation_dict_id: Mapped[int] = mapped_column(ForeignKey(
         'dicts.violations.violation_dict_id', ondelete='CASCADE', onupdate='CASCADE'))
-    photo_id_mfc: Mapped[str_255] = mapped_column(nullable=True)
+    # photo_id_mfc: Mapped[str_255] = mapped_column(nullable=True)
+    photo_id_mfc: Mapped[list[str]] = mapped_column(ARRAY(String(255)), nullable=True)
     comm_mfc: Mapped[str] = mapped_column(nullable=True)
     mo_user_id: Mapped[bigint] = mapped_column(ForeignKey(
         'data.user.user_id', ondelete='CASCADE', onupdate='CASCADE'), nullable=True)
@@ -63,6 +64,7 @@ class ViolationFound(Base):
     violation_fixed: Mapped[dt.datetime] = mapped_column(nullable=True)
     is_pending: Mapped[bool] = mapped_column(default=False)
     violation_pending: Mapped[dt.datetime] = mapped_column(nullable=True)
+    pending_period: Mapped[dt.datetime] = mapped_column(nullable=True)
 
     mo_user: Mapped['User'] = relationship('User', foreign_keys=[mo_user_id])
 

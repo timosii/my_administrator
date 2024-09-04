@@ -156,7 +156,7 @@ class ViolationFoundRepo:
                 select(ViolationFound).where(
                     ViolationFound.check_id.in_(check_ids),
                     ViolationFound.comm_mfc.is_(None),
-                    ViolationFound.photo_id_mfc.is_(None)
+                    # ViolationFound.photo_id_mfc.is_(None)
                 )
             )
             violations = result.scalars().all()

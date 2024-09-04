@@ -710,11 +710,6 @@ async def finish_check(
     await state.set_state(MfcStates.choose_type_checking)
 
 
-# @router.message()
-# async def something_wrong_message(message: Message):
-#     await message.answer(text=DefaultMessages.something_wrong)
-
-
 @router.callback_query(StateFilter(MfcStates))
 async def something_wrong_callback(callback: CallbackQuery):
     await callback.answer(text=DefaultMessages.not_good_time)

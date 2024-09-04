@@ -3,8 +3,10 @@ import datetime as dt
 
 from aiogram import F, Router
 from aiogram.filters import StateFilter
+from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback
 
 from app.database.schemas.check_schema import CheckUpdate
 from app.database.schemas.violation_found_schema import (
@@ -46,11 +48,33 @@ async def move_to_pending(callback: CallbackQuery,
     await callback.answer(
         text=MoPerformerMessages.move_to_pending_alert, show_alert=True)
     await callback.message.answer(
-        text=MoPerformerMessages.add_pending_comm,
-        reply_markup=MoPerformerKeyboards().just_cancel()
+        text=MoPerformerMessages.choose_pending_period,
+        reply_markup=await SimpleCalendar().start_calendar()
     )
 
-    await state.set_state(MoPerformerStates.pending_process)
+    await state.set_state(MoPerformerStates.pending_period)
+
+
+@router.callback_query(SimpleCalendarCallback.filter(), StateFilter(MoPerformerStates.pending_period))
+async def start_period_calendar(callback_query: CallbackQuery, callback_data: CallbackData, state: FSMContext):
+    calendar = SimpleCalendar(
+        show_alerts=True
+    )
+    calendar.set_dates_range(dt.datetime(2022, 1, 1), dt.datetime(2025, 12, 31))
+    selected, date = await calendar.process_selection(callback_query, callback_data)
+    if selected:
+        await state.update_data(
+            pending_period=date.isoformat()
+        )
+        await callback_query.message.delete()
+        await callback_query.message.answer(
+            text=MoPerformerMessages.pending_period(pending_date=date)
+        )
+        await callback_query.message.answer(
+            text=MoPerformerMessages.add_pending_comm,
+            reply_markup=MoPerformerKeyboards().just_cancel()
+        )
+        await state.set_state(MoPerformerStates.pending_process)
 
 
 @router.message(
@@ -105,7 +129,8 @@ async def add_comm_pending_text(
             is_pending=True,
             mo_user_id=mo_user_id,
             comm_mo=f'При переносе:\n{comm_mo}',
-            violation_pending=dt.datetime.now(dt.timezone.utc)
+            violation_pending=dt.datetime.now(dt.timezone.utc),
+            pending_period=dt.datetime.fromisoformat(data['pending_period'])
         )
     )
     reply_obj = MoPerformerCard(

@@ -17,12 +17,12 @@ class ViolationFoundCreate(ViolationFoundBase):
 class ViolationFoundTestCreate(ViolationFoundCreate):
     violation_dict_id: int
     violation_detected: dt.datetime
-    photo_id_mfc: str
+    photo_id_mfc: list[str]
     comm_mfc: str
 
 
 class ViolationFoundUpdate(BaseModel):
-    photo_id_mfc: str | None = None
+    photo_id_mfc: list[str] | None = None
     comm_mfc: str | None = None
     mo_user_id: int | None = None
     photo_id_mo: str | None = None
@@ -30,11 +30,12 @@ class ViolationFoundUpdate(BaseModel):
     violation_fixed: dt.datetime | None = None
     is_pending: bool | None = False
     violation_pending: dt.datetime | None = None
+    pending_period: dt.datetime | None = None
 
 
 class ViolationFoundInDB(ViolationFoundBase):
     violation_found_id: int
-    photo_id_mfc: str | None = None
+    photo_id_mfc: list[str] | None = None
     comm_mfc: str | None = None
     mo_user_id: int | None = None
     comm_mo: str | None = None
@@ -42,6 +43,7 @@ class ViolationFoundInDB(ViolationFoundBase):
     violation_fixed: dt.datetime | None = None
     is_pending: bool
     violation_pending: dt.datetime | None = None
+    pending_period: dt.datetime | None = None
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -77,6 +79,7 @@ class ViolationFoundClearData(BaseModel):
     zone: None = None
     is_pending: None = None
     violation_pending: None = None
+    pending_period: None = None
 
 
 class ViolationFoundOut(ViolationFoundBase):
@@ -89,12 +92,13 @@ class ViolationFoundOut(ViolationFoundBase):
     time_to_correct: dt.timedelta
     violation_detected: dt.datetime
     comm_mfc: str | None = None
-    photo_id_mfc: str | None = None
+    photo_id_mfc: list[str] | None = None
     mo_user_id: int | None = None
     photo_id_mo: str | None = None
     comm_mo: str | None = None
     is_pending: bool
     violation_pending: dt.datetime | None = None
+    pending_period: dt.datetime | None = None
 
     def violation_card(self) -> str:
         result = f"""
@@ -121,6 +125,9 @@ class ViolationFoundOut(ViolationFoundBase):
 {to_moscow_time(self.violation_detected).strftime('%d.%m.%Y %H:%M')}
 <b>Время переноса нарушения:</b>
 {to_moscow_time(self.violation_pending).strftime('%d.%m.%Y %H:%M') if self.violation_pending else 'отсутствует'}
+<b>Срок переноса нарушения:</b>
+{to_moscow_time(self.pending_period).strftime('%d.%m.%Y') if self.pending_period else 'отсутствует'}
+
 
 Комментарий <b>при выявлении</b>: {self.comm_mfc if self.comm_mfc else 'отсутствует'}
 Комментарий <b>при переносе</b>: {comm_mo_format if comm_mo_format else 'отсутствует'}
