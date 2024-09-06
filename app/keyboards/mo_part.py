@@ -56,6 +56,10 @@ class MoPerformerKeyboards:
     ) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
+                InlineKeyboardButton(text='Пред.фото', callback_data=f'pphoto_{violation_id}'),
+                InlineKeyboardButton(text='След.фото', callback_data=f'nphoto_{violation_id}')
+            ],
+            [
                 InlineKeyboardButton(text='⬅️', callback_data=f'prev_{prev_violation_id}'),
                 InlineKeyboardButton(text='Исправить', callback_data=f'correct_{violation_id}'),
                 InlineKeyboardButton(text='➡️', callback_data=f'next_{next_violation_id}')
@@ -73,6 +77,10 @@ class MoPerformerKeyboards:
         next_violation_id: int
     ) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(text='Пред.фото', callback_data=f'pphoto_{violation_id}'),
+                InlineKeyboardButton(text='След.фото', callback_data=f'nphoto_{violation_id}')
+            ],
             [
                 InlineKeyboardButton(text='⬅️', callback_data=f'prev_{prev_violation_id}'),
                 InlineKeyboardButton(text='Исправить', callback_data=f'correct_{violation_id}'),

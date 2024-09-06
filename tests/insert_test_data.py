@@ -57,7 +57,10 @@ class AddTestData:
         v = ViolationFoundTestCreate(
             check_id=check_id,
             violation_dict_id=violation_dict_id,
-            photo_id_mfc=['AgACAgIAAxkBAAIWaWZzYejf5TuIjTY6k33RG5VXuGnrAALA2jEbxrmYSzsZCXXhT3thAQADAgADeQADNQQ'],
+            photo_id_mfc=[
+                'AgACAgIAAxkBAAJFCWbZiBUjYx4cR5daWeO-N7TlYr8FAAI65DEbKyDJSifoUxKbl8UrAQADAgADeQADNgQ', 'AgACAgIAAxkBAAJFPGbZiYRZT5IYurYgkHRPm_J4DL1DAAJA5DEbKyDJSogOiTosn2uyAQADAgADeQADNgQ',
+                'AgACAgIAAxkBAAJFR2bZiZ357cRvLBpq2wtMJVhO-dGfAAJD5DEbKyDJSsZscP9gVZkOAQADAgADeQADNgQ'
+            ],
             comm_mfc=f'TEST_VIOLATION_{violation_dict_id}',
             violation_detected=current_time
         )
@@ -66,16 +69,15 @@ class AddTestData:
 
     async def add_checks(
             self,
-
     ):
         check_count = self.check_count
         violation_count = self.violation_by_check_count
-        for check in range(check_count):
+        for _ in range(check_count):
             await atd.insert_check()
-            for violation in range(violation_count):
+            for _ in range(violation_count):
                 await atd.insert_violation_found()
 
 
 if __name__ == '__main__':
-    atd = AddTestData(check_count=10, violation_by_check_count=2)
+    atd = AddTestData(check_count=2, violation_by_check_count=3)
     asyncio.get_event_loop().run_until_complete(atd.add_checks())

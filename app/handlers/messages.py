@@ -87,6 +87,16 @@ class MfcMessages:
         return message
 
     @staticmethod
+    def photo_additional_added(violation: str) -> str:
+        message = f'Дополнительные фото по проблеме <b>"{violation}"</b> добавлены.\nСохранить нарушение?'
+        return message
+
+    @staticmethod
+    def photo_additional(violation: str) -> str:
+        message = f'Отправляйте дополнительные фотографии по проблеме <b>"{violation}"</b>.\nКогда закончите -- нажмите кнопку'
+        return message
+
+    @staticmethod
     def save_violation(violation: str) -> str:
         message = f'Мы сохранили нарушение <b>"{violation}"</b>. Спасибо!'
         return message

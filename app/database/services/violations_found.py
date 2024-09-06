@@ -196,7 +196,9 @@ class ViolationFoundService:
         return result.description if result else None
 
     async def send_vio_notification_to_fil_performers(
-        self, callback: CallbackQuery, violation: ViolationFoundOut
+        self,
+        callback: CallbackQuery,
+        violation: ViolationFoundOut
     ):
         performers = await self.get_violation_performers_by_fil(fil_=violation.fil_)
         if not performers:
@@ -221,7 +223,7 @@ class ViolationFoundService:
                     if violation.photo_id_mfc:
                         await callback.bot.send_photo(
                             chat_id=performer.user_id,
-                            photo=violation.photo_id_mfc,
+                            photo=violation.photo_id_mfc[0],
                             caption=MfcMessages.there_is_new_violation(fil_=violation.fil_, text=res),
                             reply_markup=MfcKeyboards().take_task_to_work(
                                 violation_id=violation.violation_found_id,

@@ -253,6 +253,51 @@ async def get_violations_next_prev(
 
 
 @router.callback_query(
+    F.data.startswith('nphoto_') | F.data.startswith('pphoto_'),
+    StateFilter(MoPerformerStates.mo_performer),
+)
+async def get_photos_next_prev(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    violation_found_id = int(callback.data.split('_')[1])
+    data = await state.get_data()
+
+    violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
+    photo_ids = violation_found_obj.photo_id_mfc
+    if not photo_ids:
+        await callback.answer(text='Фото отсутствует')
+        return
+
+    current_photo_id = callback.message.photo[-1].file_id
+    logger.debug(f'CURRENT_PHOTO: {current_photo_id}')
+
+    try:
+        current_index = photo_ids.index(current_photo_id)
+        logger.debug(f'CURRENT_INDEX: {current_index}')
+    except ValueError:
+        current_index = 0
+
+    if callback.data.startswith('nphoto_'):
+        next_index = (current_index + 1) % len(photo_ids)
+    else:
+        next_index = (current_index - 1) % len(photo_ids)
+
+    next_photo_id = photo_ids[next_index]
+    logger.debug(f'NEXT_PHOTO: {next_photo_id}')
+    if (next_photo_id == current_photo_id) or (len(photo_ids) < 2):
+        await callback.answer(text='Больше фото для этого нарушения нет')
+    else:
+        await callback.message.edit_media(
+            media=InputMediaPhoto(
+                media=next_photo_id,
+                caption=callback.message.caption),
+            reply_markup=callback.message.reply_markup
+        )
+        await callback.answer()
+
+
+@router.callback_query(
     F.data.startswith('next_') | F.data.startswith('prev_'),
     ~StateFilter(MoPerformerStates.mo_performer),
 )

@@ -128,7 +128,6 @@ class ViolationFoundOut(ViolationFoundBase):
 <b>Срок переноса нарушения:</b>
 {to_moscow_time(self.pending_period).strftime('%d.%m.%Y') if self.pending_period else 'отсутствует'}
 
-
 Комментарий <b>при выявлении</b>: {self.comm_mfc if self.comm_mfc else 'отсутствует'}
 Комментарий <b>при переносе</b>: {comm_mo_format if comm_mo_format else 'отсутствует'}
 <b>Время на исправление</b>: {format_timedelta(self.time_to_correct)}

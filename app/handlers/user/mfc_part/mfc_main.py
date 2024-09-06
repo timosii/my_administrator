@@ -482,11 +482,71 @@ async def add_photo_comm_directly(
     data = await state.get_data()
     violation_name = data['violation_name']
     await state.update_data(
-        photo_id_mfc=photo_id_mfc,
+        photo_id_mfc=[photo_id_mfc],
         comm_mfc=comm_mfc
     )
     await message.answer(
         text=MfcMessages.photo_comm_added(violation=violation_name),
+        reply_markup=MfcKeyboards().save_or_cancel(),
+    )
+    await state.set_state(MfcStates.continue_state)
+
+
+@router.callback_query(
+    F.data == 'additional_photo',
+    StateFilter(MfcStates.continue_state)
+)
+async def add_photo_additional(
+    callback: CallbackQuery,
+    state: FSMContext
+):
+    data = await state.get_data()
+    violation_name = data['violation_name']
+    await callback.message.answer(
+        text=MfcMessages.photo_additional(violation=violation_name),
+        reply_markup=MfcKeyboards().finish_photo_addition(),
+    )
+    await callback.answer()
+    await state.set_state(MfcStates.additional_photo)
+
+
+@router.message(
+    F.photo,
+    StateFilter(MfcStates.additional_photo)
+)
+async def add_photo_add(
+    message: Message,
+    state: FSMContext
+):
+    photo_id_mfc = message.photo[-1].file_id
+    data = await state.get_data()
+    photos_ids = data.get('photo_id_mfc', [])
+    photos_ids.append(photo_id_mfc)
+    await state.update_data(
+        photo_id_mfc=photos_ids,
+    )
+    await message.answer(
+        text=MfcMessages.photo_added,
+        reply_markup=MfcKeyboards().finish_photo_addition(),
+    )
+
+
+@router.message(
+    F.text.lower() == 'закончить добавление фото',
+    StateFilter(MfcStates.additional_photo)
+)
+async def finish_additional_photo(
+    message: Message,
+    state: FSMContext
+):
+    data = await state.get_data()
+    violation_name = data['violation_name']
+    await message.answer(
+        text=MfcMessages.violation_saved,
+        reply_markup=MfcKeyboards().just_cancel()
+    )
+    await message.answer(
+        text=MfcMessages.photo_additional_added(violation=violation_name),
         reply_markup=MfcKeyboards().save_or_cancel(),
     )
     await state.set_state(MfcStates.continue_state)
@@ -499,7 +559,6 @@ async def add_photo_comm_directly(
 )
 async def add_text_only_directly(
     message: Message,
-    state: FSMContext
 ):
     await message.answer(
         text=MfcMessages.need_comm_and_photo
