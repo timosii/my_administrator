@@ -1,12 +1,13 @@
 import datetime as dt
 
 from pydantic import BaseModel, ConfigDict
+from pydantic.types import UUID
 
 from app.utils.utils import format_timedelta, to_moscow_time
 
 
 class ViolationFoundBase(BaseModel):
-    check_id: int
+    check_id: UUID
     violation_dict_id: int
 
 
@@ -34,7 +35,7 @@ class ViolationFoundUpdate(BaseModel):
 
 
 class ViolationFoundInDB(ViolationFoundBase):
-    violation_found_id: int
+    violation_found_id: UUID
     photo_id_mfc: list[str] | None = None
     comm_mfc: str | None = None
     mo_user_id: int | None = None
@@ -82,11 +83,13 @@ class ViolationFoundClearData(BaseModel):
     pending_period: None = None
 
 
-class ViolationFoundOut(ViolationFoundBase):
+class ViolationFoundOut(BaseModel):
     mo: str
     fil_: str
+    check_id: str
+    violation_dict_id: int
     is_task: bool  # True если нарушение найдено в рамках уведомления
-    violation_found_id: int
+    violation_found_id: str
     zone: str
     violation_name: str
     time_to_correct: dt.timedelta

@@ -6,11 +6,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.database import (
     Base,
     bigint,
-    bigint_pk,
     bigint_pk_tg,
     datetime_now,
     str_255,
     updated_at,
+    uuid_nonpk,
+    uuidpk,
 )
 
 
@@ -30,8 +31,8 @@ class User(Base):
         'dicts.filials.fil_', ondelete='CASCADE', onupdate='CASCADE'), nullable=True)
 
     department: Mapped[str_255] = mapped_column(nullable=True)
-    last_name: Mapped[str_255]
-    first_name: Mapped[str_255]
+    last_name: Mapped[str_255] = mapped_column(nullable=True)
+    first_name: Mapped[str_255] = mapped_column(nullable=True)
     patronymic: Mapped[str_255] = mapped_column(nullable=True)
     post: Mapped[str_255] = mapped_column(nullable=True)
     is_admin: Mapped[bool] = mapped_column(default=False)
@@ -39,6 +40,7 @@ class User(Base):
     is_mfc_leader: Mapped[bool] = mapped_column(default=False)
     is_mo_performer: Mapped[bool] = mapped_column(default=False)
     is_mo_controler: Mapped[bool] = mapped_column(default=False)
+    is_avail: Mapped[bool] = mapped_column(default=False)
     is_archived: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime_now]
     updated_at: Mapped[updated_at]
@@ -48,12 +50,12 @@ class ViolationFound(Base):
     __tablename__ = 'violation_found'
     __table_args__ = {'schema': 'data'}
 
-    violation_found_id: Mapped[bigint_pk]
+    violation_found_id: Mapped[uuidpk]
 
-    check_id: Mapped[bigint] = mapped_column(ForeignKey('data.check.check_id', ondelete='CASCADE', onupdate='CASCADE'))
+    check_id: Mapped[uuid_nonpk] = mapped_column(ForeignKey(
+        'data.check.check_id', ondelete='CASCADE', onupdate='CASCADE'))
     violation_dict_id: Mapped[int] = mapped_column(ForeignKey(
         'dicts.violations.violation_dict_id', ondelete='CASCADE', onupdate='CASCADE'))
-    # photo_id_mfc: Mapped[str_255] = mapped_column(nullable=True)
     photo_id_mfc: Mapped[list[str]] = mapped_column(ARRAY(String(255)), nullable=True)
     comm_mfc: Mapped[str] = mapped_column(nullable=True)
     mo_user_id: Mapped[bigint] = mapped_column(ForeignKey(
@@ -79,7 +81,7 @@ class Check(Base):
         {'schema': 'data'},
     )
 
-    check_id: Mapped[bigint_pk]
+    check_id: Mapped[uuidpk]
     fil_: Mapped[str_255] = mapped_column(ForeignKey('dicts.filials.fil_', ondelete='CASCADE', onupdate='CASCADE'))
     mfc_user_id: Mapped[bigint] = mapped_column(ForeignKey('data.user.user_id', ondelete='CASCADE', onupdate='CASCADE'))
     mfc_start: Mapped[datetime_now]

@@ -7,6 +7,7 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback
+from loguru import logger
 
 from app.database.schemas.check_schema import CheckUpdate
 from app.database.schemas.violation_found_schema import (
@@ -29,13 +30,14 @@ router.message.filter(MoPerformerFilter())
 
 @router.callback_query(
     F.data.startswith('pending_'),
-    StateFilter(MoPerformerStates.mo_performer)
+    StateFilter(MoPerformerStates.mo_performer,
+                MoPerformerStates.pending_period)
 )
 async def move_to_pending(callback: CallbackQuery,
                           state: FSMContext,
                           ):
 
-    violation_found_id = int(callback.data.split('_')[1])
+    violation_found_id = str(callback.data.split('_')[1])
     await state.update_data(
         pending_vio=violation_found_id
     )
@@ -61,8 +63,23 @@ async def start_period_calendar(callback_query: CallbackQuery, callback_data: Ca
         show_alerts=True
     )
     calendar.set_dates_range(dt.datetime(2022, 1, 1), dt.datetime(2025, 12, 31))
+    logger.debug(f'CANCEL: {callback_data.act}')
     selected, date = await calendar.process_selection(callback_query, callback_data)
+    if callback_data.act == 'CANCEL':
+        await callback_query.message.delete()
+        await state.set_state(MoPerformerStates.mo_performer)
     if selected:
+        if (date + dt.timedelta(days=1)) < dt.datetime.today():
+            logger.debug(f'DATE: {date}')
+            logger.debug(f'TODAY: {dt.datetime.today()}')
+            await callback_query.answer(text='Дата переноса не может быть меньше сегодняшней',
+                                        show_alert=True)
+            await callback_query.message.delete()
+            await callback_query.message.answer(
+                text=MoPerformerMessages.choose_pending_period,
+                reply_markup=await SimpleCalendar().start_calendar()
+            )
+            return
         await state.update_data(
             pending_period=date.isoformat()
         )
@@ -165,7 +182,8 @@ async def add_comm_pending_text(
 
 @router.message(
     F.text.lower() == 'отменить',
-    StateFilter(MoPerformerStates.pending_process)
+    StateFilter(MoPerformerStates.pending_process,
+                MoPerformerStates.pending_period)
 )
 async def add_comm_pending_cancel(
     message: Message,
@@ -211,7 +229,8 @@ async def add_comm_pending_cancel(
 
 @router.message(
     ~F.text,
-    StateFilter(MoPerformerStates.pending_process)
+    StateFilter(MoPerformerStates.pending_process,
+                MoPerformerStates.pending_period)
 )
 async def wrong_add_content(
     message: Message,

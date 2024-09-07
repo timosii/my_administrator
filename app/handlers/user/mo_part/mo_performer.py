@@ -5,6 +5,7 @@ from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InputMediaPhoto, Message, ReplyKeyboardRemove
+from aiogram.utils.media_group import MediaGroupBuilder
 from loguru import logger
 
 from app.database.schemas.check_schema import CheckUpdate
@@ -85,7 +86,7 @@ async def get_active_violations(
 async def check_zero_violations(callback: CallbackQuery,
                                 state: FSMContext,
                                 check_obj: CheckService = CheckService()):
-    check_id = int(callback.data.split('_')[1])
+    check_id = str(callback.data.split('_')[1])
     data = await state.get_data()
     await callback.answer(
         text=MoPerformerMessages.finish_check_zero_violations,
@@ -190,7 +191,7 @@ async def get_check_violations(
     state: FSMContext,
     violation_obj: ViolationFoundService = ViolationFoundService(),
 ):
-    check_id = int(callback.data.split('_')[1])
+    check_id = str(callback.data.split('_')[1])
     await state.update_data(
         check_id=check_id,
     )
@@ -231,7 +232,7 @@ async def get_violations_next_prev(
     callback: CallbackQuery,
     state: FSMContext,
 ):
-    violation_found_id = int(callback.data.split('_')[1])
+    violation_found_id = str(callback.data.split('_')[1])
     data = await state.get_data()
 
     violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
@@ -260,7 +261,7 @@ async def get_photos_next_prev(
     callback: CallbackQuery,
     state: FSMContext,
 ):
-    violation_found_id = int(callback.data.split('_')[1])
+    violation_found_id = str(callback.data.split('_')[1])
     data = await state.get_data()
 
     violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
@@ -270,11 +271,8 @@ async def get_photos_next_prev(
         return
 
     current_photo_id = callback.message.photo[-1].file_id
-    logger.debug(f'CURRENT_PHOTO: {current_photo_id}')
-
     try:
         current_index = photo_ids.index(current_photo_id)
-        logger.debug(f'CURRENT_INDEX: {current_index}')
     except ValueError:
         current_index = 0
 
@@ -284,17 +282,46 @@ async def get_photos_next_prev(
         next_index = (current_index - 1) % len(photo_ids)
 
     next_photo_id = photo_ids[next_index]
-    logger.debug(f'NEXT_PHOTO: {next_photo_id}')
     if (next_photo_id == current_photo_id) or (len(photo_ids) < 2):
         await callback.answer(text='Больше фото для этого нарушения нет')
     else:
+        logger.debug(f'ENTITIES: {callback.message.caption_entities}')
+        logger.debug(f'CAPTION: {callback.message.caption}')
         await callback.message.edit_media(
             media=InputMediaPhoto(
                 media=next_photo_id,
-                caption=callback.message.caption),
+                caption_entities=callback.message.caption_entities,
+                caption=callback.message.caption,
+                parse_mode=None
+            ),
             reply_markup=callback.message.reply_markup
         )
         await callback.answer()
+
+
+@router.callback_query(
+    F.data.startswith('allphoto_'),
+    StateFilter(MoPerformerStates.mo_performer)
+)
+async def get_all_photos(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    violation_found_id = str(callback.data.split('_')[1])
+    data = await state.get_data()
+    violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
+    photo_ids = violation_found_obj.photo_id_mfc
+    if not photo_ids:
+        await callback.answer(text='Фото отсутствует')
+        return
+    violation_name = violation_found_obj.violation_name
+    media_group = MediaGroupBuilder(caption=violation_name)
+    for photo_id in photo_ids:
+        media_group.add_photo(media=photo_id)
+    await callback.message.answer_media_group(
+        media=media_group.build()
+    )
+    await callback.answer()
 
 
 @router.callback_query(
@@ -314,7 +341,7 @@ async def process_correct_callback(
     state: FSMContext,
     violation_obj: ViolationFoundService = ViolationFoundService(),
 ):
-    violation_found_id = int(callback.data.split('_')[1])
+    violation_found_id = str(callback.data.split('_')[1])
     data = await state.get_data()
     is_fixed = await violation_obj.is_violation_already_fixed(
         violation_found_id=violation_found_id
@@ -355,7 +382,7 @@ async def process_cancel_correct(
     callback: CallbackQuery,
     state: FSMContext,
 ):
-    violation_found_id = int(callback.data.split('_')[1])
+    violation_found_id = str(callback.data.split('_')[1])
     data = await state.get_data()
 
     violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
@@ -412,7 +439,7 @@ async def cancel_save_process(
     callback: CallbackQuery,
     state: FSMContext
 ):
-    violation_found_id = int(callback.data.split('_')[1])
+    violation_found_id = str(callback.data.split('_')[1])
     data = await state.get_data()
     violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
     reply_obj = MoPerformerCard(data=data).cancel_process(
@@ -481,7 +508,7 @@ async def save_violation_found_process(
     data = await state.get_data()
     is_pending = data.get('is_pending')
     is_task = data.get('is_task')
-    violation_found_id = int(callback.data.split('_')[1])
+    violation_found_id = str(callback.data.split('_')[1])
     current_time = dt.datetime.now(dt.timezone.utc)
     vio_upd = ViolationFoundUpdate(
         mo_user_id=data['mo_user_id'],
@@ -643,7 +670,10 @@ async def correct_vio_process_finish(
 ):
     data = await state.get_data()
     check_id = data['check_id']
+    logger.debug(f'check_id_is: {check_id}')
     violation_out_objects = MoPerformerCard(data=data).get_current_check_violations(check_id=check_id)
+    logger.debug(f'check_id_is: {check_id}')
+    logger.debug(f'VIO_OUT: {violation_out_objects}')
     if violation_out_objects:
         await message.answer(
             text=MoPerformerMessages.cant_finish, reply_markup=message.reply_markup

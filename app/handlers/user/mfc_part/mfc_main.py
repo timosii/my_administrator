@@ -1,11 +1,12 @@
 import asyncio
 
-from aiogram import F, Router
+from aiogram import Bot, F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
 from aiogram.types import CallbackQuery, InputMediaPhoto, Message, ReplyKeyboardRemove
+from aiogram_media_group import media_group_handler
 from loguru import logger
 
 from app.database.schemas.violation_found_schema import (
@@ -187,7 +188,7 @@ async def get_unfinished_checks(
 async def delete_unfinished(
     callback: CallbackQuery, state: FSMContext, check_obj: CheckService = CheckService()
 ):
-    check_id = int(callback.data.split('_')[-1])
+    check_id = str(callback.data.split('_')[-1])
     violation_count = await check_obj.get_violations_found_count_by_check(check_id=check_id)
     if violation_count == 0:
         await check_obj.delete_check(check_id=check_id)
@@ -379,7 +380,7 @@ async def get_violations_next_prev(
     callback: CallbackQuery,
     state: FSMContext,
 ):
-    violation_found_id = int(callback.data.split('_')[1])
+    violation_found_id = str(callback.data.split('_')[1])
     data = await state.get_data()
 
     violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
@@ -511,6 +512,32 @@ async def add_photo_additional(
 
 
 @router.message(
+    F.media_group_id,
+    F.content_type.in_({'photo'}),
+    StateFilter(MfcStates.additional_photo))
+@media_group_handler
+async def add_photo_media_group(
+    messages: list[Message],
+    state: FSMContext,
+    bot: Bot
+):
+    photos_ids_add = [m.photo[-1].file_id for m in messages]
+    data = await state.get_data()
+    photos_ids = data.get('photo_id_mfc', [])
+    photos_ids.extend(photos_ids_add)
+    logger.debug(f'PHOTOS_IDS: {photos_ids}')
+    await state.update_data(
+        photo_id_mfc=photos_ids,
+    )
+    await bot.send_message(
+        chat_id=messages[0].chat.id,
+        # text=MfcMessages.photo_added,
+        text='Фото добавлено через медиа группу!',
+        reply_markup=MfcKeyboards().finish_photo_addition(),
+    )
+
+
+@router.message(
     F.photo,
     StateFilter(MfcStates.additional_photo)
 )
@@ -522,6 +549,7 @@ async def add_photo_add(
     data = await state.get_data()
     photos_ids = data.get('photo_id_mfc', [])
     photos_ids.append(photo_id_mfc)
+    logger.debug(f'PHOTOS_IDS: {photos_ids}')
     await state.update_data(
         photo_id_mfc=photos_ids,
     )

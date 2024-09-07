@@ -37,7 +37,7 @@ class DictsUpdate():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
 
                 stmt = pg_insert(Mos).values(**stripped_row).on_conflict_do_update(
-                    index_elements=['mo_'],  # assuming 'id' is the primary key or unique constraint
+                    index_elements=['mo_'],
                     set_=stripped_row
                 )
                 await session.execute(stmt)
@@ -50,7 +50,7 @@ class DictsUpdate():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
 
                 stmt = pg_insert(Filials).values(**stripped_row).on_conflict_do_update(
-                    index_elements=['fil_'],  # assuming 'id' is the primary key or unique constraint
+                    index_elements=['fil_'],
                     set_=stripped_row
                 )
                 await session.execute(stmt)

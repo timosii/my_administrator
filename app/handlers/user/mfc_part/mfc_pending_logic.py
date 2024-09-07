@@ -75,7 +75,7 @@ class MfcPendingCard:
 
     async def _get_index_violation_found(self,
                                          state: FSMContext,
-                                         violation_found_id: int) -> int:
+                                         violation_found_id: str) -> int:
         violations_out_from_data = await self.get_violations_out_from_data(state=state)
         for index, obj in enumerate(violations_out_from_data):
             if obj.violation_found_id == violation_found_id:

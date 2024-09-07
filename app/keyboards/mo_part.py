@@ -50,19 +50,23 @@ class MoPerformerKeyboards:
 
     @staticmethod
     def get_violation_menu(
-        violation_id: int,
-        prev_violation_id: int,
-        next_violation_id: int
+        violation_id: str,
+        prev_violation_id: str,
+        next_violation_id: str
     ) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text='Пред.фото', callback_data=f'pphoto_{violation_id}'),
-                InlineKeyboardButton(text='След.фото', callback_data=f'nphoto_{violation_id}')
+                InlineKeyboardButton(text='⬅️ 📷', callback_data=f'pphoto_{violation_id}'),
+                InlineKeyboardButton(text='📷 ➡️', callback_data=f'nphoto_{violation_id}')
             ],
             [
-                InlineKeyboardButton(text='⬅️', callback_data=f'prev_{prev_violation_id}'),
+                InlineKeyboardButton(text='Получить все фото для этого нарушения',
+                                     callback_data=f'allphoto_{violation_id}'),
+            ],
+            [
+                InlineKeyboardButton(text='⏪️', callback_data=f'prev_{prev_violation_id}'),
                 InlineKeyboardButton(text='Исправить', callback_data=f'correct_{violation_id}'),
-                InlineKeyboardButton(text='➡️', callback_data=f'next_{next_violation_id}')
+                InlineKeyboardButton(text='⏩️', callback_data=f'next_{next_violation_id}')
             ],
             [
                 InlineKeyboardButton(text='Перенести исправление', callback_data=f'pending_{violation_id}'),
@@ -72,25 +76,29 @@ class MoPerformerKeyboards:
 
     @staticmethod
     def get_violation_pending_menu(
-        violation_id: int,
-        prev_violation_id: int,
-        next_violation_id: int
+        violation_id: str,
+        prev_violation_id: str,
+        next_violation_id: str
     ) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text='Пред.фото', callback_data=f'pphoto_{violation_id}'),
-                InlineKeyboardButton(text='След.фото', callback_data=f'nphoto_{violation_id}')
+                InlineKeyboardButton(text='⬅️ 📷', callback_data=f'pphoto_{violation_id}'),
+                InlineKeyboardButton(text='📷 ➡️', callback_data=f'nphoto_{violation_id}')
             ],
             [
-                InlineKeyboardButton(text='⬅️', callback_data=f'prev_{prev_violation_id}'),
+                InlineKeyboardButton(text='Получить все фото для этого нарушения',
+                                     callback_data=f'allphoto_{violation_id}'),
+            ],
+            [
+                InlineKeyboardButton(text='⏪️', callback_data=f'prev_{prev_violation_id}'),
                 InlineKeyboardButton(text='Исправить', callback_data=f'correct_{violation_id}'),
-                InlineKeyboardButton(text='➡️', callback_data=f'next_{next_violation_id}')
+                InlineKeyboardButton(text='⏩️', callback_data=f'next_{next_violation_id}')
             ],
         ], row_width=3)
         return kb
 
     @staticmethod
-    def get_under_check(check_id: int) -> InlineKeyboardMarkup:
+    def get_under_check(check_id: str) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text='Посмотреть нарушения', callback_data=f'violations_{check_id}'),
@@ -99,7 +107,7 @@ class MoPerformerKeyboards:
         return kb
 
     @staticmethod
-    def get_under_check_zero_violations(check_id: int) -> InlineKeyboardMarkup:
+    def get_under_check_zero_violations(check_id: str) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text='Закончить проверку', callback_data=f'violationszero_{check_id}'),
@@ -108,7 +116,7 @@ class MoPerformerKeyboards:
         return kb
 
     @staticmethod
-    def save_violation_found(violation_found_id: int) -> InlineKeyboardMarkup:
+    def save_violation_found(violation_found_id: str) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text='Сохранить', callback_data=f'save_{violation_found_id}'),
@@ -120,7 +128,7 @@ class MoPerformerKeyboards:
         return kb
 
     @staticmethod
-    def cancel_correct_mode(violation_found_id: int) -> InlineKeyboardMarkup:
+    def cancel_correct_mode(violation_found_id: str) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text='Отменить', callback_data=f'cancel_{violation_found_id}'),

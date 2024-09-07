@@ -1,7 +1,9 @@
 import datetime as dt
 from typing import Annotated
 
+import uuid6
 from sqlalchemy import BigInteger, String, text
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, mapped_column
 
@@ -17,10 +19,16 @@ intpk = Annotated[int, mapped_column(
     primary_key=True,
     autoincrement=False,
 )]
-bigint_pk = Annotated[int, mapped_column(
+uuidpk = Annotated[UUID, mapped_column(
     primary_key=True,
-    type_=BigInteger
+    type_=UUID(as_uuid=True),
+    default=uuid6.uuid7
 )]
+
+uuid_nonpk = Annotated[UUID, mapped_column(
+    type_=UUID(as_uuid=True),
+)]
+
 bigint_pk_tg = Annotated[int, mapped_column(
     primary_key=True,
     autoincrement=False,

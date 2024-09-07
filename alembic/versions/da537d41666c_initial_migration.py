@@ -1,9 +1,9 @@
 # mypy: disable-error-code="attr-defined"
 """initial migration
 
-Revision ID: 89ca48db7662
-Revises: 4cc96cf91f97
-Create Date: 2024-09-04 18:07:53.341287
+Revision ID: da537d41666c
+Revises: 89ca48db7662
+Create Date: 2024-09-06 12:14:03.913224
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '89ca48db7662'
+revision: str = 'da537d41666c'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -60,7 +60,6 @@ def upgrade() -> None:
         END
         $$;
     """)
-
     op.create_table('mos',
                     sa.Column('mo_', sa.String(length=255), nullable=False),
                     sa.Column('mo_population', sa.String(length=255), nullable=False),
@@ -111,8 +110,8 @@ def upgrade() -> None:
                     sa.Column('mo_', sa.String(length=255), nullable=True),
                     sa.Column('fil_', sa.String(length=255), nullable=True),
                     sa.Column('department', sa.String(length=255), nullable=True),
-                    sa.Column('last_name', sa.String(length=255), nullable=False),
-                    sa.Column('first_name', sa.String(length=255), nullable=False),
+                    sa.Column('last_name', sa.String(length=255), nullable=True),
+                    sa.Column('first_name', sa.String(length=255), nullable=True),
                     sa.Column('patronymic', sa.String(length=255), nullable=True),
                     sa.Column('post', sa.String(length=255), nullable=True),
                     sa.Column('is_admin', sa.Boolean(), nullable=False),
@@ -120,6 +119,7 @@ def upgrade() -> None:
                     sa.Column('is_mfc_leader', sa.Boolean(), nullable=False),
                     sa.Column('is_mo_performer', sa.Boolean(), nullable=False),
                     sa.Column('is_mo_controler', sa.Boolean(), nullable=False),
+                    sa.Column('is_avail', sa.Boolean(), nullable=False),
                     sa.Column('is_archived', sa.Boolean(), nullable=False),
                     sa.Column('created_at', sa.DateTime(), server_default=sa.text(
                         "TIMEZONE('utc', now())"), nullable=False),
@@ -133,7 +133,7 @@ def upgrade() -> None:
                     schema='data'
                     )
     op.create_table('check',
-                    sa.Column('check_id', sa.BigInteger(), nullable=False),
+                    sa.Column('check_id', sa.UUID(), nullable=False),
                     sa.Column('fil_', sa.String(length=255), nullable=False),
                     sa.Column('mfc_user_id', sa.BigInteger(), nullable=False),
                     sa.Column('mfc_start', sa.DateTime(), server_default=sa.text(
@@ -149,8 +149,8 @@ def upgrade() -> None:
                     schema='data'
                     )
     op.create_table('violation_found',
-                    sa.Column('violation_found_id', sa.BigInteger(), nullable=False),
-                    sa.Column('check_id', sa.BigInteger(), nullable=False),
+                    sa.Column('violation_found_id', sa.UUID(), nullable=False),
+                    sa.Column('check_id', sa.UUID(), nullable=False),
                     sa.Column('violation_dict_id', sa.Integer(), nullable=False),
                     sa.Column('photo_id_mfc', sa.ARRAY(sa.String(length=255)), nullable=True),
                     sa.Column('comm_mfc', sa.String(), nullable=True),

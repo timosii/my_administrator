@@ -318,7 +318,7 @@ async def test_mfc_checking_process(dp, bot):
     assert isinstance(current_data.get('time_to_correct'), str)
     assert isinstance(violation_detected, str)
     assert current_data.get('violation_dict_id') == 1
-    assert isinstance(current_data.get('violation_found_id'), int)
+    assert isinstance(current_data.get('violation_found_id'), str)
     assert violation_name == 'Загрязнения во входной группе'
     assert current_data.get('violation_pending') is None
     assert current_data.get('zone') == 'Входная группа'

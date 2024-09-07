@@ -39,7 +39,7 @@ async def take_to_work(
         event=callback,
         state=state,
     )
-    violation_found_id = int(callback.data.split('_')[1])
+    violation_found_id = str(callback.data.split('_')[1])
     is_fixed = await violation_obj.is_violation_already_fixed(
         violation_found_id=violation_found_id
     )
@@ -139,7 +139,7 @@ async def save_violation_found_process(
 ):
     data = await state.get_data()
     is_task = data.get('is_task')
-    violation_found_id = int(callback.data.split('_')[1])
+    violation_found_id = str(callback.data.split('_')[1])
     current_time = dt.datetime.now(dt.timezone.utc)
     vio_upd = ViolationFoundUpdate(
         mo_user_id=data['mo_user_id'],

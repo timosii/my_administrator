@@ -1,5 +1,6 @@
 import asyncio
 from typing import Optional
+from uuid import UUID
 
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
@@ -59,29 +60,31 @@ class ViolationFoundService:
         return result
 
     async def get_violation_found_by_id(
-        self, violation_found_id: int
+        self, violation_found_id: str
     ) -> ViolationFoundInDB | None:
+        violation_found_id_ = UUID(violation_found_id)
         result = await self.db_repository.get_violation_found_by_id(
-            violation_found_id=violation_found_id
+            violation_found_id=violation_found_id_
         )
         return result
 
     async def get_violation_found_fil_by_id(
-            self, violation_id: int
+            self, violation_id: str
     ) -> Optional[str]:
         return await self.db_repository.get_violation_found_fil_by_id(
             violation_id=violation_id
         )
 
     async def update_violation(
-        self, violation_found_id: int, violation_update: ViolationFoundUpdate
+        self, violation_found_id: str, violation_update: ViolationFoundUpdate
     ) -> None:
+        violation_found_id_ = UUID(violation_found_id)
         await self.db_repository.update_violation_found(
-            violation_found_id=violation_found_id, violation_update=violation_update
+            violation_found_id=violation_found_id_, violation_update=violation_update
         )
         return
 
-    async def delete_violation(self, violation_id: int) -> None:
+    async def delete_violation(self, violation_id: UUID) -> None:
         await self.db_repository.delete_violation_found(
             violation_id=violation_id
         )
@@ -150,7 +153,7 @@ class ViolationFoundService:
         return result
 
     async def is_violation_already_in_check(
-        self, violation_dict_id: int, check_id: int
+        self, violation_dict_id: int, check_id: UUID
     ) -> bool:
         result = await ViolationFoundRepo().is_violation_already_in_check(
             violation_dict_id=violation_dict_id,
@@ -159,15 +162,16 @@ class ViolationFoundService:
         return result
 
     async def is_violation_already_fixed(
-        self, violation_found_id: int
+        self, violation_found_id: str
     ) -> bool:
+        violation_found_id_ = UUID(violation_found_id)
         result = await ViolationFoundRepo().is_violation_already_fixed(
-            violation_found_id=violation_found_id
+            violation_found_id=violation_found_id_
         )
         return result
 
     async def is_violation_already_pending(
-        self, violation_found_id: int
+        self, violation_found_id: UUID
     ) -> bool:
         result = await ViolationFoundRepo().is_violation_already_pending(
             violation_found_id=violation_found_id
@@ -365,8 +369,8 @@ class ViolationFoundService:
             fil_=check.fil_,
             mo_user_id=mo_user_id,
             is_task=check.is_task,
-            check_id=violation.check_id,
-            violation_found_id=violation.violation_found_id,
+            check_id=str(violation.check_id),
+            violation_found_id=str(violation.violation_found_id),
             violation_dict_id=violation.violation_dict_id,
             zone=vio.zone,
             violation_name=vio.violation_name,

@@ -2,6 +2,7 @@ import datetime as dt
 
 from aiogram.types import InlineKeyboardMarkup
 from pydantic import BaseModel
+from pydantic.types import UUID
 
 
 class Reply(BaseModel):
@@ -17,5 +18,5 @@ class MoCheckDefaultInfo(BaseModel):
 
 
 class MoCheckStarted(MoCheckDefaultInfo):
-    check_id: int
+    check_id: UUID
     mo_start: dt.datetime  # не забыть преобразовывать в строку

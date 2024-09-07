@@ -1,6 +1,7 @@
 import datetime as dt
 
 from pydantic import BaseModel, ConfigDict
+from pydantic.types import UUID
 
 from app.utils.utils import format_timedelta, to_moscow_time
 
@@ -20,14 +21,13 @@ class CheckTestCreate(CheckCreate):
 
 
 class CheckUpdate(BaseModel):
-    # mo_user_id: Optional[int] = None
     mfc_finish: dt.datetime | None = None
     mo_start: dt.datetime | None = None
     mo_finish: dt.datetime | None = None
 
 
 class CheckInDB(CheckBase):
-    check_id: int
+    check_id: UUID
     mfc_start: dt.datetime
     mfc_finish: dt.datetime | None = None
     mo_start: dt.datetime | None = None
@@ -36,7 +36,7 @@ class CheckInDB(CheckBase):
 
 
 class CheckOut(BaseModel):
-    check_id: int
+    check_id: str
     fil_: str
     mfc_start: dt.datetime
     mfc_finish: dt.datetime

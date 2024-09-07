@@ -1,8 +1,9 @@
 import asyncio
 from typing import Any, Optional
+from uuid import UUID
 
 from loguru import logger
-from sqlalchemy import and_, delete, select, text, update
+from sqlalchemy import and_, delete, select, update
 from sqlalchemy.orm import joinedload
 
 from app.config import settings
@@ -38,14 +39,14 @@ class ViolationFoundRepo:
             return ViolationFoundInDB.model_validate(new_violation)
 
     @cached(ttl=CACHE_EXPIRE_SHORT, namespace='violation_found')
-    async def violation_found_exists(self, violation_id: int) -> bool:
+    async def violation_found_exists(self, violation_id: UUID) -> bool:
         query = select(ViolationFound.violation_found_id).filter_by(violation_found_id=violation_id)
         logger.info('is violation found exist')
         return await self._get_scalar(query=query)
 
     @cached(ttl=CACHE_EXPIRE_SHORT, namespace='violation_found')
     async def get_violation_found_by_id(
-        self, violation_found_id: int
+        self, violation_found_id: UUID
     ) -> ViolationFoundInDB | None:
         async with self.session_maker() as session:
             result = await session.execute(
@@ -57,7 +58,7 @@ class ViolationFoundRepo:
 
     async def get_violation_found_fil_by_id(
             self,
-            violation_id: int
+            violation_id: str
     ) -> Optional[str]:
         query = select(Check.fil_).select_from(Check).join(ViolationFound).where(
             and_(
@@ -71,7 +72,7 @@ class ViolationFoundRepo:
         )
 
     async def update_violation_found(
-        self, violation_found_id: int, violation_update: ViolationFoundUpdate
+        self, violation_found_id: UUID, violation_update: ViolationFoundUpdate
     ) -> None:
         await self._update_field(
             violation_found_id=violation_found_id,
@@ -80,7 +81,7 @@ class ViolationFoundRepo:
         logger.info('updated violation found')
         await self.clear_cache()
 
-    async def delete_violation_found(self, violation_id: int) -> None:
+    async def delete_violation_found(self, violation_id: UUID) -> None:
         async with self.session_maker() as session:
             stmt = delete(ViolationFound).where(ViolationFound.violation_found_id == violation_id)
             await session.execute(stmt)
@@ -93,8 +94,8 @@ class ViolationFoundRepo:
             stmt = delete(ViolationFound)
             await session.execute(stmt)
             await session.commit()
-            await session.execute(text('ALTER SEQUENCE data.violation_found_violation_found_id_seq RESTART WITH 1'))
-            await session.commit()
+            # await session.execute(text('ALTER SEQUENCE data.violation_found_violation_found_id_seq RESTART WITH 1'))
+            # await session.commit()
             logger.info('ALL violations found deleted')
             await self.clear_cache()
 
@@ -108,7 +109,7 @@ class ViolationFoundRepo:
             ]
 
     @cached(ttl=CACHE_EXPIRE_SHORT, namespace='violation_found')
-    async def get_violations_found_by_check(self, check_id: int) -> list[ViolationFoundInDB] | None:
+    async def get_violations_found_by_check(self, check_id: UUID) -> list[ViolationFoundInDB] | None:
         async with self.session_maker() as session:
             query = select(ViolationFound).where(
                 and_(
@@ -219,7 +220,7 @@ class ViolationFoundRepo:
                 ViolationFoundInDB.model_validate(violation) for violation in violations
             ] if violations else None
 
-    async def is_violation_already_in_check(self, violation_dict_id: int, check_id: int) -> bool:
+    async def is_violation_already_in_check(self, violation_dict_id: int, check_id: UUID) -> bool:
         query = select(ViolationFound).where(
             and_(
                 ViolationFound.violation_dict_id == violation_dict_id,
@@ -230,7 +231,7 @@ class ViolationFoundRepo:
         logger.info('is violation already in check')
         return bool(result)
 
-    async def is_violation_already_fixed(self, violation_found_id: int) -> bool:
+    async def is_violation_already_fixed(self, violation_found_id: UUID) -> bool:
         query = select(ViolationFound.violation_fixed).where(
             and_(
                 ViolationFound.violation_found_id == violation_found_id,
@@ -240,7 +241,7 @@ class ViolationFoundRepo:
         logger.info('is violation already fixed')
         return bool(result)
 
-    async def is_violation_already_pending(self, violation_found_id: int) -> bool:
+    async def is_violation_already_pending(self, violation_found_id: UUID) -> bool:
         query = select(ViolationFound.violation_pending).where(
             and_(
                 ViolationFound.violation_found_id == violation_found_id,
@@ -281,7 +282,7 @@ class ViolationFoundRepo:
             result = await session.execute(query)
             return result.scalar_one_or_none()
 
-    async def _update_field(self, violation_found_id: int, **kwargs) -> None:
+    async def _update_field(self, violation_found_id: UUID, **kwargs) -> None:
         async with self.session_maker() as session:
             stmt = (
                 update(ViolationFound)

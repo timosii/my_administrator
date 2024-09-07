@@ -93,7 +93,7 @@ class MfcKeyboards:
         ])
         return self.kb
 
-    def take_task_to_work(self, violation_id: int, is_task: int) -> InlineKeyboardMarkup:
+    def take_task_to_work(self, violation_id: str, is_task: int) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text='Взять в работу', callback_data=f'take_{violation_id}_{is_task}'),
@@ -141,18 +141,18 @@ class MfcKeyboards:
 
     @staticmethod
     def get_violation_pending_menu(
-        violation_id: int,
-        prev_violation_id: int,
-        next_violation_id: int
+        violation_id: str,
+        prev_violation_id: str,
+        next_violation_id: str
     ) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text='Пред.фото', callback_data=f'pphoto_{violation_id}'),
-                InlineKeyboardButton(text='След.фото', callback_data=f'nphoto_{violation_id}')
+                InlineKeyboardButton(text='⬅️ 📷', callback_data=f'pphoto_{violation_id}'),
+                InlineKeyboardButton(text='📷 ➡️', callback_data=f'nphoto_{violation_id}')
             ],
             [
-                InlineKeyboardButton(text='⬅️', callback_data=f'prev_{prev_violation_id}'),
-                InlineKeyboardButton(text='➡️', callback_data=f'next_{next_violation_id}')
+                InlineKeyboardButton(text='⏪️', callback_data=f'prev_{prev_violation_id}'),
+                InlineKeyboardButton(text='⏩️', callback_data=f'next_{next_violation_id}')
             ],
             [
                 InlineKeyboardButton(text='Добавить новое нарушение', callback_data='new_'),

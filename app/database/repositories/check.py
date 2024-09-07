@@ -1,8 +1,9 @@
 import asyncio
 from typing import Any, Optional
+from uuid import UUID
 
 from loguru import logger
-from sqlalchemy import and_, delete, func, select, text, update
+from sqlalchemy import and_, delete, func, select, update
 
 from app.config import settings
 from app.database.database import session_maker
@@ -35,26 +36,26 @@ class CheckRepo:
             return CheckInDB.model_validate(new_check)
 
     @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
-    async def check_exists(self, check_id: int) -> bool:
+    async def check_exists(self, check_id: UUID) -> bool:
         query = select(Check.check_id).filter_by(check_id=check_id)
         return await self._get_scalar(query=query)
 
     @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
-    async def get_check_by_id(self, check_id: int) -> CheckInDB:
+    async def get_check_by_id(self, check_id: UUID) -> CheckInDB:
         async with self.session_maker() as session:
             result = await session.execute(select(Check).filter_by(check_id=check_id))
             check = result.scalar_one()
             logger.info('get check by id')
             return CheckInDB.model_validate(check)
 
-    async def update_check(self, check_id: int, check_update: CheckUpdate) -> None:
+    async def update_check(self, check_id: UUID, check_update: CheckUpdate) -> None:
         await self._update_field(
             check_id, **check_update.model_dump(exclude_unset=True)
         )
         logger.info('check updated')
         await self.clear_cache()
 
-    async def delete_check(self, check_id: int) -> None:
+    async def delete_check(self, check_id: UUID) -> None:
         async with self.session_maker() as session:
             stmt = delete(Check).where(Check.check_id == check_id)
             await session.execute(stmt)
@@ -67,9 +68,9 @@ class CheckRepo:
             stmt = delete(Check)
             await session.execute(stmt)
             await session.commit()
-            await session.execute(text('ALTER SEQUENCE data.check_check_id_seq RESTART WITH 1'))
-            await session.execute(text('ALTER SEQUENCE data.violation_found_violation_found_id_seq RESTART WITH 1'))
-            await session.commit()
+            # await session.execute(text('ALTER SEQUENCE data.check_check_id_seq RESTART WITH 1'))
+            # await session.execute(text('ALTER SEQUENCE data.violation_found_violation_found_id_seq RESTART WITH 1'))
+            # await session.commit()
             logger.info('ALL checks deleted')
             await self.clear_cache()
 
@@ -96,7 +97,7 @@ class CheckRepo:
             return [CheckInDB.model_validate(check) for check in checks] if checks else None
 
     @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
-    async def get_violations_found_count_by_check(self, check_id: int) -> int:
+    async def get_violations_found_count_by_check(self, check_id: UUID) -> int:
         query = select(func.count()).select_from(ViolationFound).where(
             and_(
                 ViolationFound.check_id == check_id,
@@ -150,7 +151,7 @@ class CheckRepo:
             result = await session.execute(query)
             return result.scalar_one_or_none()
 
-    async def _update_field(self, check_id: int, **kwargs) -> None:
+    async def _update_field(self, check_id: UUID, **kwargs) -> None:
         async with self.session_maker() as session:
             stmt = update(Check).where(Check.check_id == check_id).values(**kwargs)
             await session.execute(stmt)

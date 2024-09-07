@@ -1,5 +1,7 @@
 from typing import Optional
 
+from loguru import logger
+
 from app.database.schemas.helpers import Reply
 from app.database.schemas.violation_found_schema import ViolationFoundOut
 from app.keyboards.mo_part import MoPerformerKeyboards
@@ -54,11 +56,13 @@ class MoPerformerCard:
         return result
 
     def get_current_check_violations(self,
-                                     check_id: int) -> list[ViolationFoundOut]:
+                                     check_id: str) -> list[ViolationFoundOut]:
         result = self.get_sorted_violations(
             list(filter(self.is_check_violation, self.violations_found_out_objects))
         )
+        logger.debug(f'RESULT: {result}')
         result_ = [el for el in result if el.check_id == check_id]
+        logger.debug(f'RESULT_: {result_}')
         return result_
 
     def all_violations_pending_start(self) -> Reply | None:
@@ -139,7 +143,7 @@ class MoPerformerCard:
 
     def _get_index_violation_found(self,
                                    violation_found_out_lst: list[ViolationFoundOut],
-                                   violation_found_id: int) -> int:
+                                   violation_found_id: str) -> int:
         for index, obj in enumerate(violation_found_out_lst):
             if obj.violation_found_id == violation_found_id:
                 return index

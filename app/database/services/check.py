@@ -1,4 +1,5 @@
 import datetime as dt
+from uuid import UUID
 
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -31,22 +32,24 @@ class CheckService:
         result = await self.db_repository.add_check(check_create=check_test_create)
         return result
 
-    async def check_exists(self, check_id: int) -> bool:
+    async def check_exists(self, check_id: UUID) -> bool:
         result = await self.db_repository.check_exists(check_id=check_id)
         return result
 
-    async def get_check_by_id(self, check_id: int) -> CheckInDB:
+    async def get_check_by_id(self, check_id: UUID) -> CheckInDB:
         result = await self.db_repository.get_check_by_id(check_id=check_id)
         return result
 
-    async def update_check(self, check_id: int, check_update: CheckUpdate) -> None:
+    async def update_check(self, check_id: str, check_update: CheckUpdate) -> None:
+        check_id_ = UUID(check_id)
         await self.db_repository.update_check(
-            check_id=check_id, check_update=check_update
+            check_id=check_id_, check_update=check_update
         )
         return
 
-    async def delete_check(self, check_id: int) -> None:
-        await self.db_repository.delete_check(check_id=check_id)
+    async def delete_check(self, check_id: str) -> None:
+        check_id_ = UUID(check_id)
+        await self.db_repository.delete_check(check_id=check_id_)
         return
 
     async def delete_all_checks(self) -> None:
@@ -78,9 +81,10 @@ class CheckService:
         result = await self.db_repository.get_mfc_fil_active_checks(fil_=fil_)
         return result
 
-    async def get_violations_found_count_by_check(self, check_id: int) -> int:
+    async def get_violations_found_count_by_check(self, check_id: str) -> int:
+        check_id_ = UUID(check_id)
         result = await self.db_repository.get_violations_found_count_by_check(
-            check_id=check_id
+            check_id=check_id_
         )
         return result
 
@@ -108,7 +112,7 @@ class CheckService:
 
     async def finish_check_process(
         self,
-        check_id: int,
+        check_id: str,
         state: FSMContext,
     ):
         current_time = dt.datetime.now(dt.timezone.utc)
@@ -159,7 +163,7 @@ class CheckService:
         check: CheckInDB,
     ) -> CheckOut:
         check_out = CheckOut(
-            check_id=check.check_id,
+            check_id=str(check.check_id),
             fil_=check.fil_,
             mfc_start=check.mfc_start,
             mfc_finish=check.mfc_finish,
