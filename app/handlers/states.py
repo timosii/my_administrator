@@ -14,6 +14,13 @@ class MfcStates(StatesGroup):
     additional_photo = State()
 
 
+class MfcAvailStates(StatesGroup):
+    avail_main = State()
+    choose_oms = State()
+    get_number = State()
+    form_send_mo = State()
+
+
 class Feedback(StatesGroup):
     feedback = State()
 
@@ -42,3 +49,7 @@ class MfcLeaderStates(StatesGroup):
     get_end_period = State()
     full_period = State()
     finish_stage = State()
+
+
+class AvailStates(StatesGroup):
+    pass

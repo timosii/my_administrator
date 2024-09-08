@@ -147,7 +147,7 @@ class CheckService:
         self,
         state: FSMContext,
         callback: CallbackQuery,
-        check_id: int,
+        check_id: str,
     ):
         data = await state.get_data()
         check_obj = CheckInDB(**data[f'check_unfinished_{check_id}'])
@@ -162,13 +162,14 @@ class CheckService:
         self,
         check: CheckInDB,
     ) -> CheckOut:
+        check_id_ = str(check.check_id)
         check_out = CheckOut(
-            check_id=str(check.check_id),
+            check_id=check_id_,
             fil_=check.fil_,
             mfc_start=check.mfc_start,
             mfc_finish=check.mfc_finish,
             violations_count=await self.get_violations_found_count_by_check(
-                check_id=check.check_id
+                check_id=check_id_
             ),
         )
         return check_out
@@ -176,13 +177,13 @@ class CheckService:
     async def form_check_out_unfinished(
         self,
         check: CheckInDB,
-        # check_obj: CheckService=CheckService()
     ) -> CheckOutUnfinished:
+        check_id_ = str(check.check_id)
         check_out = CheckOutUnfinished(
             fil_=check.fil_,
             mfc_start=check.mfc_start,
             violations_count=await self.get_violations_found_count_by_check(
-                check_id=check.check_id
+                check_id=check_id_
             ),
         )
         return check_out

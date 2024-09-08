@@ -253,50 +253,62 @@ async def get_violations_next_prev(
         await callback.answer()
 
 
-@router.callback_query(
-    F.data.startswith('nphoto_') | F.data.startswith('pphoto_'),
-    StateFilter(MoPerformerStates.mo_performer),
-)
-async def get_photos_next_prev(
-    callback: CallbackQuery,
-    state: FSMContext,
-):
-    violation_found_id = str(callback.data.split('_')[1])
-    data = await state.get_data()
+# @router.callback_query(
+#     F.data.startswith('nphoto_') | F.data.startswith('pphoto_'),
+#     StateFilter(MoPerformerStates.mo_performer),
+# )
+# async def get_photos_next_prev(
+#     callback: CallbackQuery,
+#     state: FSMContext,
+# ):
+#     violation_found_id = str(callback.data.split('_')[1])
+#     data = await state.get_data()
 
-    violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
-    photo_ids = violation_found_obj.photo_id_mfc
-    if not photo_ids:
-        await callback.answer(text='Фото отсутствует')
-        return
+#     violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
+#     photo_ids = violation_found_obj.photo_id_mfc
+#     if not photo_ids:
+#         await callback.answer(text='Фото отсутствует')
+#         return
 
-    current_photo_id = callback.message.photo[-1].file_id
-    try:
-        current_index = photo_ids.index(current_photo_id)
-    except ValueError:
-        current_index = 0
+#     current_photo_id = callback.message.photo[-1].file_id
+#     logger.debug(f'Current_photo_id: {current_photo_id}')
+#     try:
+#         current_index = photo_ids.index(current_photo_id)
+#     except ValueError:
+#         logger.debug(f'VALUE_ERROR_ALL_IDS: {photo_ids}')
+#         current_index = -1
 
-    if callback.data.startswith('nphoto_'):
-        next_index = (current_index + 1) % len(photo_ids)
-    else:
-        next_index = (current_index - 1) % len(photo_ids)
+#     if callback.data.startswith('nphoto_'):
+#         next_index = (current_index + 1) % len(photo_ids)
+#     else:
+#         next_index = (current_index - 1) % len(photo_ids)
 
-    next_photo_id = photo_ids[next_index]
-    if (next_photo_id == current_photo_id) or (len(photo_ids) < 2):
-        await callback.answer(text='Больше фото для этого нарушения нет')
-    else:
-        logger.debug(f'ENTITIES: {callback.message.caption_entities}')
-        logger.debug(f'CAPTION: {callback.message.caption}')
-        await callback.message.edit_media(
-            media=InputMediaPhoto(
-                media=next_photo_id,
-                caption_entities=callback.message.caption_entities,
-                caption=callback.message.caption,
-                parse_mode=None
-            ),
-            reply_markup=callback.message.reply_markup
-        )
-        await callback.answer()
+#     next_photo_id = photo_ids[next_index]
+#     if (next_photo_id == current_photo_id) or (len(photo_ids) < 2):
+#         await callback.answer(text='Больше фото для этого нарушения нет')
+#     else:
+#         try:
+#             await callback.message.edit_media(
+#                 media=InputMediaPhoto(
+#                     media=next_photo_id,
+#                     caption_entities=callback.message.caption_entities,
+#                     caption=callback.message.caption,
+#                     parse_mode=None
+#                 ),
+#                 reply_markup=callback.message.reply_markup
+#             )
+#         except TelegramBadRequest as e:
+#             next_photo_id = photo_ids[current_index]
+#             await callback.message.edit_media(
+#                 media=InputMediaPhoto(
+#                     media=next_photo_id,
+#                     caption_entities=callback.message.caption_entities,
+#                     caption=callback.message.caption,
+#                     parse_mode=None
+#                 ),
+#                 reply_markup=callback.message.reply_markup
+#             )
+#         await callback.answer()
 
 
 @router.callback_query(
@@ -312,8 +324,16 @@ async def get_all_photos(
     violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
     photo_ids = violation_found_obj.photo_id_mfc
     if not photo_ids:
-        await callback.answer(text='Фото отсутствует')
+        await callback.answer(text='Фотографий нет')
         return
+
+    if len(photo_ids) < 2:
+        await callback.answer(text='Больше фотографий нет')
+        return
+
+    if len(photo_ids) > 10:
+        photo_ids = photo_ids[:10]
+
     violation_name = violation_found_obj.violation_name
     media_group = MediaGroupBuilder(caption=violation_name)
     for photo_id in photo_ids:

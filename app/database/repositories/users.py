@@ -103,6 +103,21 @@ class UserRepo:
             return [UserInDB.model_validate(user) for user in users] if users else None
 
     @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
+    async def get_avail_performer_by_fil(self, fil_: str) -> list[UserInDB] | None:
+        async with self.session_maker() as session:
+            query = select(User).where(
+                and_(
+                    User.fil_ == fil_,
+                    User.is_mo_performer.is_(True),
+                    User.is_archived.is_not(True),
+                    User.is_avail.is_(True)
+                )
+            )
+            result = await session.execute(query)
+            users = result.scalars().all()
+            return [UserInDB.model_validate(user) for user in users] if users else None
+
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
     async def is_admin(self, user_id: int) -> bool:
         query = select(User.is_admin).filter_by(user_id=user_id, is_archived=False)
         logger.info('is admin')
@@ -118,6 +133,24 @@ class UserRepo:
     async def is_mfc_leader(self, user_id: int) -> bool:
         query = select(User.is_mfc_leader).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mfc leader')
+        return await self._get_scalar(query=query)
+
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
+    async def is_mfc_avail(self, user_id: int) -> bool:
+        query = select(User.is_avail).filter_by(
+            user_id=user_id,
+            is_mfc=True,
+            is_archived=False)
+        logger.info('is mfc avail')
+        return await self._get_scalar(query=query)
+
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
+    async def is_mo_avail(self, user_id: int) -> bool:
+        query = select(User.is_avail).filter_by(
+            user_id=user_id,
+            is_mfc=False,
+            is_archived=False)
+        logger.info('is mo avail')
         return await self._get_scalar(query=query)
 
     @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')

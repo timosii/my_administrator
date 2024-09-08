@@ -10,6 +10,7 @@ from app.config import settings
 from app.database.repositories.cache_config import caches
 from app.handlers import additional, default, dev
 from app.handlers.admin import admin
+from app.handlers.user.avail import mfc_avail
 from app.handlers.user.mfc_part import mfc_leader, mfc_main
 from app.handlers.user.mo_part import (
     mo_controler,
@@ -58,6 +59,8 @@ def all_register():
         admin.router,
         additional.router,
         dev.router,
+        mfc_avail.router,
+        mo_avail.router,
         mfc_leader.router,
         mfc_main.router,
         pending_process.router,

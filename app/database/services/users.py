@@ -89,6 +89,14 @@ class UserService:
         result = await self.db_repository.is_mfc_leader(user_id=user_id)
         return result
 
+    async def is_mfc_avail(self, user_id: int) -> bool:
+        result = await self.db_repository.is_mfc_avail(user_id=user_id)
+        return result
+
+    async def is_mo_avail(self, user_id: int) -> bool:
+        result = await self.db_repository.is_mo_avail(user_id=user_id)
+        return result
+
     async def is_mo_performer(self, user_id: int) -> bool:
         result = await self.db_repository.is_mo_performer(user_id=user_id)
         return result
@@ -96,6 +104,10 @@ class UserService:
     async def is_mo_controler(self, user_id: int) -> bool:
         result = await self.db_repository.is_mo_controler(user_id=user_id)
         return result
+
+    async def get_avail_performer_by_fil(self, fil_: str) -> Optional[list[UserInDB]]:
+        performers = await self.db_repository.get_avail_performer_by_fil(fil_=fil_)
+        return performers if performers else None
 
     async def save_default_user_info(
             self,
