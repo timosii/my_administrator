@@ -7,7 +7,10 @@ from aiogram.types import (
 )
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
+from app.config import settings
 from app.database.db_helpers.form_menu import get_fils_by_mo
+
+DOCS_URL = settings.DOCS_URL
 
 
 class DefaultKeyboards:
@@ -28,7 +31,7 @@ class DefaultKeyboards:
             [
                 InlineKeyboardButton(
                     text='Нажмите сюда',
-                    web_app=WebAppInfo(url='https://timosii.gitbook.io/my_administrator_docs')
+                    web_app=WebAppInfo(url=DOCS_URL)
                 )
             ],
         ])
