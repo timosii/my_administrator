@@ -83,6 +83,38 @@ async def take_to_work(
     await state.set_state(MoPerformerStates.take_correct)
 
 
+# @router.callback_query(
+#     F.data.startswith('allphoto_'),
+#     StateFilter(MoPerformerStates.mo_performer)
+# )
+# async def get_all_photos(
+#     callback: CallbackQuery,
+#     state: FSMContext,
+# ):
+#     violation_found_id = str(callback.data.split('_')[1])
+#     data = await state.get_data()
+#     violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
+#     photo_ids = violation_found_obj.photo_id_mfc
+#     if not photo_ids:
+#         await callback.answer(text='Фотографий нет')
+#         return
+
+#     if len(photo_ids) < 2:
+#         await callback.answer(text='Больше фотографий нет')
+#         return
+
+#     if len(photo_ids) > 10:
+#         photo_ids = photo_ids[:10]
+
+#     violation_name = violation_found_obj.violation_name
+#     media_group = MediaGroupBuilder(caption=violation_name)
+#     for photo_id in photo_ids:
+#         media_group.add_photo(media=photo_id)
+#     await callback.message.answer_media_group(
+#         media=media_group.build()
+#     )
+#     await callback.answer()
+
 @router.message(F.photo,
                 StateFilter(MoPerformerStates.take_correct))
 async def add_photo_handler(

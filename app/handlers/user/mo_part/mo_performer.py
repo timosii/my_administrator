@@ -74,8 +74,12 @@ async def get_active_violations(
         for check in checks:
             check_out = await check_obj.form_check_out(check=check)
             text_mes = check_out.form_card_check_out()
-            keyboard = MoPerformerKeyboards().get_under_check(check_id=check.check_id) if check_out.violations_count > 0 else MoPerformerKeyboards(
-            ).get_under_check_zero_violations(check_id=check.check_id)
+            keyboard = MoPerformerKeyboards().get_under_check(
+                check_id=check.check_id
+            ) if check_out.violations_count > 0 else MoPerformerKeyboards(
+            ).get_under_check_zero_violations(
+                check_id=check.check_id
+            )
             await message.answer(text=text_mes, reply_markup=keyboard)
 
 
@@ -313,15 +317,31 @@ async def get_violations_next_prev(
 
 @router.callback_query(
     F.data.startswith('allphoto_'),
-    StateFilter(MoPerformerStates.mo_performer)
+    ~StateFilter(MoPerformerStates.correct_violation)
+    # StateFilter(MoPerformerStates.mo_performer)
 )
 async def get_all_photos(
     callback: CallbackQuery,
     state: FSMContext,
+    vio_object: ViolationFoundService = ViolationFoundService()
 ):
     violation_found_id = str(callback.data.split('_')[1])
+    mo_user_id = callback.message.from_user.id
     data = await state.get_data()
-    violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
+    vio_found_data_id = data.get(f'vio_{violation_found_id}')
+    if not vio_found_data_id:
+        violation_found_obj_in_db = await vio_object.get_violation_found_by_id(
+            violation_found_id=violation_found_id
+        )
+        if not violation_found_obj_in_db:
+            await callback.answer(text='Нарушение не найдено')
+            return
+        violation_found_obj = await vio_object.form_violation_out(
+            violation=violation_found_obj_in_db,
+            mo_user_id=mo_user_id
+        )
+    else:
+        violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
     photo_ids = violation_found_obj.photo_id_mfc
     if not photo_ids:
         await callback.answer(text='Фотографий нет')

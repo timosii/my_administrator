@@ -43,6 +43,26 @@ class AdminStates(StatesGroup):
     admin = State()
 
 
+class RegStates(StatesGroup):
+    reg = State()
+    get_active = State()
+    start_registration = State()
+    surname_take = State()
+    name_take = State()
+    patronymic_take = State()
+    post_take = State()
+
+    department_take = State()
+
+    get_mo = State()
+    choose_mo_additional = State()
+    get_fil = State()
+    is_avail_status = State()
+
+    confirmation_reg = State()
+    # success_reg = State()
+
+
 class MfcLeaderStates(StatesGroup):
     mfc_leader = State()
     get_start_period = State()

@@ -14,11 +14,11 @@ from app.handlers.states import MfcAvailStates, MfcStates
 from app.keyboards.mfc_part import MfcKeyboards
 
 OUT = '''
-<b>Филиал:</b> {fil_}
-<b>Специальность:</b> {spec}
-<b>Полис:</b> {oms}
-<b>Телефон:</b> {phone}
-<b>Время:</b> {ud_time}
+Филиал: <b>{fil_}</b>
+Специальность: <b>{spec}</b>
+Полис: <b>{oms}</b>
+Телефон: <b>{phone}</b>
+Время: <b>{ud_time}</b>
 '''
 
 

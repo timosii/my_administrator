@@ -6,11 +6,7 @@ from aiogram.types import (
 )
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-from app.database.db_helpers.form_menu import (
-    get_all_zones,
-    get_fils_by_mo,
-    get_zone_violations,
-)
+from app.database.db_helpers.form_menu import get_all_zones, get_zone_violations
 from app.view.menu_beautify import ICONS_MAPPING
 
 SPECS = [
@@ -46,11 +42,6 @@ SPECS = [
 ]
 
 
-class DefaultKeyboards:
-    def __init__(self) -> None:
-        self.kb = ReplyKeyboardBuilder()
-
-
 class MfcKeyboards:
     def __init__(self) -> None:
         self.kb = ReplyKeyboardBuilder()
@@ -60,21 +51,6 @@ class MfcKeyboards:
         self.kb.button(text='Проверить незавершенные проверки')
         self.kb.button(text='Добавить уведомление о нарушении')
         self.kb.button(text='Доступность у инфомата')
-        self.kb.button(text='Назад')
-        self.kb.adjust(1)
-        return self.kb.as_markup(resize_keyboard=True)
-
-    async def choose_fil(self, mo: str) -> ReplyKeyboardMarkup:
-        fils = await get_fils_by_mo(mo=mo)
-        buttons = [KeyboardButton(text=fil) for fil in fils]
-        self.kb.add(*buttons)
-        self.kb.button(text='Назад')
-        self.kb.adjust(1)
-        return self.kb.as_markup(resize_keyboard=True)
-
-    async def choose_mo(self, mos: list[str]) -> ReplyKeyboardMarkup:
-        buttons = [KeyboardButton(text=mo) for mo in mos]
-        self.kb.add(*buttons)
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
@@ -174,11 +150,16 @@ class MfcKeyboards:
         self.kb = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
+                    InlineKeyboardButton(text='Получить все фото для этого нарушения',
+                                         callback_data=f'allphoto_{violation_id}'),
+                ],
+                [
                     InlineKeyboardButton(
                         text='Взять в работу',
                         callback_data=f'take_{violation_id}_{is_task}',
                     ),
-                ]
+                ],
+
             ]
         )
         return self.kb
@@ -289,7 +270,7 @@ class MfcLeaderKeyboards:
         self.kb = ReplyKeyboardBuilder()
 
     def main_menu(self) -> ReplyKeyboardMarkup:
-        self.kb.button(text='Добавить пользователя')
+        # self.kb.button(text='Добавить пользователя')
         self.kb.button(text='Посмотреть отчет о работе сотрудников МФЦ')
         self.kb.button(text='Назад')
         self.kb.adjust(1)

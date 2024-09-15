@@ -55,10 +55,6 @@ class MoPerformerKeyboards:
         next_violation_id: str
     ) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
-            # [
-            #     InlineKeyboardButton(text='⬅️ 📷', callback_data=f'pphoto_{violation_id}'),
-            #     InlineKeyboardButton(text='📷 ➡️', callback_data=f'nphoto_{violation_id}')
-            # ],
             [
                 InlineKeyboardButton(text='Получить все фото для этого нарушения',
                                      callback_data=f'allphoto_{violation_id}'),

@@ -8,8 +8,8 @@ from loguru import logger
 
 from app.config import settings
 from app.database.repositories.cache_config import caches
-from app.handlers import additional, default, dev
-from app.handlers.admin import admin
+from app.handlers import additional, dev
+from app.handlers.admin import admin, authorization
 from app.handlers.user.avail import mfc_avail
 from app.handlers.user.mfc_part import mfc_leader, mfc_main
 from app.handlers.user.mo_part import (
@@ -18,6 +18,7 @@ from app.handlers.user.mo_part import (
     pending_process,
     take_process,
 )
+from app.handlers.user.vacation import vacation
 from app.middlewares.main import ErrorProcessMiddleware, FSMMiddleware
 
 WEBHOOK_HOST = settings.WEBHOOK_HOST
@@ -31,6 +32,8 @@ async def set_main(bot: Bot):
     main_menu_commands = [
         BotCommand(command='/start',
                    description='Начать'),
+        BotCommand(command='/docs',
+                   description='Документация'),
         BotCommand(command='/feedback',
                    description='Обратная связь'),
         BotCommand(command='/changelog',
@@ -59,15 +62,15 @@ def all_register():
         admin.router,
         additional.router,
         dev.router,
+        vacation.router,
         mfc_avail.router,
-        mo_avail.router,
         mfc_leader.router,
         mfc_main.router,
         pending_process.router,
         take_process.router,
         mo_performer.router,
         mo_controler.router,
-        default.router,
+        authorization.router
     )
     dp.update.middleware(FSMMiddleware())
     dp.update.middleware(ErrorProcessMiddleware(bot=bot))

@@ -1,5 +1,13 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+    WebAppInfo,
+)
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
+
+from app.database.db_helpers.form_menu import get_fils_by_mo
 
 
 class DefaultKeyboards:
@@ -13,6 +21,33 @@ class DefaultKeyboards:
             ]
         ])
         return self.kb
+
+    @staticmethod
+    def get_docs() -> InlineKeyboardMarkup:
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text='Нажмите сюда',
+                    web_app=WebAppInfo(url='https://timosii.gitbook.io/my_administrator_docs')
+                )
+            ],
+        ])
+        return kb
+
+    def choose_mo(self, mos: list[str]) -> ReplyKeyboardMarkup:
+        buttons = [KeyboardButton(text=mo) for mo in mos]
+        self.kb.add(*buttons)
+        self.kb.button(text='Назад')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+
+    async def choose_fil(self, mo: str) -> ReplyKeyboardMarkup:
+        fils = await get_fils_by_mo(mo=mo)
+        buttons = [KeyboardButton(text=fil) for fil in fils]
+        self.kb.add(*buttons)
+        self.kb.button(text='Назад')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
 
 
 class DevKeyboards:

@@ -117,6 +117,7 @@ async def export_users_to_excel(message: Message, state: FSMContext, bot: Bot):
                 'is_mo_performer': user.is_mo_performer,
                 'is_mo_controler': user.is_mo_controler,
                 'is_archived': user.is_archived,
+                'is_vacation': user.is_vacation,
             }
             for user in users
         ]

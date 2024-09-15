@@ -25,6 +25,7 @@ from app.filters.mfc_filters import MfcFilter
 from app.handlers.messages import DefaultMessages, MfcMessages
 from app.handlers.states import MfcStates
 from app.handlers.user.mfc_part.mfc_pending_logic import MfcPendingCard
+from app.keyboards.default import DefaultKeyboards
 from app.keyboards.mfc_part import MfcKeyboards
 
 router = Router()
@@ -62,21 +63,21 @@ async def choose_mo(message: Message,
     mos = await helper.mo_define_by_num(num=num)
     if not mos:
         await message.answer(
-            text=MfcMessages.does_not_find
+            text=DefaultMessages.does_not_find
         )
         return
     elif len(mos) > 1:
         await message.answer(
-            text=MfcMessages.choose_mo_additional,
-            reply_markup=await MfcKeyboards().choose_mo(mos=mos),
+            text=DefaultMessages.choose_mo_additional,
+            reply_markup=DefaultKeyboards().choose_mo(mos=mos),
         )
         await state.set_state(MfcStates.choose_mo_additional)
 
     else:
         mo = mos[0]
         await message.answer(
-            text=MfcMessages.choose_fil(mo=mo),
-            reply_markup=await MfcKeyboards().choose_fil(mo=mo),
+            text=DefaultMessages.choose_fil(mo=mo),
+            reply_markup=await DefaultKeyboards().choose_fil(mo=mo),
         )
         await state.update_data(mo=mo)
         await state.set_state(MfcStates.choose_fil)
@@ -89,8 +90,8 @@ async def choose_mo(message: Message,
 async def choose_mo_additional(message: Message, state: FSMContext):
     mo = message.text
     await message.answer(
-        text=MfcMessages.choose_fil(mo=mo),
-        reply_markup=await MfcKeyboards().choose_fil(mo=mo),
+        text=DefaultMessages.choose_fil(mo=mo),
+        reply_markup=await DefaultKeyboards().choose_fil(mo=mo),
     )
     await state.update_data(mo=mo)
     await state.set_state(MfcStates.choose_fil)
@@ -104,7 +105,7 @@ async def choose_mo_additional(message: Message, state: FSMContext):
 )
 async def wrong_choose_mos_additional(message: Message):
     await message.answer(
-        text=MfcMessages.choose_mo_additional,
+        text=DefaultMessages.choose_mo_additional,
         reply_markup=message.reply_markup
     )
 
@@ -259,8 +260,8 @@ async def back_command(message: Message, state: FSMContext):
         data = await state.get_data()
         mo = data['mo']
         await message.answer(
-            text=MfcMessages.choose_fil(mo=mo),
-            reply_markup=await MfcKeyboards().choose_fil(mo=mo),
+            text=DefaultMessages.choose_fil(mo=mo),
+            reply_markup=await DefaultKeyboards().choose_fil(mo=mo),
         )
         await state.update_data(
             fil_=None,

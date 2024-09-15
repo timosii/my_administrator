@@ -42,6 +42,7 @@ class User(Base):
     is_mo_controler: Mapped[bool] = mapped_column(default=False)
     is_avail: Mapped[bool] = mapped_column(default=False)
     is_archived: Mapped[bool] = mapped_column(default=False)
+    is_vacation: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime_now]
     updated_at: Mapped[updated_at]
 

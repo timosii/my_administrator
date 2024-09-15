@@ -44,6 +44,14 @@ async def changelog(message: Message, state: FSMContext):
     )
 
 
+@router.message(Command('docs'))
+async def docs_command(message: Message):
+    await message.answer(
+        text='Перейдите по ссылке, чтобы открыть документацию',
+        reply_markup=DefaultKeyboards.get_docs()
+    )
+
+
 @router.message(F.text,
                 not_constants,
                 StateFilter(Feedback.feedback))

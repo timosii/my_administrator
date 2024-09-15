@@ -1,9 +1,10 @@
 # mypy: disable-error-code="attr-defined"
+
 """initial migration
 
-Revision ID: da537d41666c
-Revises: 89ca48db7662
-Create Date: 2024-09-06 12:14:03.913224
+Revision ID: 0cbeb55bf8f3
+Revises: da537d41666c
+Create Date: 2024-09-15 21:59:55.568116
 
 """
 from typing import Sequence, Union
@@ -13,7 +14,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = 'da537d41666c'
+revision: str = '0cbeb55bf8f3'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -60,6 +61,7 @@ def upgrade() -> None:
         END
         $$;
     """)
+
     op.create_table('mos',
                     sa.Column('mo_', sa.String(length=255), nullable=False),
                     sa.Column('mo_population', sa.String(length=255), nullable=False),
@@ -121,6 +123,7 @@ def upgrade() -> None:
                     sa.Column('is_mo_controler', sa.Boolean(), nullable=False),
                     sa.Column('is_avail', sa.Boolean(), nullable=False),
                     sa.Column('is_archived', sa.Boolean(), nullable=False),
+                    sa.Column('is_vacation', sa.Boolean(), nullable=False),
                     sa.Column('created_at', sa.DateTime(), server_default=sa.text(
                         "TIMEZONE('utc', now())"), nullable=False),
                     sa.Column('updated_at', sa.DateTime(), server_default=sa.text(

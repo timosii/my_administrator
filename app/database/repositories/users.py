@@ -95,7 +95,8 @@ class UserRepo:
                 and_(
                     User.fil_ == fil_,
                     User.is_mo_performer.is_(True),
-                    User.is_archived.is_not(True)
+                    User.is_archived.is_not(True),
+                    User.is_vacation.is_not(True)
                 )
             )
             result = await session.execute(query)
@@ -110,6 +111,7 @@ class UserRepo:
                     User.fil_ == fil_,
                     User.is_mo_performer.is_(True),
                     User.is_archived.is_not(True),
+                    User.is_vacation.is_not(True),
                     User.is_avail.is_(True)
                 )
             )
@@ -119,7 +121,10 @@ class UserRepo:
 
     @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
     async def is_admin(self, user_id: int) -> bool:
-        query = select(User.is_admin).filter_by(user_id=user_id, is_archived=False)
+        query = select(User.is_admin).filter_by(
+            user_id=user_id,
+            is_archived=False
+        )
         logger.info('is admin')
         return await self._get_scalar(query=query)
 
@@ -163,6 +168,15 @@ class UserRepo:
     async def is_mo_controler(self, user_id: int) -> bool:
         query = select(User.is_mo_controler).filter_by(user_id=user_id, is_archived=False)
         logger.info('is mo controler')
+        return await self._get_scalar(query=query)
+
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='user')
+    async def is_vacation(self, user_id: int) -> bool:
+        query = select(User.is_vacation).filter_by(
+            user_id=user_id,
+            is_archived=False
+        )
+        logger.info('is vacation')
         return await self._get_scalar(query=query)
 
     async def _get_scalar(self, query) -> Any:

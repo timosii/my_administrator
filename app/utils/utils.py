@@ -1,7 +1,35 @@
+import asyncio
 import datetime as dt
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 
 import pytz
+
+from app.config import settings
+
+
+@dataclass
+class Categories:
+    mfc: dict = field(default_factory=lambda: {
+        'name': 'специалист МФЦ',
+        'role': 'is_mfc',
+        'password': settings.MFC_PASS
+    })
+    mfc_leader: dict = field(default_factory=lambda: {
+        'name': 'куратор МФЦ',
+        'role': 'is_mfc_leader',
+        'password': settings.MFC_LEADER_PASS
+    })
+    mo_performer: dict = field(default_factory=lambda: {
+        'name': 'сотрудник МО',
+        'role': 'is_mo_performer',
+        'password': settings.MO_PASS
+    })
+    mo_controler: dict = field(default_factory=lambda: {
+        'name': 'куратор МО',
+        'role': 'is_mo_controler',
+        'password': settings.MO_CONTROLER_PASS
+    })
 
 
 @dataclass
@@ -15,6 +43,26 @@ class Name:
             return f'{self.first_name} {self.patronymic}'
         else:
             return f'{self.first_name}'
+
+
+async def check_password(s: str) -> Optional[dict]:
+    categories = Categories()
+
+    for dct in (categories.mfc, categories.mfc_leader, categories.mo_performer, categories.mo_controler):
+        if dct.get('password') == s:
+            return dct
+
+    return None
+
+
+async def is_mfc_role(role: str) -> bool:
+    categories = Categories()
+
+    for dct in (categories.mfc, categories.mfc_leader):
+        if dct.get('role') == role:
+            return True
+
+    return False
 
 
 def time_determiner() -> str:
@@ -110,15 +158,5 @@ def format_timedelta(td: dt.timedelta):
 
 
 if __name__ == '__main__':
-    pass
-    # td1 = dt.timedelta(days=0, hours=0, minutes=5)
-    # td2 = dt.timedelta(days=5, hours=1, minutes=50)
-    # td3 = dt.timedelta(days=0, hours=0, minutes=30)
-    # td4 = dt.timedelta(days=1, hours=0, minutes=0)
-
-    # print(format_timedelta(td1))
-    # print(format_timedelta(td2))
-    # print(format_timedelta(td3))
-    # print(format_timedelta(td4))
-    # time = dt.datetime.now()
-    # print(time_moscow(time))
+    print(Categories().mfc)
+    print(asyncio.run(check_password('mfc')))

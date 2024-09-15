@@ -20,6 +20,10 @@ class Settings:
     CACHE_SHORT: Final = os.getenv('CACHE_SHORT', 'need_to_define')
     CACHE_LONG: Final = os.getenv('CACHE_LONG', 'need_to_define')
     WEBHOOK_HOST: Final = os.getenv('WEBHOOK_HOST', 'need_to_define')
+    MFC_PASS: Final = os.getenv('MFC_PASS', 'need to define')
+    MFC_LEADER_PASS: Final = os.getenv('MFC_LEADER_PASS', 'need to define')
+    MO_PASS: Final = os.getenv('MO_PASS', 'need to define')
+    MO_CONTROLER_PASS: Final = os.getenv('MO_CONTROLER_PASS', 'need to define')
 
     @property
     def url_constructor(self):
