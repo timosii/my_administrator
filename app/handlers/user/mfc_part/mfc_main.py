@@ -564,7 +564,6 @@ async def add_photo_media_group(
     data = await state.get_data()
     photos_ids = data.get('photo_id_mfc', [])
     photos_ids.extend(photos_ids_add)
-    logger.debug(f'PHOTOS_IDS: {photos_ids}')
     await state.update_data(
         photo_id_mfc=photos_ids,
     )
@@ -587,7 +586,6 @@ async def add_photo_add(
     data = await state.get_data()
     photos_ids = data.get('photo_id_mfc', [])
     photos_ids.append(photo_id_mfc)
-    logger.debug(f'PHOTOS_IDS: {photos_ids}')
     await state.update_data(
         photo_id_mfc=photos_ids,
     )
