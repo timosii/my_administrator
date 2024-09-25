@@ -138,8 +138,35 @@ class MoControlerKeyboards:
         self.kb = ReplyKeyboardBuilder()
 
     def main_menu(self) -> ReplyKeyboardMarkup:
-        self.kb.button(text='Посмотреть неисправленные нарушения')
-        self.kb.button(text='Посмотреть все нарушения')
+        self.kb.button(text='Отпуск сотрудника')
+        self.kb.button(text='Посмотреть нарушения филиала')
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
+
+    def get_report(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Получить отчет')
+        self.kb.button(text='Назад')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+
+    def just_back(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Назад')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+
+    def finish_process(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Закончить')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+
+    def choose_employee(self,
+                        user_id: int) -> InlineKeyboardMarkup:
+        self.kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(text='Поменять статус', callback_data=f'choose_employee_{user_id}'),
+                ],
+            ]
+        )
+        return self.kb

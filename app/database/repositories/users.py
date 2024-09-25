@@ -48,6 +48,35 @@ class UserRepo:
         logger.info('is user exist')
         return await self._get_scalar(query=query)
 
+    async def get_mfc_users_by_surname(self, last_name: str) -> list[UserInDB] | None:
+        async with self.session_maker() as session:
+            query = select(User).where(
+                and_(
+                    func.lower(User.last_name) == func.lower(last_name),
+                    User.is_mfc.is_(True),
+                    User.is_archived.is_not(True),
+                )
+            )
+            result = await session.execute(query)
+            users = result.scalars().all()
+            return [UserInDB.model_validate(user) for user in users] if users else None
+
+    async def get_mo_users_by_surname_and_fil(self,
+                                              last_name: str,
+                                              fil_: str) -> list[UserInDB] | None:
+        async with self.session_maker() as session:
+            query = select(User).where(
+                and_(
+                    func.lower(User.last_name) == func.lower(last_name),
+                    User.fil_ == fil_,
+                    User.is_mo_performer.is_(True),
+                    User.is_archived.is_not(True),
+                )
+            )
+            result = await session.execute(query)
+            users = result.scalars().all()
+            return [UserInDB.model_validate(user) for user in users] if users else None
+
     async def get_user_by_id(self, user_id: int) -> UserInDB | None:
         async with self.session_maker() as session:
             result = await session.execute(select(User).filter_by(user_id=user_id))

@@ -10,7 +10,7 @@ from app.database.database import session_maker
 
 async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
     OUT_COLS = {
-        'check_id': 'ID проверки',
+        # 'check_id': 'ID проверки',
         'check_date': 'Дата проверки',
         # 'mfc_start': 'Начало проверки',
         # 'mfc_finish': 'Окончание проверки',
@@ -34,7 +34,6 @@ async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
         query = '''
         SELECT
             DATE(data."check".mfc_start AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Moscow') AS check_date,
-            data."check".check_id,
             data.violation_found.violation_found_id,
             data."check".mfc_start AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Moscow' AS mfc_start,
             data."check".mfc_finish AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Moscow' AS mfc_finish,
@@ -77,13 +76,13 @@ async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
         if rows:
             df = pd.DataFrame(rows)
             df.columns = result.keys()
-            df = df.sort_values(by='check_id')
+            df = df.sort_values(by='check_date')
             df['is_task'] = df['is_task'].map({False: 'Нет', True: 'Да'})
             df = df[OUT_COLS.keys()].rename(columns=OUT_COLS)
         else:
             logger.info('mfc report is empty')
             return None
-           
+
         logger.info('get mfc report')
         path_file = 'mfc_report.xlsx'
         if os.path.exists(path_file):
@@ -94,24 +93,22 @@ async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
             df.to_excel(writer, index=False, sheet_name=sheet_name)
 
             worksheet = writer.sheets[sheet_name]
-            
+
             worksheet.set_column('A:A', 15)
-            worksheet.set_column('B:B', 15)
-            worksheet.set_column('C:C', 25)
-            worksheet.set_column('D:D', 15)
+            worksheet.set_column('B:B', 25)
+            worksheet.set_column('C:C', 15)
+            worksheet.set_column('D:D', 10)
             worksheet.set_column('E:E', 10)
-            worksheet.set_column('F:F', 10)
+            worksheet.set_column('F:F', 35)
             worksheet.set_column('G:G', 35)
             worksheet.set_column('H:H', 35)
-            worksheet.set_column('I:I', 35)
-            worksheet.set_column('J:J', 45)
+            worksheet.set_column('I:I', 45)
+            worksheet.set_column('J:J', 25)
             worksheet.set_column('K:K', 25)
             worksheet.set_column('L:L', 25)
-            worksheet.set_column('M:M', 25)
+            worksheet.set_column('M:M', 30)
             worksheet.set_column('N:N', 30)
             worksheet.set_column('O:O', 30)
-            worksheet.set_column('P:P', 30)
-            worksheet.set_column('Q:Q', 15)
-            
+            worksheet.set_column('P:P', 15)
 
         return mfc_report_doc

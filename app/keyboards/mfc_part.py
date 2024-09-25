@@ -144,6 +144,18 @@ class MfcKeyboards:
         )
         return self.kb
 
+    def all_photo_remove(self) -> InlineKeyboardMarkup:
+        self.kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text='Убрать', callback_data='remove_allphoto'
+                    ),
+                ]
+            ]
+        )
+        return self.kb
+
     def take_task_to_work(
         self, violation_id: str, is_task: int
     ) -> InlineKeyboardMarkup:
@@ -216,7 +228,7 @@ class MfcKeyboards:
                 ],
                 [
                     InlineKeyboardButton(
-                        text='Добавить фотографии (максимум 9 шт.)', callback_data='additional_photo'
+                        text='Добавить фотографии', callback_data='additional_photo'
                     )
                 ],
             ]
@@ -270,7 +282,7 @@ class MfcLeaderKeyboards:
         self.kb = ReplyKeyboardBuilder()
 
     def main_menu(self) -> ReplyKeyboardMarkup:
-        # self.kb.button(text='Добавить пользователя')
+        self.kb.button(text='Отпуск сотрудника')
         self.kb.button(text='Посмотреть отчет о работе сотрудников МФЦ')
         self.kb.button(text='Назад')
         self.kb.adjust(1)
@@ -288,7 +300,23 @@ class MfcLeaderKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
+    def just_back(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Назад')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+
     def finish_process(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Закончить')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
+
+    def choose_employee(self,
+                        user_id: int) -> InlineKeyboardMarkup:
+        self.kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(text='Поменять статус', callback_data=f'choose_employee_{user_id}'),
+                ],
+            ]
+        )
+        return self.kb

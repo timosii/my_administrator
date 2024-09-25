@@ -37,6 +37,7 @@ class MoPerformerStates(StatesGroup):
 
 class MoControlerStates(StatesGroup):
     mo_controler = State()
+    vacation = State()
 
 
 class AdminStates(StatesGroup):
@@ -69,6 +70,7 @@ class MfcLeaderStates(StatesGroup):
     get_end_period = State()
     full_period = State()
     finish_stage = State()
+    vacation = State()
 
 
 class AvailStates(StatesGroup):

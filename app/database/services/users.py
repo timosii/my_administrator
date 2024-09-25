@@ -54,6 +54,19 @@ class UserService:
         result = await self.db_repository.user_exists(user_id=user_id)
         return result
 
+    async def get_mfc_users_by_surname(self, last_name: str) -> Optional[list[UserInDB]]:
+        result = await self.db_repository.get_mfc_users_by_surname(last_name=last_name)
+        return result
+
+    async def get_mo_users_by_surname_and_fil(self,
+                                              last_name: str,
+                                              fil: str) -> Optional[list[UserInDB]]:
+        result = await self.db_repository.get_mo_users_by_surname_and_fil(
+            last_name=last_name,
+            fil_=fil
+        )
+        return result
+
     async def get_user_by_id(self, user_id: int) -> UserInDB | None:
         result = await self.db_repository.get_user_by_id(user_id=user_id)
         return result

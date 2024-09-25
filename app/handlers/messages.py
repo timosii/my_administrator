@@ -96,6 +96,7 @@ class MfcMessages:
     notification_add = 'Выберите филиал, где проблема обнаружена'
     problem_detection = 'Вы обнаружили проблему ☑️'
     violation_saved = 'Информация сохранена ✅'
+    cant_add_photo = 'Вы больше не можете добавлять фото (максимум 10 шт)'
 
     not_comm_to_photo = 'Вы не добавили комментарий к фотографии. Пожалуйста, повторите'
     need_comm_and_photo = 'Добавьте фотографию и комментарий к нарушению в качестве подписи к фото'
@@ -133,7 +134,7 @@ class MfcMessages:
 
     @staticmethod
     def photo_additional(violation: str) -> str:
-        message = f'Отправляйте дополнительные фотографии по проблеме <b>"{violation}"</b>.\nКогда закончите - нажмите кнопку'
+        message = f'Отправляйте дополнительные фотографии по проблеме <b>"{violation}"</b>.\nКогда закончите — нажмите кнопку'
         return message
 
     @staticmethod
@@ -173,6 +174,13 @@ class MfcMessages:
 class MfcLeaderMessages:
     start_message = f'{form_greeting()}, куратор МФЦ!'
     choose_period = 'Выберите начало периода: '
+    choose_surname = 'Введите фамилию сотрудника'
+    no_employee = 'Мы не нашли сотрудника с такой фамилией'
+    to_vacation_success = 'Сотрудник в отпуске! Теперь он не будет получать оповещений и не будет иметь доступа к сервису ✅'
+
+    from_vacation_success = 'Вернули сотрудника из отпуска! Теперь он имеет доступ к сервису ✅'
+
+    no_user = 'Хм, не могу найти сотрудника. Попробуйте ещё раз ✅'
 
 
 class MoPerformerMessages:
@@ -249,4 +257,11 @@ class MoPerformerMessages:
 
 
 class MoControlerMessages:
-    start_message = f'{form_greeting}, куратор МО!'
+    start_message = f'{form_greeting()}, куратор МО!'
+    choose_surname = 'Введите фамилию сотрудника'
+    no_employee = 'Мы не нашли сотрудника с такой фамилией'
+    to_vacation_success = 'Сотрудник в отпуске! Теперь он не будет получать оповещений и не будет иметь доступа к сервису ✅'
+
+    from_vacation_success = 'Вернули сотрудника из отпуска! Теперь он имеет доступ к сервису ✅'
+
+    no_user = 'Хм, не могу найти сотрудника. Попробуйте ещё раз ✅'

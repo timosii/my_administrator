@@ -5,7 +5,6 @@ from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InputMediaPhoto, Message, ReplyKeyboardRemove
-from aiogram.utils.media_group import MediaGroupBuilder
 from loguru import logger
 
 from app.database.schemas.check_schema import CheckUpdate
@@ -318,7 +317,6 @@ async def get_violations_next_prev(
 @router.callback_query(
     F.data.startswith('allphoto_'),
     ~StateFilter(MoPerformerStates.correct_violation)
-    # StateFilter(MoPerformerStates.mo_performer)
 )
 async def get_all_photos(
     callback: CallbackQuery,
@@ -342,26 +340,11 @@ async def get_all_photos(
         )
     else:
         violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
-    photo_ids = violation_found_obj.photo_id_mfc
-    if not photo_ids:
-        await callback.answer(text='Фотографий нет')
-        return
 
-    if len(photo_ids) < 2:
-        await callback.answer(text='Больше фотографий нет')
-        return
-
-    if len(photo_ids) > 10:
-        photo_ids = photo_ids[:10]
-
-    violation_name = violation_found_obj.violation_name
-    media_group = MediaGroupBuilder(caption=violation_name)
-    for photo_id in photo_ids:
-        media_group.add_photo(media=photo_id)
-    await callback.message.answer_media_group(
-        media=media_group.build()
+    await ViolationFoundService.get_all_photos(
+        callback=callback,
+        violation_found_obj=violation_found_obj
     )
-    await callback.answer()
 
 
 @router.callback_query(
@@ -756,6 +739,8 @@ async def something_wrong(message: Message):
     await message.answer(text=DefaultMessages.something_wrong)
 
 
-@router.callback_query()
+@router.callback_query(
+    StateFilter(MoPerformerStates)
+)
 async def something_wrong_callback(callback: CallbackQuery):
     await callback.answer(text=DefaultMessages.not_good_time)

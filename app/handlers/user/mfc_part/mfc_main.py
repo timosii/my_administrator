@@ -6,7 +6,6 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
 from aiogram.types import CallbackQuery, InputMediaPhoto, Message, ReplyKeyboardRemove
-from aiogram.utils.media_group import MediaGroupBuilder
 from aiogram_media_group import media_group_handler
 from loguru import logger
 
@@ -412,30 +411,15 @@ async def get_all_photos(
     callback: CallbackQuery,
     state: FSMContext,
 ):
+
     violation_found_id = str(callback.data.split('_')[1])
     data = await state.get_data()
     violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
-    photo_ids = violation_found_obj.photo_id_mfc
 
-    if not photo_ids:
-        await callback.answer(text='Фотографий нет')
-        return
-
-    if len(photo_ids) < 2:
-        await callback.answer(text='Больше фотографий нет')
-        return
-
-    if len(photo_ids) > 10:
-        photo_ids = photo_ids[:10]
-
-    violation_name = violation_found_obj.violation_name
-    media_group = MediaGroupBuilder(caption=violation_name)
-    for photo_id in photo_ids:
-        media_group.add_photo(media=photo_id)
-    await callback.message.answer_media_group(
-        media=media_group.build()
+    await ViolationFoundService.get_all_photos(
+        callback=callback,
+        violation_found_obj=violation_found_obj
     )
-    await callback.answer()
 
 
 @router.callback_query(
@@ -557,13 +541,23 @@ async def add_photo_media_group(
     state: FSMContext,
     bot: Bot
 ):
-    photos_ids_add = [m.photo[-1].file_id for m in messages]
-    if len(photos_ids_add) > 9:  # т.к. одно фото добавляется основным вначале
-        photos_ids_add = photos_ids_add[:10]
-
     data = await state.get_data()
     photos_ids = data.get('photo_id_mfc', [])
+    can_add = 10 - len(photos_ids)
+    if can_add == 0:
+        await bot.send_message(
+            chat_id=messages[0].chat.id,
+            text=MfcMessages.cant_add_photo,
+            reply_markup=MfcKeyboards().finish_photo_addition(),
+        )
+        return
+
+    photos_ids_add = [m.photo[-1].file_id for m in messages]
+    if len(photos_ids_add) > can_add:
+        photos_ids_add = photos_ids_add[:can_add]
+
     photos_ids.extend(photos_ids_add)
+
     await state.update_data(
         photo_id_mfc=photos_ids,
     )
@@ -584,6 +578,15 @@ async def add_photo_add(
 ):
     photo_id_mfc = message.photo[-1].file_id
     data = await state.get_data()
+    photos_ids = data.get('photo_id_mfc', [])
+    can_add = 10 - len(photos_ids)
+    if can_add == 0:
+        await message.answer(
+            text=MfcMessages.cant_add_photo,
+            reply_markup=MfcKeyboards().finish_photo_addition(),
+        )
+        return
+
     photos_ids = data.get('photo_id_mfc', [])
     photos_ids.append(photo_id_mfc)
     await state.update_data(
@@ -635,7 +638,6 @@ async def add_text_only_directly(
 )
 async def wrong_add_content(
     message: Message,
-    state: FSMContext
 ):
     await message.answer(
         text=MfcMessages.work_only_with_photo_and_text

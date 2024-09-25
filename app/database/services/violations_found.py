@@ -5,6 +5,7 @@ from uuid import UUID
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
+from aiogram.utils.media_group import MediaGroupBuilder
 
 from app.config import settings
 from app.database.database import session_maker
@@ -384,3 +385,30 @@ class ViolationFoundService:
             pending_period=violation.pending_period
         )
         return vio_found
+
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='violation_found')
+    async def get_all_photos(
+        callback: CallbackQuery,
+        violation_found_obj: ViolationFoundOut
+    ):
+        photo_ids = violation_found_obj.photo_id_mfc
+
+        if not photo_ids:
+            await callback.answer(text='Фотографий нет')
+            return
+
+        if len(photo_ids) < 2:
+            await callback.answer(text='Больше фотографий нет')
+            return
+
+        if len(photo_ids) > 10:
+            photo_ids = photo_ids[:10]
+
+        violation_name = violation_found_obj.violation_name
+        media_group = MediaGroupBuilder(caption=violation_name)
+        for photo_id in photo_ids:
+            media_group.add_photo(media=photo_id)
+        await callback.message.answer_media_group(
+            media=media_group.build(),
+        )
+        await callback.answer()
