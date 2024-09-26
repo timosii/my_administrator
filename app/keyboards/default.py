@@ -70,3 +70,29 @@ class DevKeyboards:
             ],
         ])
         return self.kb
+
+
+class ToVacationKeyboards:
+    def __init__(self) -> None:
+        self.kb = ReplyKeyboardBuilder()
+
+    def just_back(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Назад')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+
+    def finish_process(self) -> ReplyKeyboardMarkup:
+        self.kb.button(text='Закончить')
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+
+    def choose_employee(self,
+                        user_id: int) -> InlineKeyboardMarkup:
+        self.kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(text='Поменять статус', callback_data=f'choose_employee_{user_id}'),
+                ],
+            ]
+        )
+        return self.kb

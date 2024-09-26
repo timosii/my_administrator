@@ -64,6 +64,7 @@ class DefaultMessages:
     feedback_answer_finish = 'Спасибо, вся информация отправлена разработчикам!\nВы можете продолжить работу с приложением'
     cancel_feedback = 'Возвращаемся обратно! Вы можете продолжить работу с приложением'
     send_changelog = CHANGELOG
+    back_to_menu = 'Возвращаемся в меню'
 
     @staticmethod
     def choose_fil(mo: str) -> str:
@@ -174,13 +175,6 @@ class MfcMessages:
 class MfcLeaderMessages:
     start_message = f'{form_greeting()}, куратор МФЦ!'
     choose_period = 'Выберите начало периода: '
-    choose_surname = 'Введите фамилию сотрудника'
-    no_employee = 'Мы не нашли сотрудника с такой фамилией'
-    to_vacation_success = 'Сотрудник в отпуске! Теперь он не будет получать оповещений и не будет иметь доступа к сервису ✅'
-
-    from_vacation_success = 'Вернули сотрудника из отпуска! Теперь он имеет доступ к сервису ✅'
-
-    no_user = 'Хм, не могу найти сотрудника. Попробуйте ещё раз ✅'
 
 
 class MoPerformerMessages:
@@ -258,6 +252,10 @@ class MoPerformerMessages:
 
 class MoControlerMessages:
     start_message = f'{form_greeting()}, куратор МО!'
+
+
+class ToVacationMessages:
+    back_to_menu = 'Возвращаемся в меню'
     choose_surname = 'Введите фамилию сотрудника'
     no_employee = 'Мы не нашли сотрудника с такой фамилией'
     to_vacation_success = 'Сотрудник в отпуске! Теперь он не будет получать оповещений и не будет иметь доступа к сервису ✅'

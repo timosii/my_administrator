@@ -11,6 +11,7 @@ from app.database.repositories.cache_config import caches
 from app.handlers import additional, dev
 from app.handlers.admin import admin, authorization
 from app.handlers.user.avail import mfc_avail
+from app.handlers.user.common import vacation_logic
 from app.handlers.user.mfc_part import mfc_leader, mfc_main
 from app.handlers.user.mo_part import (
     mo_controler,
@@ -63,6 +64,7 @@ def all_register():
         additional.router,
         dev.router,
         vacation.router,
+        vacation_logic.router,
         mfc_avail.router,
         mfc_leader.router,
         mfc_main.router,

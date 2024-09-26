@@ -8,13 +8,10 @@ from aiogram.types import CallbackQuery, Message
 from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback
 
 from app.database.repositories.get_reports import get_mfc_report
-from app.database.schemas.user_schema import UserUpdate
-from app.database.services.users import UserService
 from app.filters.mfc_filters import MfcLeaderFilter
-from app.handlers.messages import MfcLeaderMessages
+from app.handlers.messages import DefaultMessages, MfcLeaderMessages
 from app.handlers.states import MfcLeaderStates
 from app.keyboards.mfc_part import MfcLeaderKeyboards
-from app.view.users import get_user_info
 
 router = Router()
 router.message.filter(MfcLeaderFilter())
@@ -34,26 +31,29 @@ async def cmd_start(message: Message, state: FSMContext):
 # back_logic #
 ##############
 
-@router.message(F.text.lower() == 'назад')
+@router.message(
+    F.text.lower() == 'назад'
+)
 async def back_command(message: Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state == MfcLeaderStates.mfc_leader:
-        await state.clear()
+        # await state.clear()
         await message.answer(
-            text=MfcLeaderMessages.start_message,
+            text=DefaultMessages.back_to_menu,
             reply_markup=MfcLeaderKeyboards().main_menu(),
         )
-    elif current_state == MfcLeaderStates.get_start_period:
-        await state.set_state(MfcLeaderStates.mfc_leader)
-        await message.answer(
-            text=MfcLeaderMessages.start_message,
-            reply_markup=MfcLeaderKeyboards().main_menu(),
-        )
+    # elif current_state == MfcLeaderStates.get_start_period:
+    #     await state.set_state(MfcLeaderStates.mfc_leader)
+    #     await message.answer(
+    #         text=MfcLeaderMessages.start_message,
+    #         reply_markup=MfcLeaderKeyboards().main_menu(),
+    #     )
     elif current_state in (
         MfcLeaderStates.get_end_period,
         MfcLeaderStates.full_period
     ):
-        await state.set_state(MfcLeaderStates.get_start_period)
+        # await state.clear()
+        await state.set_state(MfcLeaderStates.mfc_leader)
         await message.answer(
             text='<b>Выберите начало периода:</b> ',
             reply_markup=await SimpleCalendar().start_calendar()
@@ -62,17 +62,11 @@ async def back_command(message: Message, state: FSMContext):
             start_date=None,
             finish_date=None
         )
-    elif current_state == MfcLeaderStates.vacation:
-        await state.set_state(MfcLeaderStates.mfc_leader)
-        await message.answer(
-            text=MfcLeaderMessages.start_message,
-            reply_markup=MfcLeaderKeyboards().main_menu()
-        )
 
     else:
         await state.set_state(MfcLeaderStates.mfc_leader)
         await message.answer(
-            text=MfcLeaderMessages.start_message,
+            text=DefaultMessages.back_to_menu,
             reply_markup=MfcLeaderKeyboards().main_menu(),
         )
 
@@ -90,16 +84,19 @@ async def get_period(message: Message, state: FSMContext):
         text='<b>Выберите начало периода:</b> ',
         reply_markup=await SimpleCalendar().start_calendar()
     )
-    await state.set_state(state=MfcLeaderStates.get_start_period)
 
 
-@router.callback_query(SimpleCalendarCallback.filter(), StateFilter(MfcLeaderStates.get_start_period))
+@router.callback_query(SimpleCalendarCallback.filter(),
+                       StateFilter(MfcLeaderStates.mfc_leader),
+                       )
 async def start_period_calendar(callback_query: CallbackQuery, callback_data: CallbackData, state: FSMContext):
     calendar = SimpleCalendar(
         show_alerts=True
     )
-    calendar.set_dates_range(dt.datetime(2022, 1, 1), dt.datetime(2025, 12, 31))
-    selected, date = await calendar.process_selection(callback_query, callback_data)
+    calendar.set_dates_range(dt.datetime(2022, 1, 1),
+                             dt.datetime(2025, 12, 31))
+    selected, date = await calendar.process_selection(callback_query,
+                                                      callback_data)
     if selected:
         await state.update_data(
             start_date=date.isoformat()
@@ -112,7 +109,8 @@ async def start_period_calendar(callback_query: CallbackQuery, callback_data: Ca
 
 
 @router.callback_query(SimpleCalendarCallback.filter(),
-                       StateFilter(MfcLeaderStates.get_end_period))
+                       StateFilter(MfcLeaderStates.get_end_period)
+                       )
 async def end_period_calendar(callback_query: CallbackQuery, callback_data: CallbackData, state: FSMContext):
     data = await state.get_data()
     start_date = dt.datetime.fromisoformat(data['start_date'])
@@ -135,7 +133,8 @@ async def end_period_calendar(callback_query: CallbackQuery, callback_data: Call
 
 
 @router.message(F.text.lower() == 'получить отчет',
-                StateFilter(MfcLeaderStates.full_period))
+                StateFilter(MfcLeaderStates.full_period)
+                )
 async def get_report(message: Message, state: FSMContext):
     data = await state.get_data()
     start_date = dt.datetime.fromisoformat(data['start_date']).strftime('%Y-%m-%d')
@@ -153,98 +152,6 @@ async def get_report(message: Message, state: FSMContext):
                                       caption='Отправляю отчет',
                                       reply_markup=MfcLeaderKeyboards().finish_process())
     await state.set_state(MfcLeaderStates.finish_stage)
-
-
-@router.message(
-    F.text.lower() == 'отпуск сотрудника',
-    StateFilter(MfcLeaderStates.mfc_leader)
-)
-async def employee_to_vacation(
-    message: Message,
-    state: FSMContext
-):
-    await message.answer(
-        text=MfcLeaderMessages.choose_surname,
-        reply_markup=MfcLeaderKeyboards().just_back()
-    )
-    await state.set_state(MfcLeaderStates.vacation)
-
-
-@router.message(
-    F.text,
-    StateFilter(MfcLeaderStates.vacation)
-)
-async def get_surname(
-    message: Message,
-    state: FSMContext
-):
-    surname = message.text
-    users = await UserService().get_mfc_users_by_surname(last_name=surname)
-    if not users:
-        await message.answer(
-            text=MfcLeaderMessages.no_employee,
-            reply_markup=MfcLeaderKeyboards().main_menu()
-        )
-        await state.set_state(MfcLeaderStates.mfc_leader)
-        return
-
-    else:
-        for user in users:
-            text = await get_user_info(user=user, is_mfc=True)
-            additional_text = '\nСтатус: <b>в отпуске</b>' if user.is_vacation else '\nСтатус: <b>не в отпуске</b>'
-            await message.answer(
-                text=text + additional_text,
-                reply_markup=MfcLeaderKeyboards().choose_employee(user_id=user.user_id)
-            )
-
-
-@router.callback_query(
-    F.data.startswith('choose_employee_'),
-    StateFilter(MfcLeaderStates.vacation)
-)
-async def user_to_vacation(
-    callback: CallbackQuery,
-    state: FSMContext
-):
-    user_id = int(callback.data.split('_')[-1])
-    await state.update_data(
-        user_vacation=user_id
-    )
-    user = await UserService().get_user_by_id(user_id=user_id)
-    if not user:
-        await callback.message.answer(
-            text=MfcLeaderMessages.no_user,
-            reply_markup=MfcLeaderKeyboards().just_back()
-        )
-        await callback.answer()
-        return
-    if user.is_vacation is True:
-        user.is_vacation = False
-        await UserService().update_user(
-            user_id=user_id,
-            user_update=UserUpdate(
-                **user.model_dump()
-            )
-        )
-        await callback.message.answer(
-            text=MfcLeaderMessages.from_vacation_success,
-            reply_markup=MfcLeaderKeyboards().main_menu()
-        )
-
-    else:
-        user.is_vacation = True
-        await UserService().update_user(
-            user_id=user_id,
-            user_update=UserUpdate(
-                **user.model_dump()
-            )
-        )
-        await callback.message.answer(
-            text=MfcLeaderMessages.to_vacation_success,
-            reply_markup=MfcLeaderKeyboards().main_menu()
-        )
-    await callback.answer()
-    await state.set_state(MfcLeaderStates.mfc_leader)
 
 
 @router.message(F.text.lower() == 'закончить', StateFilter(MfcLeaderStates.finish_stage))
