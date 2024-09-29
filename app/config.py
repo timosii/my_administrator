@@ -25,6 +25,8 @@ class Settings:
     MO_PASS: Final = os.getenv('MO_PASS', 'need to define')
     MO_CONTROLER_PASS: Final = os.getenv('MO_CONTROLER_PASS', 'need to define')
     DOCS_URL: Final = os.getenv('DOCS_URL', 'need to define')
+    DOCS_MFC: Final = os.getenv('DOCS_MFC', 'need to define')
+    DOCS_MO: Final = os.getenv('DOCS_MO', 'need to define')
 
     @property
     def url_constructor(self):

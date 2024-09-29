@@ -4,6 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from app.config import settings
+from app.database.services.users import UserService
 from app.filters.admin import AdminFilter
 from app.filters.default import not_constants
 from app.filters.mfc_filters import MfcFilter, MfcLeaderFilter
@@ -45,10 +46,15 @@ async def changelog(message: Message, state: FSMContext):
 
 
 @router.message(Command('docs'))
-async def docs_command(message: Message):
+async def docs_command(
+        message: Message,
+        state: FSMContext):
+    user_id = message.from_user.id
+    is_mfc = await UserService().is_mfc(user_id=user_id)
+    role = 'mfc' if is_mfc else 'mo'
     await message.answer(
         text='Перейдите по ссылке, чтобы открыть документацию',
-        reply_markup=DefaultKeyboards.get_docs()
+        reply_markup=DefaultKeyboards.get_docs(role=role)
     )
 
 

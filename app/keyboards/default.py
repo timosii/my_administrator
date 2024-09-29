@@ -11,6 +11,14 @@ from app.config import settings
 from app.database.db_helpers.form_menu import get_fils_by_mo
 
 DOCS_URL = settings.DOCS_URL
+DOCS_MFC = settings.DOCS_MFC
+DOCS_MO = settings.DOCS_MO
+
+
+DOCS_MAPPING = {
+    'mfc': DOCS_MFC,
+    'mo': DOCS_MO,
+}
 
 
 class DefaultKeyboards:
@@ -26,12 +34,14 @@ class DefaultKeyboards:
         return self.kb
 
     @staticmethod
-    def get_docs() -> InlineKeyboardMarkup:
+    def get_docs(role: str) -> InlineKeyboardMarkup:
+
+        url = DOCS_MAPPING[role]
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(
                     text='Нажмите сюда',
-                    web_app=WebAppInfo(url=DOCS_URL)
+                    web_app=WebAppInfo(url=url)
                 )
             ],
         ])
