@@ -1,3 +1,5 @@
+version: '2.4'
+
 services:
   app:
     build:
@@ -6,18 +8,13 @@ services:
     env_file: .env_prod
     ports:
       - "8080:8080"
-    command: bash -c "alembic upgrade head && export PYTHONPATH=$$PYTHONPATH:$$(pwd) && python run.py"
+    command: bash -c "alembic upgrade head && export PYTHONPATH=\$$PYTHONPATH:\$$(pwd) && python run.py"
     depends_on:
-      ngrok:
-        condition: service_started
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - ngrok
+      - db
+      - redis
     volumes:
-      - type: bind
-        source: ./
-        target: /code
+      - ./:/code
     networks:
       - my_admin
 
@@ -29,7 +26,7 @@ services:
     ports:
       - "8124:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,17 +36,12 @@ services:
   redis:
     image: redis:latest
     volumes:
-      - redis_data:/usr/local/etc/redis
+      - redis_data:/data
     env_file: .env_prod
     ports:
       - "6379:6379"
-    depends_on:
-      ngrok:
-        condition: service_started
-      db:
-        condition: service_healthy
     healthcheck:
-      test: ["CMD", "redis-cli","ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -64,18 +56,17 @@ services:
       - "--all"
       - "--config"
       - "/etc/ngrok.yml"
-
-
     volumes:
       - ./ngrok.yml:/etc/ngrok.yml
     ports:
-      - 4040:4040
+      - "4040:4040"
     networks:
       - my_admin
 
 networks:
   my_admin:
     driver: bridge
+
 volumes:
   postgres_data:
   redis_data:
