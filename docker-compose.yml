@@ -65,7 +65,6 @@ services:
       - "--config"
       - "/etc/ngrok.yml"
 
-
     volumes:
       - ./ngrok.yml:/etc/ngrok.yml
     ports:
