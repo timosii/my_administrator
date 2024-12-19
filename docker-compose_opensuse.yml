@@ -8,7 +8,7 @@ services:
     env_file: .env_prod
     ports:
       - "8080:8080"
-    command: bash -c "alembic upgrade head && export PYTHONPATH=\$$PYTHONPATH:\$$(pwd) && python run.py"
+    command: bash -c "alembic upgrade head && python run.py"
     depends_on:
       - db
       - redis
