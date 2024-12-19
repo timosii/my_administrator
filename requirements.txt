@@ -1,6 +1,6 @@
 aiocache==0.12.2 ; python_version >= "3.10" and python_version < "4.0"
 aiofiles==23.2.1 ; python_version >= "3.10" and python_version < "4.0"
-aiogram-calendar @ git+https://github.com/timosii/aiogram_calendar.git@cd1e198ca5c98876df40bf5a380127ffe7084013 ; python_version >= "3.10" and python_version < "4.0"
+aiogram-calendar @ file:///code/packages/aiogram_calendar.zip ; python_version >= "3.10" and python_version < "4.0"
 aiogram-media-group==0.5.1 ; python_version >= "3.10" and python_version < "4.0"
 aiogram==3.13.0 ; python_version >= "3.10" and python_version < "4.0"
 aiohappyeyeballs==2.4.0 ; python_version >= "3.10" and python_version < "4.0"
