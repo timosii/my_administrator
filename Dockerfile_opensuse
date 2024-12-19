@@ -3,7 +3,5 @@ WORKDIR /code
 COPY ./packages /code/packages
 COPY ./requirements.txt /code/
 RUN pip install --no-index --find-links=/code/packages -r /code/requirements.txt
-COPY ./alembic /code/alembic
-COPY ./alembic.ini /code
-COPY ./run.py /code
-COPY ./app /code/app
+COPY . /code/
+COPY .env_prod /code/
