@@ -4,13 +4,12 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile_opensuse
     env_file: .env_prod
     ports:
       - "8080:8080"
     command: bash -c "alembic upgrade head && export PYTHONPATH=\$$PYTHONPATH:\$$(pwd) && python run.py"
     depends_on:
-      - ngrok
       - db
       - redis
     volumes:
@@ -19,7 +18,7 @@ services:
       - my_admin
 
   db:
-    image: postgres:15.1-alpine
+    image: docker.emias.ru/dockerhub/library/postgres:15.1-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
     env_file: .env_prod
@@ -34,7 +33,7 @@ services:
       - my_admin
 
   redis:
-    image: redis:latest
+    image: docker.emias.ru/dockerhub/library/redis:latest
     volumes:
       - redis_data:/data
     env_file: .env_prod
@@ -45,21 +44,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - my_admin
-
-  ngrok:
-    image: ngrok/ngrok:latest
-    restart: unless-stopped
-    command:
-      - "start"
-      - "--all"
-      - "--config"
-      - "/etc/ngrok.yml"
-    volumes:
-      - ./ngrok.yml:/etc/ngrok.yml
-    ports:
-      - "4040:4040"
     networks:
       - my_admin
 
