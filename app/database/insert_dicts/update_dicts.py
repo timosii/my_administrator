@@ -63,7 +63,7 @@ class DictsUpdate():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
 
                 stmt = pg_insert(Zones).values(**stripped_row).on_conflict_do_update(
-                    index_elements=['zone_name'],  # assuming 'id' is the primary key or unique constraint
+                    index_elements=['zone_name'],
                     set_=stripped_row
                 )
                 await session.execute(stmt)
@@ -76,7 +76,7 @@ class DictsUpdate():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
 
                 stmt = pg_insert(ProblemBlocs).values(**stripped_row).on_conflict_do_update(
-                    index_elements=['problem_name'],  # assuming 'id' is the primary key or unique constraint
+                    index_elements=['problem_name'],
                     set_=stripped_row
                 )
 
@@ -93,7 +93,7 @@ class DictsUpdate():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
 
                 stmt = pg_insert(Violations).values(**stripped_row).on_conflict_do_update(
-                    index_elements=['violation_dict_id'],  # assuming 'id' is the primary key or unique constraint
+                    index_elements=['violation_dict_id'],
                     set_=stripped_row
                 )
                 await session.execute(stmt)
