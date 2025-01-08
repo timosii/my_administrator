@@ -6,7 +6,11 @@ from aiogram.types import (
 )
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-from app.database.db_helpers.form_menu import get_all_zones, get_zone_violations
+from app.database.db_helpers.form_menu import (
+    get_all_zones,
+    get_violation_problems,
+    get_zone_violations,
+)
 from app.view.menu_beautify import ICONS_MAPPING
 
 SPECS = [
@@ -84,7 +88,22 @@ class MfcKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def add_content(self) -> ReplyKeyboardMarkup:
+    async def choose_problem(
+        self, violation_name: str, zone: str
+    ) -> ReplyKeyboardMarkup:
+        problems = await get_violation_problems(violation_name=violation_name, zone=zone)
+        buttons = [
+            KeyboardButton(
+                text=problem
+            )
+            for problem in problems
+        ]
+        self.kb.button(text='⬅️ К выбору нарушения')
+        self.kb.add(*buttons)
+        self.kb.adjust(1)
+        return self.kb.as_markup(resize_keyboard=True)
+
+    async def add_content(self) -> ReplyKeyboardMarkup:
         buttons = [
             KeyboardButton(text=s) for s in ['Загрузить фото', 'Написать комментарий']
         ]
@@ -93,34 +112,34 @@ class MfcKeyboards:
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def just_back(self) -> ReplyKeyboardMarkup:
+    async def just_back(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def just_cancel(self) -> ReplyKeyboardMarkup:
+    async def just_cancel(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Отменить')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def finish_photo_addition(self) -> ReplyKeyboardMarkup:
+    async def finish_photo_addition(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Закончить добавление фото')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def avail_cancel(self) -> ReplyKeyboardMarkup:
+    async def avail_cancel(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Отменить')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def avail_cancel_yes(self) -> ReplyKeyboardMarkup:
+    async def avail_cancel_yes(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Да')
         self.kb.button(text='Отменить')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
     @staticmethod
-    def get_specs() -> InlineKeyboardMarkup:
+    async def get_specs() -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -132,7 +151,7 @@ class MfcKeyboards:
         )
         return kb
 
-    def photo_added(self) -> InlineKeyboardMarkup:
+    async def photo_added(self) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -144,7 +163,7 @@ class MfcKeyboards:
         )
         return self.kb
 
-    def all_photo_remove(self) -> InlineKeyboardMarkup:
+    async def all_photo_remove(self) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -156,7 +175,7 @@ class MfcKeyboards:
         )
         return self.kb
 
-    def take_task_to_work(
+    async def take_task_to_work(
         self, violation_id: str, is_task: int
     ) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(
@@ -176,7 +195,7 @@ class MfcKeyboards:
         )
         return self.kb
 
-    def get_description(self, violation_id: int) -> InlineKeyboardMarkup:
+    async def get_description(self, violation_id: int) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -189,7 +208,7 @@ class MfcKeyboards:
         )
         return self.kb
 
-    def unfinished_check(self, check_id) -> InlineKeyboardMarkup:
+    async def unfinished_check(self, check_id) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -208,7 +227,7 @@ class MfcKeyboards:
         )
         return self.kb
 
-    def comm_added(self) -> InlineKeyboardMarkup:
+    async def comm_added(self) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -220,7 +239,7 @@ class MfcKeyboards:
         )
         return self.kb
 
-    def save_or_cancel(self) -> InlineKeyboardMarkup:
+    async def save_or_cancel(self) -> InlineKeyboardMarkup:
         self.kb = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -236,7 +255,7 @@ class MfcKeyboards:
         return self.kb
 
     @staticmethod
-    def get_violation_pending_menu(
+    async def get_violation_pending_menu(
         violation_id: str, prev_violation_id: str, next_violation_id: str
     ) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(

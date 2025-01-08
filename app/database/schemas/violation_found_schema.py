@@ -92,6 +92,7 @@ class ViolationFoundOut(BaseModel):
     violation_found_id: str
     zone: str
     violation_name: str
+    problem: str
     time_to_correct: dt.timedelta
     violation_detected: dt.datetime
     comm_mfc: str | None = None
@@ -105,10 +106,12 @@ class ViolationFoundOut(BaseModel):
 
     def violation_card(self) -> str:
         result = f"""
-<b>Зона:</b>
+<b>Категория:</b>
 {self.zone}
 <b>Нарушение:</b>
 {self.violation_name}
+<b>Проблема:</b>
+{self.problem}
 <b>Время выявления нарушения:</b>
 {to_moscow_time(self.violation_detected).strftime('%d.%m.%Y %H:%M')}
 

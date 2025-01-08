@@ -10,38 +10,38 @@ class MoPerformerKeyboards:
     def __init__(self) -> None:
         self.kb = ReplyKeyboardBuilder()
 
-    def main_menu(self) -> ReplyKeyboardMarkup:
+    async def main_menu(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Посмотреть активные проверки')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def just_cancel(self) -> ReplyKeyboardMarkup:
+    async def just_cancel(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Отменить')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def back_to_violations(self) -> ReplyKeyboardMarkup:
+    async def back_to_violations(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Продолжить проверку')
         self.kb.button(text='Закончить проверку')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def back_to_menu(self) -> ReplyKeyboardMarkup:
+    async def back_to_menu(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Вернуться в меню')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def check_finished(self) -> ReplyKeyboardMarkup:
+    async def check_finished(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Закончить проверку')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def just_back(self) -> ReplyKeyboardMarkup:
+    async def just_back(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)
 
-    def check_or_tasks(self) -> ReplyKeyboardMarkup:
+    async def check_or_tasks(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Активные уведомления')
         self.kb.button(text='Активные проверки')
         self.kb.button(text='Перенесенные нарушения')
@@ -49,7 +49,7 @@ class MoPerformerKeyboards:
         return self.kb.as_markup(resize_keyboard=True)
 
     @staticmethod
-    def get_violation_menu(
+    async def get_violation_menu(
         violation_id: str,
         prev_violation_id: str,
         next_violation_id: str
@@ -71,7 +71,7 @@ class MoPerformerKeyboards:
         return kb
 
     @staticmethod
-    def get_violation_pending_menu(
+    async def get_violation_pending_menu(
         violation_id: str,
         prev_violation_id: str,
         next_violation_id: str
@@ -94,7 +94,7 @@ class MoPerformerKeyboards:
         return kb
 
     @staticmethod
-    def get_under_check(check_id: str) -> InlineKeyboardMarkup:
+    async def get_under_check(check_id: str) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text='Посмотреть нарушения', callback_data=f'violations_{check_id}'),
@@ -103,7 +103,7 @@ class MoPerformerKeyboards:
         return kb
 
     @staticmethod
-    def get_under_check_zero_violations(check_id: str) -> InlineKeyboardMarkup:
+    async def get_under_check_zero_violations(check_id: str) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text='Закончить проверку', callback_data=f'violationszero_{check_id}'),
@@ -112,7 +112,7 @@ class MoPerformerKeyboards:
         return kb
 
     @staticmethod
-    def save_violation_found(violation_found_id: str) -> InlineKeyboardMarkup:
+    async def save_violation_found(violation_found_id: str) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text='Сохранить', callback_data=f'save_{violation_found_id}'),
@@ -124,7 +124,7 @@ class MoPerformerKeyboards:
         return kb
 
     @staticmethod
-    def cancel_correct_mode(violation_found_id: str) -> InlineKeyboardMarkup:
+    async def cancel_correct_mode(violation_found_id: str) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text='Отменить', callback_data=f'cancel_{violation_found_id}'),

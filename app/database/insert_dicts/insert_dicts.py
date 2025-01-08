@@ -6,7 +6,7 @@ import pandas as pd
 from sqlalchemy import select
 
 from app.database.database import session_maker
-from app.database.models.dicts import Filials, Mos, ProblemBlocs, Violations, Zones
+from app.database.models.dicts import Filials, Mos, Violations, Zones
 
 
 class DictsInsert():
@@ -66,27 +66,43 @@ class DictsInsert():
                 session.add_all(zones)
                 await session.commit()
 
-    async def insert_problems(self):
-        async with session_maker() as session:
-            result = await session.execute(select(ProblemBlocs).limit(1))
-            if not result.scalar():
-                problems = []
-                for _, row in self.dfs['problems_dict'].iterrows():
-                    stripped_row = {key: value.strip() if isinstance(
-                        value, str) else value for key, value in row.items()}
-                    problems.append(ProblemBlocs(**stripped_row))
-                session.add_all(problems)
-                await session.commit()
+    # async def insert_problems(self):
+    #     async with session_maker() as session:
+    #         result = await session.execute(select(ProblemBlocs).limit(1))
+    #         if not result.scalar():
+    #             problems = []
+    #             for _, row in self.dfs['problems_dict'].iterrows():
+    #                 stripped_row = {key: value.strip() if isinstance(
+    #                     value, str) else value for key, value in row.items()}
+    #                 problems.append(ProblemBlocs(**stripped_row))
+    #             session.add_all(problems)
+    #             await session.commit()
 
-    async def insert_violations(self):
-        self.dfs['violations_dict']['time_to_correct'] = pd.to_timedelta(
-            self.dfs['violations_dict']['time_to_correct']).astype(str)
-        self.dfs['violations_dict']['violation_dict_id'] = self.dfs['violations_dict']['violation_dict_id'].astype(int)
+    # async def insert_violations(self):
+    #     self.dfs['violations_dict']['time_to_correct'] = pd.to_timedelta(
+    #         self.dfs['violations_dict']['time_to_correct']).astype(str)
+    #     self.dfs['violations_dict']['violation_dict_id'] = self.dfs['violations_dict']['violation_dict_id'].astype(int)
+    #     async with session_maker() as session:
+    #         result = await session.execute(select(Violations).limit(1))
+    #         if not result.scalar():
+    #             violations = []
+    #             for _, row in self.dfs['violations_dict'].iterrows():
+    #                 stripped_row = {key: value.strip() if isinstance(
+    #                     value, str) else value for key, value in row.items()}
+    #                 violations.append(Violations(**stripped_row))
+    #             session.add_all(violations)
+    #             await session.commit()
+
+    async def insert_violations_new(self):
+        self.dfs['violations_dict_new']['time_to_correct'] = pd.to_timedelta(
+            self.dfs['violations_dict_new']['time_to_correct']).astype(str)
+        self.dfs['violations_dict_new']['violation_dict_id'] = self.dfs['violations_dict_new']['violation_dict_id'].astype(
+            int)
         async with session_maker() as session:
             result = await session.execute(select(Violations).limit(1))
             if not result.scalar():
                 violations = []
-                for _, row in self.dfs['violations_dict'].iterrows():
+                for _, row in self.dfs['violations_dict_new'].iterrows():
                     stripped_row = {key: value.strip() if isinstance(
                         value, str) else value for key, value in row.items()}
                     violations.append(Violations(**stripped_row))
@@ -97,8 +113,8 @@ class DictsInsert():
         asyncio.get_event_loop().run_until_complete(self.insert_mos())
         asyncio.get_event_loop().run_until_complete(self.insert_fils())
         asyncio.get_event_loop().run_until_complete(self.insert_zones())
-        asyncio.get_event_loop().run_until_complete(self.insert_problems())
-        asyncio.get_event_loop().run_until_complete(self.insert_violations())
+        # asyncio.get_event_loop().run_until_complete(self.insert_problems())
+        asyncio.get_event_loop().run_until_complete(self.insert_violations_new())
 
 
 if __name__ == '__main__':

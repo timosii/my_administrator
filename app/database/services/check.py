@@ -140,7 +140,7 @@ class CheckService:
                 )
                 await message.answer(
                     text=text_mes,
-                    reply_markup=MfcKeyboards().unfinished_check(check_id=check.check_id),
+                    reply_markup=await MfcKeyboards().unfinished_check(check_id=check.check_id),
                 )
 
     async def finish_unfinished_process(

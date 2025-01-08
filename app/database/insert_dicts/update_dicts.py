@@ -7,7 +7,7 @@ from loguru import logger
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.database.database import session_maker
-from app.database.models.dicts import Filials, Mos, ProblemBlocs, Violations, Zones
+from app.database.models.dicts import Filials, Mos, Violations, Zones
 
 
 class DictsUpdate():
@@ -70,24 +70,42 @@ class DictsUpdate():
             await session.commit()
         logger.info('ZONES_UPDATED')
 
-    async def update_problems(self):
-        async with session_maker() as session:
-            for _, row in self.dfs['problems_dict'].iterrows():
-                stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
+    # async def update_problems(self):
+    #     async with session_maker() as session:
+    #         for _, row in self.dfs['problems_dict'].iterrows():
+    #             stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
 
-                stmt = pg_insert(ProblemBlocs).values(**stripped_row).on_conflict_do_update(
-                    index_elements=['problem_name'],
-                    set_=stripped_row
-                )
+    #             stmt = pg_insert(ProblemBlocs).values(**stripped_row).on_conflict_do_update(
+    #                 index_elements=['problem_name'],
+    #                 set_=stripped_row
+    #             )
 
-                await session.execute(stmt)
-            await session.commit()
-        logger.info('PROBLEMS_UPDATED')
+    #             await session.execute(stmt)
+    #         await session.commit()
+    #     logger.info('PROBLEMS_UPDATED')
 
-    async def update_violations(self):
-        self.dfs['violations_dict']['time_to_correct'] = pd.to_timedelta(
-            self.dfs['violations_dict']['time_to_correct']).astype(str)
-        self.dfs['violations_dict']['violation_dict_id'] = self.dfs['violations_dict']['violation_dict_id'].astype(int)
+    # async def update_violations(self):
+    #     self.dfs['violations_dict']['time_to_correct'] = pd.to_timedelta(
+    #         self.dfs['violations_dict']['time_to_correct']).astype(str)
+    #     self.dfs['violations_dict']['violation_dict_id'] = self.dfs['violations_dict']['violation_dict_id'].astype(int)
+    #     async with session_maker() as session:
+    #         for _, row in self.dfs['violations_dict'].iterrows():
+    #             stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
+
+    #             stmt = pg_insert(Violations).values(**stripped_row).on_conflict_do_update(
+    #                 index_elements=['violation_dict_id'],
+    #                 set_=stripped_row
+    #             )
+    #             await session.execute(stmt)
+
+    #         await session.commit()
+    #     logger.info('VIOLATIONS_UPDATED')
+
+    async def update_violations_new(self):
+        self.dfs['violations_dict_new']['time_to_correct'] = pd.to_timedelta(
+            self.dfs['violations_dict_new']['time_to_correct']).astype(str)
+        self.dfs['violations_dict_new']['violation_dict_id'] = self.dfs['violations_dict_new']['violation_dict_id'].astype(
+            int)
         async with session_maker() as session:
             for _, row in self.dfs['violations_dict'].iterrows():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
@@ -99,14 +117,14 @@ class DictsUpdate():
                 await session.execute(stmt)
 
             await session.commit()
-        logger.info('VIOLATIONS_UPDATED')
+        logger.info('VIOLATIONS_NEW_UPDATED')
 
     def update_dicts_to_db(self):
         asyncio.get_event_loop().run_until_complete(self.update_mos())
         asyncio.get_event_loop().run_until_complete(self.update_fils())
         asyncio.get_event_loop().run_until_complete(self.update_zones())
-        asyncio.get_event_loop().run_until_complete(self.update_problems())
-        asyncio.get_event_loop().run_until_complete(self.update_violations())
+        # asyncio.get_event_loop().run_until_complete(self.update_problems())
+        asyncio.get_event_loop().run_until_complete(self.update_violations_new())
 
 
 if __name__ == '__main__':

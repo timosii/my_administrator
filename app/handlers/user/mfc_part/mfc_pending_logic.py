@@ -50,10 +50,10 @@ class MfcPendingCard:
         )
         return violations_out_from_data
 
-    def form_reply(self,
-                   violations_out: list[ViolationFoundOut],
-                   order: int = 0,
-                   ) -> Reply:
+    async def form_reply(self,
+                         violations_out: list[ViolationFoundOut],
+                         order: int = 0,
+                         ) -> Reply:
         photo_id = violations_out[order].photo_id_mfc[0] if violations_out[order].photo_id_mfc else None  # type: ignore
         text_mes = violations_out[order].violation_card_pending()
         prev_order = order - 1
@@ -94,7 +94,7 @@ class MfcPendingCard:
             state=state,
             violation_found_id=violation_found_out.violation_found_id
         )
-        reply_obj = self.form_reply(
+        reply_obj = await self.form_reply(
             violations_out=violations_out_from_data,
             order=order,
         )

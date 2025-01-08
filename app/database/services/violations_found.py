@@ -143,9 +143,9 @@ class ViolationFoundService:
             return None
         return result
 
-    async def get_dict_id_by_name(self, violation_name: str, zone: str) -> int:
+    async def get_dict_id_by_name(self, violation_name: str, zone: str, problem: str) -> int:
         result = await ViolationsRepo().get_dict_id_by_name(
-            zone=zone, violation_name=violation_name
+            zone=zone, violation_name=violation_name, problem=problem
         )
         return result
 
@@ -214,7 +214,7 @@ class ViolationFoundService:
         else:
             res = violation.violation_card()
             await callback.message.answer(
-                text=MfcMessages.send_to_mo(fil_=violation.fil_),
+                text=await MfcMessages.send_to_mo(fil_=violation.fil_),
                 reply_markup=ReplyKeyboardRemove()
             )
             await callback.message.answer_sticker(
@@ -229,8 +229,8 @@ class ViolationFoundService:
                         await callback.bot.send_photo(
                             chat_id=performer.user_id,
                             photo=violation.photo_id_mfc[0],
-                            caption=MfcMessages.there_is_new_violation(fil_=violation.fil_, text=res),
-                            reply_markup=MfcKeyboards().take_task_to_work(
+                            caption=await MfcMessages.there_is_new_violation(fil_=violation.fil_, text=res),
+                            reply_markup=await MfcKeyboards().take_task_to_work(
                                 violation_id=violation.violation_found_id,
                                 is_task=violation.is_task
                             )
@@ -238,8 +238,8 @@ class ViolationFoundService:
                     else:
                         await callback.bot.send_message(
                             chat_id=performer.id,
-                            text=MfcMessages.there_is_new_violation(fil_=violation.fil_, text=res),
-                            reply_markup=MfcKeyboards().take_task_to_work(
+                            text=await MfcMessages.there_is_new_violation(fil_=violation.fil_, text=res),
+                            reply_markup=await MfcKeyboards().take_task_to_work(
                                 violation_id=violation.violation_found_id,
                                 is_task=violation.is_task
                             )
@@ -251,13 +251,13 @@ class ViolationFoundService:
 
             if norm_users_count > 0:
                 await callback.message.answer(
-                    text=MfcMessages.violation_sending(fil_=violation.fil_, count=norm_users_count, flag=True),
+                    text=await MfcMessages.violation_sending(fil_=violation.fil_, count=norm_users_count, flag=True),
                     reply_markup=ReplyKeyboardRemove()
                 )
 
             if troubles_user_count > 0:
                 await callback.message.answer(
-                    text=MfcMessages.violation_sending(fil_=violation.fil_, count=troubles_user_count, flag=False),
+                    text=await MfcMessages.violation_sending(fil_=violation.fil_, count=troubles_user_count, flag=False),
                     reply_markup=ReplyKeyboardRemove()
                 )
 
@@ -267,8 +267,11 @@ class ViolationFoundService:
         violation_found_out: ViolationFoundOut,
     ):
         await callback.message.edit_text(
-            text=MfcMessages.save_violation(
-                violation=violation_found_out.violation_name), reply_markup=None
+            text=await MfcMessages.save_violation(
+                zone=violation_found_out.zone,
+                violation_name=violation_found_out.violation_name,
+                problem=violation_found_out.problem
+            ), reply_markup=None
         )
 
         vio_found_update = ViolationFoundUpdate(
@@ -292,13 +295,13 @@ class ViolationFoundService:
             if callback:
                 await callback.message.answer_sticker(
                     sticker=MoPerformerMessages.find_sticker,
-                    reply_markup=MoPerformerKeyboards().check_or_tasks(),
+                    reply_markup=await MoPerformerKeyboards().check_or_tasks(),
                 )
                 await asyncio.sleep(1)
             if message:
                 await message.answer_sticker(
                     sticker=MoPerformerMessages.find_sticker,
-                    reply_markup=MoPerformerKeyboards().check_or_tasks(),
+                    reply_markup=await MoPerformerKeyboards().check_or_tasks(),
                 )
                 await asyncio.sleep(1)
         else:
@@ -320,7 +323,7 @@ class ViolationFoundService:
         if not violations_found_check:
             await callback.message.answer_sticker(
                 sticker=MoPerformerMessages.find_sticker,
-                reply_markup=MoPerformerKeyboards().check_finished(),
+                reply_markup=await MoPerformerKeyboards().check_finished(),
             )
             await asyncio.sleep(1)
         else:
@@ -343,7 +346,7 @@ class ViolationFoundService:
                 sticker=MoPerformerMessages.find_sticker,
             )
             await asyncio.sleep(1)
-            violations_found_out_pending_data = MoPerformerCard(data=data).get_pending_violations()
+            violations_found_out_pending_data = await MoPerformerCard(data=data).get_pending_violations()
             await state.update_data(
                 {f'vio_{violation_out.violation_found_id}': None for violation_out in violations_found_out_pending_data}
             )
@@ -375,6 +378,7 @@ class ViolationFoundService:
             violation_dict_id=violation.violation_dict_id,
             zone=vio.zone,
             violation_name=vio.violation_name,
+            problem=vio.problem,
             time_to_correct=vio.time_to_correct,
             violation_detected=violation.violation_detected,
             comm_mfc=violation.comm_mfc,

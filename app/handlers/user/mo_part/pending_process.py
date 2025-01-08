@@ -85,11 +85,11 @@ async def start_period_calendar(callback_query: CallbackQuery, callback_data: Ca
         )
         await callback_query.message.delete()
         await callback_query.message.answer(
-            text=MoPerformerMessages.pending_period(pending_date=date)
+            text=await MoPerformerMessages.pending_period(pending_date=date)
         )
         await callback_query.message.answer(
             text=MoPerformerMessages.add_pending_comm,
-            reply_markup=MoPerformerKeyboards().just_cancel()
+            reply_markup=await MoPerformerKeyboards().just_cancel()
         )
         await state.set_state(MoPerformerStates.pending_process)
 
@@ -126,7 +126,7 @@ async def add_comm_pending_text(
             **ViolationFoundClearData().model_dump(mode='json')
         )
 
-    order_before_pending = MoPerformerCard(
+    order_before_pending = await MoPerformerCard(
         data=data
     ).get_index_violation_found(violation_found_out=violation_found_out)
     if order_before_pending is None:
@@ -150,7 +150,7 @@ async def add_comm_pending_text(
             pending_period=dt.datetime.fromisoformat(data['pending_period'])
         )
     )
-    reply_obj = MoPerformerCard(
+    reply_obj = await MoPerformerCard(
         data=data
     ).get_pending_process(
         order=order_before_pending,
@@ -171,7 +171,7 @@ async def add_comm_pending_text(
     if not reply_obj:
         await message.answer(
             text=MoPerformerMessages.no_violations_after_pending,
-            reply_markup=MoPerformerKeyboards().check_or_tasks()
+            reply_markup=await MoPerformerKeyboards().check_or_tasks()
         )
     else:
         await message.answer_photo(
@@ -193,7 +193,7 @@ async def add_comm_pending_cancel(
     violation_found_id = data['pending_vio']
 
     violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
-    reply_obj = MoPerformerCard(data=data).cancel_process(
+    reply_obj = await MoPerformerCard(data=data).cancel_process(
         violation_found_out=violation_found_out
     )
 
@@ -203,7 +203,7 @@ async def add_comm_pending_cancel(
 
     await message.answer(
         text=MoPerformerMessages.continue_check,
-        reply_markup=MoPerformerKeyboards().check_or_tasks()
+        reply_markup=await MoPerformerKeyboards().check_or_tasks()
     )
 
     await message.answer_photo(

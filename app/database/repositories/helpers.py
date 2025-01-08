@@ -35,7 +35,8 @@ class HelpRepo:
             result = await session.execute(
                 select(Mos.mo_).where(
                     and_(
-                        func.split_part(Mos.mo_, ' ', 2) == num
+                        func.split_part(Mos.mo_, ' ', 2) == num,
+                        Mos.is_archieved.is_(False)
                     )
                 )
             )

@@ -39,7 +39,7 @@ async def cmd_start(
     logger.info(f'User {user.id} {user.username} passed authorization')
     await message.answer(
         text=await MoPerformerMessages.welcome_message(user_id=user.id),
-        reply_markup=MoPerformerKeyboards().check_or_tasks(),
+        reply_markup=await MoPerformerKeyboards().check_or_tasks(),
     )
     await state.set_state(MoPerformerStates.mo_performer)
 
@@ -66,16 +66,16 @@ async def get_active_violations(
         )
         await asyncio.sleep(1)
         await message.answer(
-            text=MoPerformerMessages.form_no_checks_answer(fil_=fil_),
+            text=await MoPerformerMessages.form_no_checks_answer(fil_=fil_),
             reply_markup=message.reply_markup,
         )
     else:
         for check in checks:
             check_out = await check_obj.form_check_out(check=check)
             text_mes = check_out.form_card_check_out()
-            keyboard = MoPerformerKeyboards().get_under_check(
+            keyboard = await MoPerformerKeyboards().get_under_check(
                 check_id=check.check_id
-            ) if check_out.violations_count > 0 else MoPerformerKeyboards(
+            ) if check_out.violations_count > 0 else await MoPerformerKeyboards(
             ).get_under_check_zero_violations(
                 check_id=check.check_id
             )
@@ -130,11 +130,11 @@ async def get_active_tasks(
     )
     data = await state.get_data()
 
-    reply_obj = MoPerformerCard(data=data).all_violations_task_start(
+    reply_obj = await MoPerformerCard(data=data).all_violations_task_start(
     )
     if not reply_obj:
         await message.answer(
-            text=MoPerformerMessages.form_no_tasks_answer(fil_=data['fil_']),
+            text=await MoPerformerMessages.form_no_tasks_answer(fil_=data['fil_']),
         )
     else:
         await message.answer_photo(
@@ -163,10 +163,10 @@ async def get_pending_violations_found(
         data=data,
     )
     data = await state.get_data()
-    reply_obj = MoPerformerCard(data=data).all_violations_pending_start()
+    reply_obj = await MoPerformerCard(data=data).all_violations_pending_start()
     if not reply_obj:
         await message.answer(
-            text=MoPerformerMessages.form_no_pending_violations_answer(fil_=data['fil_']),
+            text=await MoPerformerMessages.form_no_pending_violations_answer(fil_=data['fil_']),
         )
     else:
         await message.answer_photo(
@@ -211,11 +211,11 @@ async def get_check_violations(
         data=data
     )
     data_updated = await state.get_data()
-    reply_obj = MoPerformerCard(data=data_updated).all_violations_check_start()
+    reply_obj = await MoPerformerCard(data=data_updated).all_violations_check_start()
     if not reply_obj:
         await callback.message.answer(
             text=MoPerformerMessages.no_violations,
-            reply_markup=MoPerformerKeyboards().check_finished()
+            reply_markup=await MoPerformerKeyboards().check_finished()
         )
         await callback.answer()
         return
@@ -240,7 +240,7 @@ async def get_violations_next_prev(
 
     violation_found_obj = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
 
-    reply_obj = MoPerformerCard(data=data).get_next_prev_reply(
+    reply_obj = await MoPerformerCard(data=data).get_next_prev_reply(
         violation_found_out=violation_found_obj
     )
 
@@ -390,8 +390,8 @@ async def process_correct_callback(
     text_mes = violation_out.violation_card()
 
     await callback.message.answer(
-        text=MoPerformerMessages.correct_mode(text_mes=text_mes),
-        reply_markup=MoPerformerKeyboards().cancel_correct_mode(violation_found_id=violation_found_id),
+        text=await MoPerformerMessages.correct_mode(text_mes=text_mes),
+        reply_markup=await MoPerformerKeyboards().cancel_correct_mode(violation_found_id=violation_found_id),
     )
     await state.set_state(MoPerformerStates.correct_violation)
     await callback.answer()
@@ -446,8 +446,8 @@ async def add_photo_handler(
     })
     violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
     await message.answer(
-        text=MoPerformerMessages.finish_mes(violation_found_out.violation_name),
-        reply_markup=MoPerformerKeyboards().save_violation_found(
+        text=await MoPerformerMessages.finish_mes(violation_found_out.violation_name),
+        reply_markup=await MoPerformerKeyboards().save_violation_found(
             violation_found_id=violation_found_id
         ),
     )
@@ -465,7 +465,7 @@ async def cancel_save_process(
     violation_found_id = str(callback.data.split('_')[1])
     data = await state.get_data()
     violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
-    reply_obj = MoPerformerCard(data=data).cancel_process(
+    reply_obj = await MoPerformerCard(data=data).cancel_process(
         violation_found_out=violation_found_out
     )
 
@@ -558,7 +558,7 @@ async def save_violation_found_process(
             data=data
         )
         data = await state.get_data()
-        reply_obj = MoPerformerCard(data=data).all_violations_pending_start()
+        reply_obj = await MoPerformerCard(data=data).all_violations_pending_start()
         await callback.answer()
         if not reply_obj:
             await callback.answer()
@@ -575,7 +575,7 @@ async def save_violation_found_process(
             await callback.message.answer(text=MoPerformerMessages.photo_comm_added)
             await callback.message.answer(
                 text=MoPerformerMessages.can_continue_pending,
-                reply_markup=MoPerformerKeyboards().back_to_menu(),
+                reply_markup=await MoPerformerKeyboards().back_to_menu(),
             )
             await asyncio.sleep(1)
             await callback.message.answer_photo(
@@ -601,7 +601,7 @@ async def save_violation_found_process(
             data=data
         )
         data = await state.get_data()
-        reply_obj = MoPerformerCard(data=data).all_violations_task_start()
+        reply_obj = await MoPerformerCard(data=data).all_violations_task_start()
         if not reply_obj:
             await callback.answer()
             await callback.message.answer(
@@ -628,7 +628,7 @@ async def save_violation_found_process(
         await asyncio.sleep(1)
         await callback.message.answer(
             text=MoPerformerMessages.can_continue_check,
-            reply_markup=MoPerformerKeyboards().back_to_violations(),
+            reply_markup=await MoPerformerKeyboards().back_to_violations(),
         )
 
     await state.set_state(MoPerformerStates.mo_performer)
@@ -642,7 +642,7 @@ async def back_to_menu(
 ):
     await message.answer(
         text=MoPerformerMessages.choose_check_task,
-        reply_markup=MoPerformerKeyboards().check_or_tasks(),
+        reply_markup=await MoPerformerKeyboards().check_or_tasks(),
     )
 
 
@@ -666,15 +666,16 @@ async def correct_vio_process_continue(
     state: FSMContext,
 ):
     await message.answer(
-        text=MoPerformerMessages.continue_check, reply_markup=ReplyKeyboardRemove()
+        text=MoPerformerMessages.continue_check,
+        reply_markup=ReplyKeyboardRemove()
     )
     await asyncio.sleep(1)
     data = await state.get_data()
-    reply_obj = MoPerformerCard(data=data).all_violations_check_start()
+    reply_obj = await MoPerformerCard(data=data).all_violations_check_start()
     if not reply_obj:
         await message.answer(
             text=MoPerformerMessages.no_violations,
-            reply_markup=MoPerformerKeyboards().check_finished(),
+            reply_markup=await MoPerformerKeyboards().check_finished(),
         )
     else:
         await message.answer_photo(
@@ -694,12 +695,13 @@ async def correct_vio_process_finish(
     data = await state.get_data()
     check_id = data['check_id']
     logger.debug(f'check_id_is: {check_id}')
-    violation_out_objects = MoPerformerCard(data=data).get_current_check_violations(check_id=check_id)
+    violation_out_objects = await MoPerformerCard(data=data).get_current_check_violations(check_id=check_id)
     logger.debug(f'check_id_is: {check_id}')
     logger.debug(f'VIO_OUT: {violation_out_objects}')
     if violation_out_objects:
         await message.answer(
-            text=MoPerformerMessages.cant_finish, reply_markup=message.reply_markup
+            text=MoPerformerMessages.cant_finish,
+            reply_markup=message.reply_markup
         )
         return
     current_time = dt.datetime.now(dt.timezone.utc)
@@ -716,13 +718,13 @@ async def correct_vio_process_finish(
     )
     await message.answer(
         text=MoPerformerMessages.back_to_checks,
-        reply_markup=MoPerformerKeyboards().check_or_tasks(),
+        reply_markup=await MoPerformerKeyboards().check_or_tasks(),
     )
     await asyncio.sleep(1)
 
     if not checks:
         await message.answer(
-            text=MoPerformerMessages.form_no_checks_answer(fil_=fil_),
+            text=await MoPerformerMessages.form_no_checks_answer(fil_=fil_),
             reply_markup=ReplyKeyboardRemove(),
         )
         await state.clear()
@@ -730,7 +732,7 @@ async def correct_vio_process_finish(
         for check in checks:
             check_out = await check_obj.form_check_out(check=check)
             text_mes = check_out.form_card_check_out()
-            keyboard = MoPerformerKeyboards().get_under_check(check_id=check.check_id)
+            keyboard = await MoPerformerKeyboards().get_under_check(check_id=check.check_id)
             await message.answer(text=text_mes, reply_markup=keyboard)
 
 

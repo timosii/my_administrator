@@ -76,8 +76,8 @@ async def take_to_work(
         f'vio_{violation_found_id}': violation_out.model_dump(mode='json')
     })
     await callback.message.answer(
-        text=MoPerformerMessages.correct_mode(text_mes=text_mes),
-        reply_markup=MoPerformerKeyboards().cancel_correct_mode(violation_found_id=violation_found_id)
+        text=await MoPerformerMessages.correct_mode(text_mes=text_mes),
+        reply_markup=await MoPerformerKeyboards().cancel_correct_mode(violation_found_id=violation_found_id)
     )
     await callback.answer()
     await state.set_state(MoPerformerStates.take_correct)

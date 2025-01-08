@@ -20,12 +20,15 @@ class ViolationsRepo:
     async def get_dict_id_by_name(
         self,
         violation_name: str,
-        zone: str
+        zone: str,
+        problem: str
     ) -> int:
         async with self.session_maker() as session:
             result = await session.execute(
-                select(Violations.violation_dict_id).filter_by(violation_name=violation_name,
-                                                               zone=zone)
+                select(Violations.violation_dict_id).filter_by(
+                    violation_name=violation_name,
+                    problem=problem,
+                    zone=zone)
             )
             violation_id = result.scalar_one_or_none()
             logger.info('get dict vio id by name and zone')

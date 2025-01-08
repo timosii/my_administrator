@@ -90,7 +90,7 @@ class MfcMessages:
     finish_task_zero_violations = 'Создание уведомления отменено, т.к. вы не выбрали ни одного нарушения'
     wrong = 'Проверьте, что вы отправляете и попробуйте ещё раз'
     check_deleted = 'Проверка успешно удалена!'
-    no_unfinished = 'Нет незавершенных проверок'
+    no_unfinished = 'Нет незавершенных проверок ✅'
     violation_already_in_check = 'Вы уже зарегистрировали это нарушение. Пожалуйста, выберите другое'
     wrong_state = 'Описание доступно только после выбора нарушения'
     no_description = 'Для этого нарушения нет описания'
@@ -116,45 +116,67 @@ class MfcMessages:
         return result
 
     @staticmethod
-    def choose_violation(zone: str) -> str:
+    async def choose_violation(zone: str) -> str:
         return f'Выберите нарушение в зоне <b>"{zone}"</b>'
 
     @staticmethod
-    def add_photo_comm(violation_name: str) -> str:
-        return f'Приложите фото и напишите комментарий по проблеме <b>"{violation_name}"</b>'
+    async def choose_problem(violation_name: str, zone: str) -> str:
+        return f'Выберите проблему для нарушения <b>"{violation_name}"</b> в зоне <b>"{zone}"</b>'
 
     @staticmethod
-    def photo_comm_added(violation: str) -> str:
-        message = f'Вы приложили фото и написали комментарий по проблеме <b>"{violation}"</b>.\nСохранить нарушение?'
+    async def add_photo_comm(
+            zone: str,
+            violation_name: str,
+            problem: str) -> str:
+        return f'Приложите фото и напишите комментарий по проблеме <b>"{problem}"</b> нарушения <b>"{violation_name}"</b> в категории <b>"{zone}"</b>'
+
+    @staticmethod
+    async def photo_comm_added(
+            zone: str,
+            violation_name: str,
+            problem: str) -> str:
+        message = f'Вы приложили фото и написали комментарий по проблеме <b>"{problem}"</b> нарушения <b>"{violation_name}"</b> в категории <b>"{zone}"</b>.\nСохранить нарушение?'
         return message
 
     @staticmethod
-    def photo_additional_added(violation: str) -> str:
-        message = f'Дополнительные фото по проблеме <b>"{violation}"</b> добавлены.\nСохранить нарушение?'
+    async def photo_additional_added(
+            zone: str,
+            violation_name: str,
+            problem: str) -> str:
+        message = f'Дополнительные фото по проблеме <b>"{problem}"</b> нарушения <b>"{violation_name}"</b> в категории <b>"{zone}"</b> добавлены.\nСохранить нарушение?'
         return message
 
     @staticmethod
-    def photo_additional(violation: str) -> str:
-        message = f'Отправляйте дополнительные фотографии по проблеме <b>"{violation}"</b>.\nКогда закончите — нажмите кнопку'
+    async def photo_additional(
+            zone: str,
+            violation_name: str,
+            problem: str) -> str:
+        message = f'Отправляйте дополнительные фотографии по проблеме <b>"{problem}"</b> нарушения <b>"{violation_name}"</b> в категории <b>"{zone}"</b>.\nКогда закончите — нажмите кнопку'
         return message
 
     @staticmethod
-    def save_violation(violation: str) -> str:
-        message = f'Мы сохранили нарушение <b>"{violation}"</b>. Спасибо!'
+    async def save_violation(
+            zone: str,
+            violation_name: str,
+            problem: str) -> str:
+        message = f'Мы сохранили нарушение <b>"{violation_name}"</b> по проблеме <b>"{problem}"</b> в категории <b>"{zone}"</b>. Спасибо!'
         return message
 
     @staticmethod
-    def cancel_violation(violation: str) -> str:
-        message = f'Вы можете добавить фото и комментарии для проблемы <b>"{violation}"</b>.'
+    async def cancel_violation(
+            zone: str,
+            violation_name: str,
+            problem: str) -> str:
+        message = f'Вы можете добавить фото и комментарии для проблемы <b>"{problem}"</b> нарушения <b>"{violation_name}"</b> в категории <b>"{zone}"</b>.'
         return message
 
     @staticmethod
-    def notification_final(mo: str) -> str:
+    async def notification_final(mo: str) -> str:
         message = f'Уведомление отправлено в {mo}. Спасибо!'
         return message
 
     @staticmethod
-    def violation_sending(fil_: str, count: int, flag: bool) -> str:
+    async def violation_sending(fil_: str, count: int, flag: bool) -> str:
         if flag:
             result = f'Оповещение в телеграм <b>отправлено</b> {count} сотрудник{ending_define(count)} филиала {fil_}.'
         else:
@@ -162,12 +184,12 @@ class MfcMessages:
         return result
 
     @staticmethod
-    def there_is_new_violation(fil_: str, text: str) -> str:
+    async def there_is_new_violation(fil_: str, text: str) -> str:
         result = f'<b>Зарегистрировано новое нарушение в филиале {fil_}</b>\n{text}'
         return result
 
     @staticmethod
-    def send_to_mo(fil_: str):
+    async def send_to_mo(fil_: str):
         result = f'Отправляю нарушение сотрудникам {fil_} ...'
         return result
 
@@ -224,28 +246,28 @@ class MoPerformerMessages:
         return result
 
     @staticmethod
-    def finish_mes(violation_name: str):
+    async def finish_mes(violation_name: str):
         return f'Вы добавили информацию для нарушения <b>{violation_name}</b>.\nСохранить изменения?'
 
     @staticmethod
-    def form_no_checks_answer(fil_: str):
+    async def form_no_checks_answer(fil_: str):
         return f'Активных проверок для филиала {fil_} нет'
 
     @staticmethod
-    def form_no_tasks_answer(fil_: str):
+    async def form_no_tasks_answer(fil_: str):
         return f'Активных уведомлений для филиала {fil_} нет'
 
     @staticmethod
-    def form_no_pending_violations_answer(fil_: str):
+    async def form_no_pending_violations_answer(fil_: str):
         return f'Перенесенных нарушений для филиала {fil_} нет'
 
     @staticmethod
-    def correct_mode(text_mes: str) -> str:
+    async def correct_mode(text_mes: str) -> str:
         res = f'Вы <b>в режиме исправления нарушения</b>:\n{text_mes}\nПожалуйста, приложите фотографию и добавьте комментарий в качестве подписи'
         return res
 
     @staticmethod
-    def pending_period(pending_date: dt.datetime) -> str:
+    async def pending_period(pending_date: dt.datetime) -> str:
         res = f"Вы выбрали срок переноса: <b>{pending_date.strftime('%d-%m-%Y')}</b>"
         return res
 

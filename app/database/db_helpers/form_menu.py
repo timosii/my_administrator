@@ -23,11 +23,31 @@ async def get_all_zones():
 @cached(ttl=CACHE_EXPIRE_LONG, namespace='dicts_info')
 async def get_zone_violations(zone: str):
     async with session_maker() as session:
-        query = select(Violations.violation_name).filter_by(zone=zone)
+        query = select(Violations.violation_name).filter_by(zone=zone).distinct()
         result = await session.execute(query)
         violations = result.scalars()
         logger.info('get zone violations')
         return list(violations)
+
+
+@cached(ttl=CACHE_EXPIRE_LONG, namespace='dicts_info')
+async def get_violation_problems(violation_name: str, zone: str):
+    async with session_maker() as session:
+        query = select(Violations.problem).filter_by(violation_name=violation_name, zone=zone)
+        result = await session.execute(query)
+        problems = result.scalars()
+        logger.info('get violation problems')
+        return list(problems)
+
+
+@cached(ttl=CACHE_EXPIRE_LONG, namespace='dicts_info')
+async def get_all_problems() -> list[str]:
+    async with session_maker() as session:
+        query = select(Violations.problem).distinct()
+        result = await session.execute(query)
+        problems = result.scalars().all()
+        logger.info('get all problems')
+        return list(problems)
 
 
 @cached(ttl=CACHE_EXPIRE_LONG, namespace='dicts_info')
@@ -43,7 +63,7 @@ async def get_all_violations() -> list[str]:
 @cached(ttl=CACHE_EXPIRE_LONG, namespace='dicts_info')
 async def get_all_filials():
     async with session_maker() as session:
-        query = select(Filials.fil_)
+        query = select(Filials.fil_).filter_by(is_archieved=False)
         result = await session.execute(query)
         filials = result.scalars().all()
         logger.info('get all filials')
@@ -53,7 +73,7 @@ async def get_all_filials():
 @cached(ttl=CACHE_EXPIRE_LONG, namespace='dicts_info')
 async def get_all_mos():
     async with session_maker() as session:
-        query = select(Mos.mo_)
+        query = select(Mos.mo_).filter_by(is_archieved=False)
         result = await session.execute(query)
         mos = result.scalars().all()
         logger.info('get all mos')
