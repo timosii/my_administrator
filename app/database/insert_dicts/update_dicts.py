@@ -107,7 +107,7 @@ class DictsUpdate():
         self.dfs['violations_dict_new']['violation_dict_id'] = self.dfs['violations_dict_new']['violation_dict_id'].astype(
             int)
         async with session_maker() as session:
-            for _, row in self.dfs['violations_dict'].iterrows():
+            for _, row in self.dfs['violations_dict_new'].iterrows():
                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
 
                 stmt = pg_insert(Violations).values(**stripped_row).on_conflict_do_update(

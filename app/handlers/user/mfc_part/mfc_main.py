@@ -153,7 +153,8 @@ async def choose_fil_handler(
 ):
     await state.update_data(fil_=message.text)
     await message.answer(
-        text=MfcMessages.main_menu, reply_markup=MfcKeyboards().main_menu()
+        text=MfcMessages.main_menu,
+        reply_markup=await MfcKeyboards().main_menu()
     )
     await state.set_state(MfcStates.choose_type_checking)
 
@@ -285,7 +286,8 @@ async def back_command(message: Message, state: FSMContext):
 async def choose_zone_handler(message: Message, state: FSMContext):
     zone = ' '.join(message.text.split()[1:])
     data = await state.get_data()
-    violations_completed = data.get('violations_completed', [])
+    zones_completed: dict = data.get('violations_completed', {})
+    violations_completed: list = zones_completed.get(zone, {}).keys()
     await message.answer(
         text=await MfcMessages.choose_violation(zone=zone),
         reply_markup=await MfcKeyboards().choose_violation(
@@ -312,11 +314,16 @@ async def choose_violation_handler(
 
     data = await state.get_data()
     zone = data['zone']
+    zones_completed: dict = data.get('violations_completed', {})
+    violations_completed: dict = zones_completed.get(zone, {})
+    completed_problems: list = violations_completed.get(violation_name, [])
+
     await message.answer(
         text=await MfcMessages.choose_problem(violation_name=violation_name, zone=zone),
         reply_markup=await MfcKeyboards().choose_problem(
             violation_name=violation_name,
             zone=zone,
+            completed_problems=completed_problems
         ),
     )
     await state.update_data(
@@ -472,7 +479,8 @@ async def get_back(
 ):
     data = await state.get_data()
     zone = data['zone']
-    violations_completed = data.get('violations_completed', [])
+    zones_completed: dict = data.get('violations_completed', {})
+    violations_completed: list = zones_completed.get(zone, {}).keys()
     await state.update_data(
         {
             k: None for k, _ in data.items() if k.startswith('vio_')
@@ -731,14 +739,16 @@ async def to_violation_choose(
     state: FSMContext,
 ):
     data = await state.get_data()
-    violations_completed = data.get('violations_completed', [])
     zone = data['zone']
+    zones_completed: dict = data.get('violations_completed', {})
+    violations_completed: list = zones_completed.get(zone, {}).keys()
     await state.set_state(MfcStates.choose_violation)
     await message.answer(
         text=await MfcMessages.choose_violation(zone=zone),
         reply_markup=await MfcKeyboards().choose_violation(
             zone=zone,
-            completed_violations=violations_completed),
+            completed_violations=violations_completed,
+            ),
     )
     await state.update_data(violation_name=None)
     await state.set_state(MfcStates.choose_violation)
@@ -801,6 +811,10 @@ async def cancel_adding_vio(
     zone = data['zone']
     violation_name = data['violation_name']
     violation_found_id = data['violation_found_id']
+    zones_completed: dict = data.get('violations_completed', {})
+    violations_completed: dict = zones_completed.get(zone, {})
+    completed_problems: list = violations_completed.get(violation_name, [])
+
     await violation_obj.delete_violation(
         violation_id=violation_found_id
     )
@@ -815,10 +829,12 @@ async def cancel_adding_vio(
     await message.answer(
         text=await MfcMessages.choose_problem(
             violation_name=violation_name,
-            zone=zone),
+            zone=zone,
+            ),
         reply_markup=await MfcKeyboards().choose_problem(
             violation_name=violation_name,
             zone=zone,
+            completed_problems=completed_problems,
         )
     )
 
@@ -831,10 +847,14 @@ async def save_violation(
     violation_obj: ViolationFoundService = ViolationFoundService(),
     check_obj: CheckService = CheckService(),
 ):
-    vio_data = await state.get_data()
+    data = await state.get_data()
     violation_found_out = ViolationFoundOut(
-        **vio_data
+        **data
     )
+    zone = violation_found_out.zone
+    violation_name = violation_found_out.violation_name
+    problem = violation_found_out.problem
+
     await violation_obj.save_violation_process(
         callback=callback,
         violation_found_out=violation_found_out,
@@ -846,12 +866,14 @@ async def save_violation(
     )
 
     await callback.answer(text=MfcMessages.violation_saved, show_alert=True)
-    violations_completed = vio_data.get('violations_completed', [])
-    violations_completed.append(violation_found_out.violation_name)
+    violations_completed: dict = data.get('violations_completed', {})
+    zone_violations: dict = violations_completed.setdefault(zone, {})
+    zone_violations.setdefault(violation_name, [])
+    violations_completed[zone][violation_name].append(problem)
     await state.update_data(violations_completed=violations_completed)
 
-    if vio_data.get('is_task'):
-        check_id = vio_data['check_id']
+    if data.get('is_task'):
+        check_id = data['check_id']
         await check_obj.finish_check_process(
             state=state,
             check_id=check_id
@@ -861,7 +883,7 @@ async def save_violation(
         )
         await callback.message.answer(
             text=MfcMessages.cancel_check,
-            reply_markup=MfcKeyboards().main_menu()
+            reply_markup=await MfcKeyboards().main_menu()
         )
         await state.set_state(MfcStates.choose_type_checking)
         return
@@ -869,17 +891,27 @@ async def save_violation(
     await callback.message.answer(
         text=MfcMessages.continue_check,
     )
+        
     await asyncio.sleep(1)
+
+    data = await state.get_data()
+
+    zones_completed: dict = data.get('violations_completed', {})
+    violations_completed: dict = zones_completed.get(zone, {})
+    completed_problems: list = violations_completed.get(violation_name, [])
+
     await callback.message.answer(
-        text=await MfcMessages.choose_violation(zone=vio_data['zone']),
-        reply_markup=await MfcKeyboards().choose_violation(
-            zone=vio_data['zone'],
-            completed_violations=violations_completed),
+        text=await MfcMessages.choose_problem(zone=zone, violation_name=violation_name),
+        reply_markup=await MfcKeyboards().choose_problem(
+            zone=zone,
+            violation_name=violation_name,
+            completed_problems=completed_problems,
+        )
     )
     await state.update_data(
         **ViolationFoundDeleteMfc().model_dump()
     )
-    await state.set_state(MfcStates.choose_violation)
+    await state.set_state(MfcStates.choose_problem)
 
 
 @router.message(
@@ -897,7 +929,7 @@ async def finish_check(
             await check_obj.delete_check(check_id=check_id)
             await message.answer(
                 text=MfcMessages.finish_task_zero_violations,
-                reply_markup=MfcKeyboards().main_menu()
+                reply_markup=await MfcKeyboards().main_menu()
             )
         else:
             await message.answer_sticker(
@@ -906,7 +938,7 @@ async def finish_check(
             await asyncio.sleep(1)
             await message.answer(
                 text=MfcMessages.notification_saved,
-                reply_markup=MfcKeyboards().main_menu()
+                reply_markup=await MfcKeyboards().main_menu()
             )
         await state.update_data(
             **ViolationFoundClearInfo().model_dump()
@@ -924,7 +956,7 @@ async def finish_check(
     await asyncio.sleep(1)
     await message.answer(
         text=MfcMessages.finish_check,
-        reply_markup=MfcKeyboards().main_menu()
+        reply_markup=await MfcKeyboards().main_menu()
     )
     await state.update_data(
         **ViolationFoundClearInfo().model_dump()

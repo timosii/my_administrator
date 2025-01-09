@@ -52,7 +52,8 @@ class ViolationFoundDeleteMfc(BaseModel):
     violation_detected: None = None
     time_to_correct: None = None
     violation_found_id: None = None
-    violation_name: None = None
+    # violation_name: None = None
+    problem: None = None
     violation_dict_id: None = None
     photo_id_mfc: None = None
     comm_mfc: None = None
@@ -61,8 +62,9 @@ class ViolationFoundDeleteMfc(BaseModel):
 class ViolationFoundClearInfo(ViolationFoundDeleteMfc):
     check_id: None = None
     mfc_start: None = None
-    violations_completed: list = []
+    violations_completed: dict = {}
     zone: None = None
+    violation_name: None = None
 
 
 class ViolationFoundClearData(BaseModel):
@@ -77,6 +79,7 @@ class ViolationFoundClearData(BaseModel):
     violation_detected: None = None
     violation_dict_id: None = None
     violation_name: None = None
+    problem: None
     zone: None = None
     is_pending: None = None
     violation_pending: None = None

@@ -89,12 +89,16 @@ class MfcKeyboards:
         return self.kb.as_markup(resize_keyboard=True)
 
     async def choose_problem(
-        self, violation_name: str, zone: str
+        self, violation_name: str, zone: str, completed_problems: list
     ) -> ReplyKeyboardMarkup:
         problems = await get_violation_problems(violation_name=violation_name, zone=zone)
         buttons = [
             KeyboardButton(
-                text=problem
+                text=(
+                    f'✅ {problem}'
+                    if problem in completed_problems
+                    else f'{problem}'
+                )
             )
             for problem in problems
         ]
