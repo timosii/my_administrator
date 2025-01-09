@@ -9,6 +9,7 @@ from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
 
 from app.database.services.users import UserService
 from app.filters.mfc_filters import MfcAvailFilter
+from app.filters.default import not_constants
 from app.handlers.messages import DefaultMessages, MfcMessages
 from app.handlers.states import MfcAvailStates, MfcStates
 from app.keyboards.mfc_part import MfcKeyboards
@@ -78,8 +79,6 @@ def check_oms(oms_str):
     return len(oms_str) in [16, 9]
 
 
-# "Полис ОМС некорректный",
-# "Телефон некорректный"
 
 router = Router()
 router.message.filter(MfcAvailFilter())
@@ -95,11 +94,11 @@ async def avail_process(
 ):
     await message.answer(
         text='Вам будет предложено ввести информацию о невозможности записи у инфомата.\nПосле этого она будет отправлена в МО',
-        reply_markup=MfcKeyboards().avail_cancel()
+        reply_markup=await MfcKeyboards().avail_cancel()
     )
     await message.answer(
         text='Выберите специальность:',
-        reply_markup=MfcKeyboards().get_specs()
+        reply_markup=await MfcKeyboards().get_specs()
     )
     await state.set_state(MfcAvailStates.avail_main)
 
@@ -118,7 +117,7 @@ async def choose_oms_avail(
     )
     await callback.message.answer(
         text='Введите <b>полис ОМС:</b>',
-        reply_markup=MfcKeyboards().avail_cancel()
+        reply_markup=await MfcKeyboards().avail_cancel()
     )
     await callback.answer()
     await state.set_state(MfcAvailStates.choose_oms)
@@ -126,6 +125,7 @@ async def choose_oms_avail(
 
 @router.message(
     F.text,
+    not_constants,
     StateFilter(MfcAvailStates.choose_oms)
 )
 async def get_number(
@@ -137,7 +137,7 @@ async def get_number(
     if not check_oms(oms_format):
         await message.answer(
             text='Полис некорректный, попробуйте ещё раз',
-            reply_markup=MfcKeyboards().avail_cancel()
+            reply_markup=await MfcKeyboards().avail_cancel()
         )
         return
 
@@ -146,7 +146,7 @@ async def get_number(
     )
     await message.answer(
         text='Введите <b>номер телефона:</b>',
-        reply_markup=MfcKeyboards().avail_cancel()
+        reply_markup=await MfcKeyboards().avail_cancel()
     )
 
     await state.set_state(MfcAvailStates.get_number)
@@ -154,6 +154,7 @@ async def get_number(
 
 @router.message(
     F.text,
+    not_constants,
     StateFilter(MfcAvailStates.get_number)
 )
 async def process_sending_avail(
@@ -165,7 +166,7 @@ async def process_sending_avail(
     if not check_phone(phone_format):
         await message.answer(
             text='Телефон некорректный, попробуйте ещё раз',
-            reply_markup=MfcKeyboards().avail_cancel()
+            reply_markup=await MfcKeyboards().avail_cancel()
         )
         return
 
@@ -185,7 +186,7 @@ async def process_sending_avail(
 
     await message.answer(
         text=f'В МО будет отправлено сообщение:\n{res}\nОтправляем?',
-        reply_markup=MfcKeyboards().avail_cancel_yes()
+        reply_markup=await MfcKeyboards().avail_cancel_yes()
     )
     await state.set_state(MfcAvailStates.form_send_mo)
 
@@ -210,44 +211,44 @@ async def form_send_avail(
     )
 
     performers = await user.get_avail_performer_by_fil(fil_=fil_)
-    if not performers:
-        await message.answer(
-            text=MfcMessages.zero_performers
-        )
-        return
+        
+    if performers:
+        norm_users_count = 0
+        troubles_user_count = 0
+        for performer in performers:
+            try:
+                await message.bot.send_message(
+                    chat_id=performer.user_id,
+                    text=MfcMessages.there_is_new_ud,
+                )
+                await message.bot.send_message(
+                    chat_id=performer.user_id,
+                    text=res,
+                )
+                norm_users_count += 1
+            except TelegramBadRequest:
+                troubles_user_count += 1
+                continue
 
-    norm_users_count = 0
-    troubles_user_count = 0
-    for performer in performers:
-        try:
-            await message.bot.send_message(
-                chat_id=performer.user_id,
-                text=MfcMessages.there_is_new_ud,
+        if norm_users_count > 0:
+            await message.answer(
+                text=await MfcMessages.violation_sending(fil_=fil_, count=norm_users_count, flag=True),
+                reply_markup=ReplyKeyboardRemove()
             )
-            await message.bot.send_message(
-                chat_id=performer.user_id,
-                text=res,
+
+        if troubles_user_count > 0:
+            await message.answer(
+                text=await MfcMessages.violation_sending(fil_=fil_, count=troubles_user_count, flag=False),
+                reply_markup=ReplyKeyboardRemove()
             )
-            norm_users_count += 1
-        except TelegramBadRequest:
-            troubles_user_count += 1
-            continue
-
-    if norm_users_count > 0:
+    else:
         await message.answer(
-            text=MfcMessages.violation_sending(fil_=fil_, count=norm_users_count, flag=True),
-            reply_markup=ReplyKeyboardRemove()
-        )
-
-    if troubles_user_count > 0:
-        await message.answer(
-            text=MfcMessages.violation_sending(fil_=fil_, count=troubles_user_count, flag=False),
-            reply_markup=ReplyKeyboardRemove()
-        )
+                text=MfcMessages.zero_performers
+            )
 
     await message.answer(
         text='Возвращаемся в меню',
-        reply_markup=MfcKeyboards().main_menu()
+        reply_markup=await MfcKeyboards().main_menu()
     )
 
     await state.update_data(
@@ -281,7 +282,7 @@ async def avail_cancel_logic(
 
     await message.answer(
         text=MfcMessages.main_menu,
-        reply_markup=MfcKeyboards().main_menu()
+        reply_markup=await MfcKeyboards().main_menu()
     )
     await state.set_state(MfcStates.choose_type_checking)
 
@@ -292,7 +293,7 @@ async def avail_cancel_logic(
         MfcAvailStates.choose_oms,
         MfcAvailStates.get_number,
         MfcAvailStates.form_send_mo
-    )
+    ),not_constants
 )
 async def wrong_avail(
     message: Message,

@@ -123,10 +123,12 @@ class ViolationFoundOut(BaseModel):
     def violation_card_pending(self) -> str:
         comm_mo_format = self.comm_mo.split('\n')[-1] if self.comm_mo else None
         result = f"""
-<b>Зона:</b>
+<b>Категория:</b>
 {self.zone}
 <b>Нарушение:</b>
 {self.violation_name}
+<b>Проблема:</b>
+{self.problem}
 <b>Время выявления нарушения:</b>
 {to_moscow_time(self.violation_detected).strftime('%d.%m.%Y %H:%M')}
 <b>Время переноса нарушения:</b>

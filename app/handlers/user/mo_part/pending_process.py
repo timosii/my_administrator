@@ -80,6 +80,7 @@ async def start_period_calendar(callback_query: CallbackQuery, callback_data: Ca
                 reply_markup=await SimpleCalendar().start_calendar()
             )
             return
+        logger.info(f'ВЫБРАННАЯ ДАТА: {date}')
         await state.update_data(
             pending_period=date.isoformat()
         )
@@ -110,6 +111,7 @@ async def add_comm_pending_text(
     data = await state.get_data()
     mo_user_id = data['mo_user_id']
     violation_found_id = data['pending_vio']
+    pending_period = dt.datetime.fromisoformat(data['pending_period'])
     violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
 
     if violation_found_out.is_task:
@@ -120,7 +122,9 @@ async def add_comm_pending_text(
         )
         check_id = data[f'vio_{violation_found_id}']['check_id']
         await check_obj.update_check(check_id=check_id, check_update=check_upd)
-        await state.update_data(mo_start=None)
+        await state.update_data(
+            mo_start=None
+            )
 
         await state.update_data(
             **ViolationFoundClearData().model_dump(mode='json')
@@ -136,7 +140,9 @@ async def add_comm_pending_text(
     violation_found_out_after_pending.is_pending = True
     violation_found_out_after_pending.comm_mo = comm_mo
     await state.update_data(
-        {f'vio_{violation_found_id}': violation_found_out_after_pending.model_dump(mode='json')}
+        {
+            f'vio_{violation_found_id}': violation_found_out_after_pending.model_dump(mode='json')
+            }
     )
 
     data = await state.get_data()
@@ -147,7 +153,7 @@ async def add_comm_pending_text(
             mo_user_id=mo_user_id,
             comm_mo=f'При переносе:\n{comm_mo}',
             violation_pending=dt.datetime.now(dt.timezone.utc),
-            pending_period=dt.datetime.fromisoformat(data['pending_period'])
+            pending_period=pending_period
         )
     )
     reply_obj = await MoPerformerCard(
@@ -169,10 +175,16 @@ async def add_comm_pending_text(
     await asyncio.sleep(3)
 
     if not reply_obj:
-        await message.answer(
-            text=MoPerformerMessages.no_violations_after_pending,
-            reply_markup=await MoPerformerKeyboards().check_or_tasks()
-        )
+        if violation_found_out.is_task:
+            await message.answer(
+                text=MoPerformerMessages.no_violations_in_tasks,
+                reply_markup=await MoPerformerKeyboards().check_or_tasks()
+            )
+        else:
+            await message.answer(
+                text=MoPerformerMessages.no_violations_after_pending,
+                reply_markup=await MoPerformerKeyboards().check_or_tasks()
+            )
     else:
         await message.answer_photo(
             **reply_obj.model_dump(mode='json')

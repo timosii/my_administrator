@@ -50,7 +50,7 @@ class MfcKeyboards:
     def __init__(self) -> None:
         self.kb = ReplyKeyboardBuilder()
 
-    def main_menu(self) -> ReplyKeyboardMarkup:
+    async def main_menu(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Начать проверку')
         self.kb.button(text='Проверить незавершенные проверки')
         self.kb.button(text='Добавить уведомление о нарушении')
@@ -186,7 +186,7 @@ class MfcKeyboards:
                 ],
                 [
                     InlineKeyboardButton(
-                        text='Взять в работу',
+                        text='Исправить сразу',
                         callback_data=f'take_{violation_id}_{is_task}',
                     ),
                 ],
