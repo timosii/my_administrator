@@ -33,6 +33,8 @@ async def set_main(bot: Bot):
     main_menu_commands = [
         BotCommand(command='/start',
                    description='Начать'),
+        BotCommand(command='/menu',
+                   description='Главное меню'),
         BotCommand(command='/docs',
                    description='Документация'),
         BotCommand(command='/feedback',

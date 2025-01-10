@@ -194,11 +194,11 @@ class ViolationFoundService:
         performers = await UserRepo().get_user_performer_by_fil(fil_=fil_)
         return performers if performers else None
 
-    async def get_description(self, violation_dict_id: int) -> str | None:
-        result = await ViolationsRepo().get_violation_dict_by_id(
-            violation_dict_id=violation_dict_id,
-        )
-        return result.description if result else None
+    # async def get_description(self, violation_dict_id: int) -> str | None:
+    #     result = await ViolationsRepo().get_violation_dict_by_id(
+    #         violation_dict_id=violation_dict_id,
+    #     )
+    #     return result.description if result else None
 
     async def send_vio_notification_to_fil_performers(
         self,

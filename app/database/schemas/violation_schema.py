@@ -8,7 +8,7 @@ class ViolationBase(BaseModel):
     violation_name: str
     zone: str
     problem: str
-    description: str
+    # description: str
 
 
 class ViolationInDB(ViolationBase):

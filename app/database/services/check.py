@@ -1,11 +1,12 @@
 import datetime as dt
 from uuid import UUID
-
+from typing import Optional
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from app.database.database import session_maker
 from app.database.repositories.check import CheckRepo
+from app.database.repositories.violations import ViolationsRepo
 from app.database.schemas.check_schema import (
     CheckCreate,
     CheckInDB,
@@ -87,6 +88,13 @@ class CheckService:
             check_id=check_id_
         )
         return result
+    
+    async def get_violations_found_dict_ids_for_check(self, check_id: str) -> Optional[list[int]]:
+        check_id_ = UUID(check_id)
+        result = await self.db_repository.get_all_violations_found_dict_ids_for_check(
+            check_id=check_id_
+        )
+        return result
 
     async def start_checking_process(
         self,
@@ -156,6 +164,21 @@ class CheckService:
             check_obj.model_dump(mode='json')
         )
         await state.update_data({f'check_unfinished_{check_id}': None})
+        violation_dict_ids = await self.get_violations_found_dict_ids_for_check(check_id=check_id)
+        if violation_dict_ids:
+            vio_repo = ViolationsRepo()
+            violations_completed = {}
+            for vio_dict_id in violation_dict_ids:
+                violation = await vio_repo.get_violation_dict_by_id(violation_dict_id=vio_dict_id)
+                zone = violation.zone
+                violation_name = violation.violation_name
+                problem = violation.problem
+                zone_violations: dict = violations_completed.setdefault(zone, {})
+                zone_violations.setdefault(violation_name, [])
+                violations_completed[zone][violation_name].append(problem)
+            await state.update_data({
+                'violations_completed': violations_completed
+            })
         await callback.answer(text='Продолжаем проверку')
 
     async def form_check_out(

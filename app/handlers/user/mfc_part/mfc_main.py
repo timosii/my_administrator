@@ -28,7 +28,7 @@ from app.filters.form_menu import (
 )
 from app.filters.mfc_filters import MfcFilter
 from app.handlers.messages import DefaultMessages, MfcMessages
-from app.handlers.states import MfcStates
+from app.handlers.states import MfcStates, MfcAvailStates
 from app.handlers.user.mfc_part.mfc_pending_logic import MfcPendingCard
 from app.keyboards.default import DefaultKeyboards
 from app.keyboards.mfc_part import MfcKeyboards
@@ -45,6 +45,27 @@ async def cmd_start(
 ):
     user = message.from_user
     logger.info(f'User {user.id} {user.username} passed authorization')
+    # current_state = await state.get_state()
+    # if current_state in (
+    #     MfcStates.choose_mo_additional,
+    #     MfcStates.choose_fil,
+    #     MfcStates.choose_type_checking,
+    #     MfcStates.choose_zone,
+    #     MfcStates.choose_violation,
+    #     MfcStates.choose_problem,
+    #     MfcStates.get_pending,
+    #     MfcStates.add_content,
+    #     MfcStates.continue_state,
+    #     MfcStates.additional_photo,
+    #     MfcAvailStates.avail_main,
+    #     MfcAvailStates.choose_oms,
+    #     MfcAvailStates.get_number,
+    #     MfcAvailStates.form_send_mo,
+    # ):
+    #     await message.answer(
+    #         text=await MfcMessages.welcome_message(user_id=user.id),
+    #     )
+        
     await state.clear()
     await state.update_data(mfc_user_id=user.id)
     await violation_found_obj.user_empty_violations_found_process(user_id=user.id)
@@ -53,6 +74,33 @@ async def cmd_start(
         reply_markup=ReplyKeyboardRemove()
     )
     await state.set_state(MfcStates.choose_mo)
+
+
+@router.message(Command('menu'))
+async def cmd_menu(
+    message: Message,
+    state: FSMContext,
+    violation_found_obj: ViolationFoundService = ViolationFoundService()
+):
+    user = message.from_user
+    logger.info(f'User {user.id} {user.username} passed authorization')
+    await state.update_data(mfc_user_id=user.id)
+    data = await state.get_data()
+    mo = data.get('mo')
+    fil = data.get('fil_')
+    if not (mo and fil):
+        await message.answer(
+            text=MfcMessages.please_start,
+            reply_markup=ReplyKeyboardRemove()
+        )
+        return
+
+    await violation_found_obj.user_empty_violations_found_process(user_id=user.id)
+    await message.answer(
+        text=MfcMessages.main_menu,
+        reply_markup=await MfcKeyboards().main_menu()
+    )
+    await state.set_state(MfcStates.choose_type_checking)
 
 
 @router.message(
@@ -415,7 +463,7 @@ async def choose_problem_handler(
             zone=zone,
             violation_name=violation_name,
             problem=problem_name),
-        reply_markup=await MfcKeyboards().get_description(violation_id=violation_out.violation_dict_id),
+        # reply_markup=await MfcKeyboards().get_description(violation_id=violation_out.violation_dict_id),
     )
     await state.set_state(MfcStates.add_content)
 
@@ -523,7 +571,7 @@ async def add_new_violation(
 
     await callback.message.answer(
         text=MfcMessages.problem_detection,
-        reply_markup=MfcKeyboards().just_cancel()
+        reply_markup=await MfcKeyboards().just_cancel()
     )
     await callback.message.answer(
         text=await MfcMessages.add_photo_comm(
@@ -531,7 +579,7 @@ async def add_new_violation(
             violation_name=violation_out.violation_name,
             problem=violation_out.problem,
         ),
-        reply_markup=await MfcKeyboards().get_description(violation_id=violation_out.violation_dict_id),
+        # reply_markup=await MfcKeyboards().get_description(violation_id=violation_out.violation_dict_id),
     )
     await callback.answer()
     await state.set_state(MfcStates.add_content)
@@ -589,7 +637,7 @@ async def add_photo_additional(
             violation_name=violation_name,
             problem=problem
         ),
-        reply_markup=MfcKeyboards().finish_photo_addition(),
+        reply_markup=await MfcKeyboards().finish_photo_addition(),
     )
     await callback.answer()
     await state.set_state(MfcStates.additional_photo)
@@ -628,7 +676,7 @@ async def add_photo_media_group(
     await bot.send_message(
         chat_id=messages[0].chat.id,
         text='Фотографии добавлены!',
-        reply_markup=MfcKeyboards().finish_photo_addition(),
+        reply_markup=await MfcKeyboards().finish_photo_addition(),
     )
 
 
@@ -647,7 +695,7 @@ async def add_photo_add(
     if can_add == 0:
         await message.answer(
             text=MfcMessages.cant_add_photo,
-            reply_markup=MfcKeyboards().finish_photo_addition(),
+            reply_markup=await MfcKeyboards().finish_photo_addition(),
         )
         return
 
@@ -658,7 +706,7 @@ async def add_photo_add(
     )
     await message.answer(
         text=MfcMessages.photo_added,
-        reply_markup=MfcKeyboards().finish_photo_addition(),
+        reply_markup=await MfcKeyboards().finish_photo_addition(),
     )
 
 
@@ -676,7 +724,7 @@ async def finish_additional_photo(
     problem = data['problem']
     await message.answer(
         text=MfcMessages.violation_saved,
-        reply_markup=MfcKeyboards().just_cancel()
+        reply_markup=await MfcKeyboards().just_cancel()
     )
     await message.answer(
         text=await MfcMessages.photo_additional_added(
@@ -684,7 +732,7 @@ async def finish_additional_photo(
             violation_name=violation_name,
             problem=problem,
         ),
-        reply_markup=MfcKeyboards().save_or_cancel(),
+        reply_markup=await MfcKeyboards().save_or_cancel(),
     )
     await state.set_state(MfcStates.continue_state)
 
@@ -754,23 +802,23 @@ async def to_violation_choose(
     await state.set_state(MfcStates.choose_violation)
 
 
-@router.callback_query(
-    F.data.startswith('description_'),
-    ~StateFilter(default_state))
-async def get_description(
-    callback: CallbackQuery,
-    violation_dict_obj: ViolationFoundService = ViolationFoundService(),
-):
-    violation_id = int(callback.data.split('_')[-1])
-    result = await violation_dict_obj.get_description(violation_dict_id=violation_id)
-    if result:
-        try:
-            await callback.answer(text=result, show_alert=True)
-        except TelegramBadRequest:
-            await callback.message.answer(text=result)
-            await callback.answer()
-    else:
-        await callback.answer(text=MfcMessages.no_description, show_alert=True)
+# @router.callback_query(
+#     F.data.startswith('description_'),
+#     ~StateFilter(default_state))
+# async def get_description(
+#     callback: CallbackQuery,
+#     violation_dict_obj: ViolationFoundService = ViolationFoundService(),
+# ):
+#     violation_id = int(callback.data.split('_')[-1])
+#     result = await violation_dict_obj.get_description(violation_dict_id=violation_id)
+#     if result:
+#         try:
+#             await callback.answer(text=result, show_alert=True)
+#         except TelegramBadRequest:
+#             await callback.message.answer(text=result)
+#             await callback.answer()
+#     else:
+#         await callback.answer(text=MfcMessages.no_description, show_alert=True)
 
 
 @router.message(
@@ -792,7 +840,7 @@ async def cancel_adding(
             violation_name=violation_name,
             problem=problem
         ),
-        reply_markup=await MfcKeyboards().get_description(violation_id=violation_dict_id),
+        # reply_markup=await MfcKeyboards().get_description(violation_id=violation_dict_id),
     )
 
     await state.update_data(comm_mfc=None, photo_id_mfc=None)

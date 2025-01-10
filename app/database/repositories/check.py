@@ -109,6 +109,21 @@ class CheckRepo:
         return (
             await self._get_scalar(query=query) or 0
         )
+    
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
+    async def get_all_violations_found_dict_ids_for_check(self, check_id: UUID) -> Optional[list[int]]:
+        async with self.session_maker() as session:
+            query = select(ViolationFound.violation_dict_id).select_from(ViolationFound).where(
+                and_(
+                    ViolationFound.check_id == check_id,
+                    # ViolationFound.violation_fixed.is_(None),
+                    # ViolationFound.is_pending.is_(False)
+                )
+            )
+            result = await session.execute(query)
+            violation_dict_ids = result.scalars().all()
+            logger.info('get violations found dict_ids for check')
+            return violation_dict_ids
 
     @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
     async def get_all_active_checks_by_fil(

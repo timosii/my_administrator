@@ -49,11 +49,11 @@ class Violations(Base):
     violation_name: Mapped[str_255]
     zone: Mapped[str_255]
     problem: Mapped[str_255]
-    description: Mapped[str] = mapped_column(nullable=True)
-    is_photo_mfc: Mapped[bool]
-    is_comment_mfc: Mapped[bool]
-    is_photo_mo: Mapped[bool]
-    is_comment_mo: Mapped[bool]
+    # description: Mapped[str] = mapped_column(nullable=True)
+    # is_photo_mfc: Mapped[bool]
+    # is_comment_mfc: Mapped[bool]
+    # is_photo_mo: Mapped[bool]
+    # is_comment_mo: Mapped[bool]
     # is_no_data_button: Mapped[bool]
     time_to_correct: Mapped[dt.timedelta] = mapped_column(Interval)
     is_gp: Mapped[bool]

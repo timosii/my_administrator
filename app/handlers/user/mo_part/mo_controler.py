@@ -1,5 +1,5 @@
 from aiogram import F, Router
-from aiogram.filters import Command
+from aiogram.filters import Command, or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
@@ -12,7 +12,11 @@ router = Router()
 router.message.filter(MoControlerFilter())
 
 
-@router.message(Command('start'))
+@router.message(
+        or_f(
+            Command('start'),
+            Command('menu')
+        ))
 async def cmd_start(message: Message,
                     state: FSMContext):
     await state.clear()

@@ -1,7 +1,7 @@
 import datetime as dt
 
 from aiogram import F, Router
-from aiogram.filters import Command, StateFilter
+from aiogram.filters import Command, StateFilter, or_f
 from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -17,7 +17,9 @@ router = Router()
 router.message.filter(MfcLeaderFilter())
 
 
-@router.message(Command('start'))
+@router.message(or_f(
+    Command('start'),
+    Command('menu')))
 async def cmd_start(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(
