@@ -58,7 +58,7 @@ class MfcPendingCard:
         text_mes = violations_out[order].violation_card_pending()
         prev_order = order - 1
         next_order = order + 1
-        keyboard = MfcKeyboards().get_violation_pending_menu(
+        keyboard = await MfcKeyboards().get_violation_pending_menu(
             prev_violation_id=violations_out[prev_order].violation_found_id,
             violation_id=violations_out[order].violation_found_id,
             next_violation_id=(

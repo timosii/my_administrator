@@ -25,7 +25,7 @@ from app.middlewares.main import ErrorProcessMiddleware, FSMMiddleware
 WEBHOOK_HOST = settings.WEBHOOK_HOST
 WEBHOOK_PATH = '/webhook'
 WEBHOOK_URL = f'{WEBHOOK_HOST}{WEBHOOK_PATH}'
-WEBAPP_HOST = settings.NGROK_HOST
+WEBAPP_HOST = settings.WEBAPP_HOST
 WEBAPP_PORT = 8080
 
 

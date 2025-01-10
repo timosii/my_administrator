@@ -14,7 +14,7 @@ class Settings:
     DB_PORT: Final = os.getenv('POSTGRES_PORT', 'need to define')
     DB_NAME: Final = os.getenv('POSTGRES_DB', 'need to define')
     REDIS_HOST: Final = os.getenv('REDIS_HOST', 'need to define')
-    NGROK_HOST: Final = os.getenv('NGROK_HOST', 'need to define')
+    WEBAPP_HOST: Final = os.getenv('WEBAPP_HOST', 'need to define')
     DEV_ID: Final = os.getenv('DEV_ID', 'need_to_define')
     IS_TEST: Final = os.getenv('IS_TEST', 'need_to_define')
     CACHE_SHORT: Final = os.getenv('CACHE_SHORT', 'need_to_define')

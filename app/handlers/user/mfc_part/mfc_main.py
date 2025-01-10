@@ -527,6 +527,7 @@ async def get_back(
 ):
     data = await state.get_data()
     zone = data['zone']
+    violation_name = data['violation_name']
     zones_completed: dict = data.get('violations_completed', {})
     violations_completed: list = zones_completed.get(zone, {}).keys()
     await state.update_data(
@@ -535,13 +536,14 @@ async def get_back(
         }
     )
     await callback.message.answer(
-        text=await MfcMessages.choose_violation(zone=zone),
-        reply_markup=await MfcKeyboards().choose_violation(
+        text=await MfcMessages.choose_problem(violation_name=violation_name, zone=zone),
+        reply_markup=await MfcKeyboards().choose_problem(
+            violation_name=violation_name,
             zone=zone,
             completed_violations=violations_completed),
     )
     await callback.answer()
-    await state.set_state(MfcStates.choose_violation)
+    await state.set_state(MfcStates.choose_problem)
 
 
 @router.callback_query(
