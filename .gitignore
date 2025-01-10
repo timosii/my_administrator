@@ -12,4 +12,3 @@ tmp.xlsx
 mfc_report.xlsx
 .mypy_cache
 .pytest_cache
-*.xlsx
