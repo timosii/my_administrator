@@ -21,6 +21,7 @@ async def not_back_filter(message: Message) -> bool:
 async def not_menu_filter(message: Message) -> bool:
     menu = [
         '/start',
+        '/menu',
         '/feedback',
         '/changelog',
         '/dev',
