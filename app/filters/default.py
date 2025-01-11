@@ -33,7 +33,7 @@ async def not_menu_filter(message: Message) -> bool:
 
 async def not_buttons_filter(message: Message) -> bool:
     buttons = [
-        'Пропустить',
+        # 'Пропустить',
         'Добавить пользователя',
         'Перенесенные нарушения',
         'Удалить пользователя',
