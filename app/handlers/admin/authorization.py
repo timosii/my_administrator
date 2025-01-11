@@ -43,6 +43,7 @@ async def cmd_start(message: Message,
 
 
 @router.message(F.text,
+                not_constants,
                 StateFilter(RegStates.reg,
                             RegStates.get_active))
 async def pass_in(message: Message,
@@ -180,6 +181,7 @@ async def get_surname(
 
 @router.message(
     F.text,
+    not_constants,
     StateFilter(RegStates.patronymic_take)
 )
 async def get_patron(
@@ -199,6 +201,7 @@ async def get_patron(
 
 @router.message(
     F.text,
+    not_constants,
     StateFilter(RegStates.post_take)
 )
 async def get_post(
@@ -229,6 +232,7 @@ async def get_post(
 
 @router.message(
     F.text,
+    not_constants,
     StateFilter(RegStates.department_take)
 )
 async def get_department(
