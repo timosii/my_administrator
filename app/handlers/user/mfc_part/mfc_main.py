@@ -1,10 +1,8 @@
 import asyncio
 
 from aiogram import Bot, F, Router
-from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import default_state
 from aiogram.types import CallbackQuery, InputMediaPhoto, Message, ReplyKeyboardRemove
 from aiogram_media_group import media_group_handler
 from loguru import logger
@@ -28,7 +26,7 @@ from app.filters.form_menu import (
 )
 from app.filters.mfc_filters import MfcFilter
 from app.handlers.messages import DefaultMessages, MfcMessages
-from app.handlers.states import MfcStates, MfcAvailStates
+from app.handlers.states import MfcStates
 from app.handlers.user.mfc_part.mfc_pending_logic import MfcPendingCard
 from app.keyboards.default import DefaultKeyboards
 from app.keyboards.mfc_part import MfcKeyboards
@@ -45,27 +43,6 @@ async def cmd_start(
 ):
     user = message.from_user
     logger.info(f'User {user.id} {user.username} passed authorization')
-    # current_state = await state.get_state()
-    # if current_state in (
-    #     MfcStates.choose_mo_additional,
-    #     MfcStates.choose_fil,
-    #     MfcStates.choose_type_checking,
-    #     MfcStates.choose_zone,
-    #     MfcStates.choose_violation,
-    #     MfcStates.choose_problem,
-    #     MfcStates.get_pending,
-    #     MfcStates.add_content,
-    #     MfcStates.continue_state,
-    #     MfcStates.additional_photo,
-    #     MfcAvailStates.avail_main,
-    #     MfcAvailStates.choose_oms,
-    #     MfcAvailStates.get_number,
-    #     MfcAvailStates.form_send_mo,
-    # ):
-    #     await message.answer(
-    #         text=await MfcMessages.welcome_message(user_id=user.id),
-    #     )
-        
     await state.clear()
     await state.update_data(mfc_user_id=user.id)
     await violation_found_obj.user_empty_violations_found_process(user_id=user.id)
@@ -529,7 +506,8 @@ async def get_back(
     zone = data['zone']
     violation_name = data['violation_name']
     zones_completed: dict = data.get('violations_completed', {})
-    violations_completed: list = zones_completed.get(zone, {}).keys()
+    violations_completed: dict = zones_completed.get(zone, {})
+    completed_problems: list = violations_completed.get(violation_name, [])
     await state.update_data(
         {
             k: None for k, _ in data.items() if k.startswith('vio_')
@@ -540,7 +518,7 @@ async def get_back(
         reply_markup=await MfcKeyboards().choose_problem(
             violation_name=violation_name,
             zone=zone,
-            completed_violations=violations_completed),
+            completed_problems=completed_problems),
     )
     await callback.answer()
     await state.set_state(MfcStates.choose_problem)
@@ -798,7 +776,7 @@ async def to_violation_choose(
         reply_markup=await MfcKeyboards().choose_violation(
             zone=zone,
             completed_violations=violations_completed,
-            ),
+        ),
     )
     await state.update_data(violation_name=None)
     await state.set_state(MfcStates.choose_violation)
@@ -835,7 +813,7 @@ async def cancel_adding(
     zone = data['zone']
     violation_name = data['violation_name']
     problem = data['problem']
-    violation_dict_id = data['violation_dict_id']
+    # violation_dict_id = data['violation_dict_id']
     await message.answer(
         text=await MfcMessages.add_photo_comm(
             zone=zone,
@@ -880,7 +858,7 @@ async def cancel_adding_vio(
         text=await MfcMessages.choose_problem(
             violation_name=violation_name,
             zone=zone,
-            ),
+        ),
         reply_markup=await MfcKeyboards().choose_problem(
             violation_name=violation_name,
             zone=zone,
@@ -941,14 +919,14 @@ async def save_violation(
     await callback.message.answer(
         text=MfcMessages.continue_check,
     )
-        
+
     await asyncio.sleep(1)
 
     data = await state.get_data()
 
     zones_completed: dict = data.get('violations_completed', {})
-    violations_completed: dict = zones_completed.get(zone, {})
-    completed_problems: list = violations_completed.get(violation_name, [])
+    violations_completed_: dict = zones_completed.get(zone, {})
+    completed_problems: list = violations_completed_.get(violation_name, [])
 
     await callback.message.answer(
         text=await MfcMessages.choose_problem(zone=zone, violation_name=violation_name),

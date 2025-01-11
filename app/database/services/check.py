@@ -1,6 +1,7 @@
 import datetime as dt
-from uuid import UUID
 from typing import Optional
+from uuid import UUID
+
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
@@ -88,7 +89,7 @@ class CheckService:
             check_id=check_id_
         )
         return result
-    
+
     async def get_violations_found_dict_ids_for_check(self, check_id: str) -> Optional[list[int]]:
         check_id_ = UUID(check_id)
         result = await self.db_repository.get_all_violations_found_dict_ids_for_check(
@@ -167,7 +168,7 @@ class CheckService:
         violation_dict_ids = await self.get_violations_found_dict_ids_for_check(check_id=check_id)
         if violation_dict_ids:
             vio_repo = ViolationsRepo()
-            violations_completed = {}
+            violations_completed: dict[str, dict] = {}
             for vio_dict_id in violation_dict_ids:
                 violation = await vio_repo.get_violation_dict_by_id(violation_dict_id=vio_dict_id)
                 zone = violation.zone
