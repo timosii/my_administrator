@@ -27,10 +27,10 @@ router.message.filter(MoPerformerFilter())
 
 
 @router.message(
-        or_f(
-            Command('start'),
-            Command('menu')
-        ))
+    or_f(
+        Command('start'),
+        Command('menu')
+    ))
 async def cmd_start(
     message: Message, state: FSMContext, user_obj: UserService = UserService()
 ):
@@ -568,7 +568,7 @@ async def save_violation_found_process(
             await callback.answer()
             await callback.message.answer(
                 text=MoPerformerMessages.no_pending,
-                reply_markup=MoPerformerKeyboards().back_to_menu(),
+                reply_markup=await MoPerformerKeyboards().back_to_menu(),
             )
         else:
             await callback.answer()
