@@ -8,11 +8,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
 
 from app.database.services.users import UserService
-from app.filters.mfc_filters import MfcAvailFilter
 from app.filters.default import not_constants
+from app.filters.mfc_filters import MfcAvailFilter
 from app.handlers.messages import DefaultMessages, MfcMessages
 from app.handlers.states import MfcAvailStates, MfcStates
 from app.keyboards.mfc_part import MfcKeyboards
+from app.utils.utils import to_moscow_time
 
 OUT = '''
 Филиал: <b>{fil_}</b>
@@ -77,7 +78,6 @@ def format_oms(oms_str):
 
 def check_oms(oms_str):
     return len(oms_str) in [16, 9]
-
 
 
 router = Router()
@@ -170,7 +170,7 @@ async def process_sending_avail(
         )
         return
 
-    ud_time = dt.datetime.now()
+    ud_time = to_moscow_time(dt.datetime.now())
     await state.update_data(
         phone=phone_format,
         ud_time=ud_time.strftime('%H:%M')
@@ -211,7 +211,7 @@ async def form_send_avail(
     )
 
     performers = await user.get_avail_performer_by_fil(fil_=fil_)
-        
+
     if performers:
         norm_users_count = 0
         troubles_user_count = 0
@@ -243,8 +243,8 @@ async def form_send_avail(
             )
     else:
         await message.answer(
-                text=MfcMessages.zero_performers
-            )
+            text=MfcMessages.zero_performers
+        )
 
     await message.answer(
         text='Возвращаемся в меню',
@@ -293,7 +293,7 @@ async def avail_cancel_logic(
         MfcAvailStates.choose_oms,
         MfcAvailStates.get_number,
         MfcAvailStates.form_send_mo
-    ),not_constants
+    ), not_constants
 )
 async def wrong_avail(
     message: Message,
