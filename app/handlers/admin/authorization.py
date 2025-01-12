@@ -369,6 +369,9 @@ async def get_fil(
         fil_=fil
     )
     await message.answer(
+        text=DefaultMessages.complete_fil(fil=fil),
+    )
+    await message.answer(
         text=AuthorizationMessages.is_avail,
         reply_markup=SelfRegistration().yes_no()
     )

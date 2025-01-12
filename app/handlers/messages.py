@@ -71,6 +71,11 @@ class DefaultMessages:
         result = f'Ваша поликлиника: {mo}, пожалуйста выберите филиал'
         return result
 
+    @staticmethod
+    def complete_fil(fil: str) -> str:
+        result = f'Ваш филиал: {fil}'
+        return result
+
 
 class MfcMessages:
     start_message = 'Для начала нажмите /start'
