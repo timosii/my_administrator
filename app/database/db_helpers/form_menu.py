@@ -21,9 +21,23 @@ async def get_all_zones():
 
 
 @cached(ttl=CACHE_EXPIRE_LONG, namespace='dicts_info')
-async def get_zone_violations(zone: str):
+async def define_fil_age_category(fil: str):
     async with session_maker() as session:
-        query = select(Violations.violation_name).filter_by(zone=zone).distinct()
+        query = select(Filials.fil_population).filter_by(is_archieved=False, fil_=fil)
+        result = await session.execute(query)
+        age_category = result.scalar_one()
+        logger.info('define fil age category')
+        return age_category
+
+
+@cached(ttl=CACHE_EXPIRE_LONG, namespace='dicts_info')
+async def get_zone_violations(zone: str, fil: str):
+    age_category = await define_fil_age_category(fil=fil)
+    async with session_maker() as session:
+        if age_category in ('детские', 'смешанные'):
+            query = select(Violations.violation_name).filter_by(zone=zone, is_archieved=False, is_dgp=True).distinct()
+        else:
+            query = select(Violations.violation_name).filter_by(zone=zone, is_archieved=False, is_gp=True).distinct()
         result = await session.execute(query)
         violations = result.scalars()
         logger.info('get zone violations')
@@ -33,7 +47,7 @@ async def get_zone_violations(zone: str):
 @cached(ttl=CACHE_EXPIRE_LONG, namespace='dicts_info')
 async def get_violation_problems(violation_name: str, zone: str):
     async with session_maker() as session:
-        query = select(Violations.problem).filter_by(violation_name=violation_name, zone=zone)
+        query = select(Violations.problem).filter_by(violation_name=violation_name, zone=zone, is_archieved=False)
         result = await session.execute(query)
         problems = result.scalars()
         logger.info('get violation problems')
@@ -43,7 +57,7 @@ async def get_violation_problems(violation_name: str, zone: str):
 @cached(ttl=CACHE_EXPIRE_LONG, namespace='dicts_info')
 async def get_all_problems() -> list[str]:
     async with session_maker() as session:
-        query = select(Violations.problem).distinct()
+        query = select(Violations.problem).filter_by(is_archieved=False).distinct()
         result = await session.execute(query)
         problems = result.scalars().all()
         logger.info('get all problems')
@@ -53,7 +67,7 @@ async def get_all_problems() -> list[str]:
 @cached(ttl=CACHE_EXPIRE_LONG, namespace='dicts_info')
 async def get_all_violations() -> list[str]:
     async with session_maker() as session:
-        query = select(Violations.violation_name)
+        query = select(Violations.violation_name).filter_by(is_archieved=False).distinct()
         result = await session.execute(query)
         violations = result.scalars().all()
         logger.info('get all violations')

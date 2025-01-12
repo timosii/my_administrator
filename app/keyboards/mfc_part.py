@@ -70,9 +70,9 @@ class MfcKeyboards:
         return self.kb.as_markup(resize_keyboard=True)
 
     async def choose_violation(
-        self, zone: str, completed_violations: list
+        self, zone: str, completed_violations: list, fil: str
     ) -> ReplyKeyboardMarkup:
-        violations = await get_zone_violations(zone=zone)
+        violations = await get_zone_violations(zone=zone, fil=fil)
         buttons = [
             KeyboardButton(
                 text=(

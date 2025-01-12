@@ -311,12 +311,14 @@ async def back_command(message: Message, state: FSMContext):
 async def choose_zone_handler(message: Message, state: FSMContext):
     zone = ' '.join(message.text.split()[1:])
     data = await state.get_data()
+    fil: str = data['fil_']
     zones_completed: dict = data.get('violations_completed', {})
     violations_completed: list = zones_completed.get(zone, {}).keys()
     await message.answer(
         text=await MfcMessages.choose_violation(zone=zone),
         reply_markup=await MfcKeyboards().choose_violation(
             zone=zone,
+            fil=fil,
             completed_violations=violations_completed),
     )
     await state.update_data(
@@ -767,7 +769,8 @@ async def to_violation_choose(
     state: FSMContext,
 ):
     data = await state.get_data()
-    zone = data['zone']
+    zone: str = data['zone']
+    fil: str = data['fil_']
     zones_completed: dict = data.get('violations_completed', {})
     violations_completed: list = zones_completed.get(zone, {}).keys()
     await state.set_state(MfcStates.choose_violation)
@@ -775,6 +778,7 @@ async def to_violation_choose(
         text=await MfcMessages.choose_violation(zone=zone),
         reply_markup=await MfcKeyboards().choose_violation(
             zone=zone,
+            fil=fil,
             completed_violations=violations_completed,
         ),
     )
