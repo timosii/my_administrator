@@ -79,7 +79,7 @@ class ViolationFoundClearData(BaseModel):
     violation_detected: None = None
     violation_dict_id: None = None
     violation_name: None = None
-    problem: None
+    problem: None = None
     zone: None = None
     is_pending: None = None
     violation_pending: None = None
