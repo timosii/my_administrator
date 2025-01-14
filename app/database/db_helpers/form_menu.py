@@ -97,7 +97,9 @@ async def get_all_mos():
 @cached(ttl=CACHE_EXPIRE_LONG, namespace='dicts_info')
 async def get_fils_by_mo(mo: str):
     async with session_maker() as session:
-        query = select(Filials.fil_).filter_by(mo_=mo)
+        query = select(Filials.fil_).filter_by(
+            mo_=mo,
+            is_archieved=False)
         result = await session.execute(query)
         fils = result.scalars()
         logger.info('get fils by mo')
