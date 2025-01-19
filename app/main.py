@@ -52,6 +52,7 @@ async def set_main(bot: Bot):
     if not settings.IS_TEST:
         await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
     logger.info('bot started')
+    scheduler_unfinished_checks.start()
     await bot.send_message(settings.DEV_ID, 'Bot is started!')
 
 
@@ -59,6 +60,7 @@ async def on_shutdown(bot: Bot) -> None:
     logger.info('bot stopped')
     cache = caches.get('default')
     await cache.close()
+    scheduler_unfinished_checks.shutdown(wait=False)
     await bot.send_message(settings.DEV_ID, 'Bot is stopped!')
 
 
@@ -87,7 +89,6 @@ def all_register():
     dp.update.middleware(FSMMiddleware())
     dp.update.middleware(ErrorProcessMiddleware(bot=bot))
     dp.startup.register(set_main)
-    scheduler_unfinished_checks.start()
     dp.shutdown.register(on_shutdown)
     return bot, dp
 
