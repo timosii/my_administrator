@@ -26,6 +26,7 @@ from app.middlewares.main import (
     FSMMiddleware,
 )
 from app.middlewares.throttling import ThrottlingMiddleware
+from app.scheduler_tasks import scheduler_unfinished_checks
 
 WEBHOOK_HOST = settings.WEBHOOK_HOST
 WEBHOOK_PATH = '/webhook'
@@ -86,6 +87,7 @@ def all_register():
     dp.update.middleware(FSMMiddleware())
     dp.update.middleware(ErrorProcessMiddleware(bot=bot))
     dp.startup.register(set_main)
+    scheduler_unfinished_checks.start()
     dp.shutdown.register(on_shutdown)
     return bot, dp
 

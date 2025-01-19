@@ -105,8 +105,8 @@ async def add_photo_handler(
     })
     violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
     await message.answer(
-        text=MoPerformerMessages.finish_mes(violation_found_out.violation_name),
-        reply_markup=MoPerformerKeyboards().save_violation_found(
+        text=await MoPerformerMessages.finish_mes(violation_found_out.violation_name),
+        reply_markup=await MoPerformerKeyboards().save_violation_found(
             violation_found_id=violation_found_id
         ),
     )

@@ -1,9 +1,11 @@
 import datetime as dt
+import time
 from typing import Optional
 from uuid import UUID
 
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from loguru import logger
 
 from app.database.database import session_maker
 from app.database.repositories.check import CheckRepo
@@ -96,6 +98,75 @@ class CheckService:
             check_id=check_id_
         )
         return result
+
+    async def scheduler_unfinished_checks_process(self):
+        start_scheduler_process = time.time()
+        checks_unfinished_mfc: list[CheckInDB] = await self.db_repository.get_mfc_all_active_checks()
+        checks_unfinished_mo: list[CheckInDB] = await self.db_repository.get_all_active_checks()
+        checks_mfc_deleted = 0
+        checks_mfc_updated = 0
+        checks_mo_updated = 0
+
+        if not checks_unfinished_mfc:
+            logger.info('There is no mfc unfinished_checks')
+        else:
+            for check in checks_unfinished_mfc:
+                violation_found_count: int = await self.db_repository.get_all_violations_found_count_by_check(
+                    check_id=check.check_id
+                )
+                if violation_found_count == 0:
+                    await self.db_repository.delete_check(check_id=check.check_id)
+                    checks_mfc_deleted += 1
+                    continue
+
+                mfc_start = check.mfc_start
+                check_update = CheckUpdate(
+                    mfc_finish=dt.datetime(
+                        year=mfc_start.year,
+                        month=mfc_start.month,
+                        day=mfc_start.day,
+                        hour=20,
+                        minute=59,
+                        second=59
+                    ),
+                    mo_start=check.mo_start,
+                    mo_finish=check.mo_finish,
+                )
+                await self.db_repository.update_check(
+                    check_id=check.check_id,
+                    check_update=check_update
+                )
+                checks_mfc_updated += 1
+
+        if not checks_unfinished_mo:
+            logger.info('There is no mo unfinished_checks')
+        else:
+            for check in checks_unfinished_mo:
+                violation_found_count_mo = await self.db_repository.get_violations_found_count_by_check(
+                    check_id=check.check_id
+                )
+                if violation_found_count_mo == 0:
+                    mo_start = check.mo_start
+                    check_update_mo = CheckUpdate(
+                        mo_finish=dt.datetime(
+                            year=mo_start.year,
+                            month=mo_start.month,
+                            day=mo_start.day,
+                            hour=20,
+                            minute=59,
+                            second=59
+                        ),
+                    )
+                    await self.db_repository.update_check(
+                        check_id=check.check_id,
+                        check_update=check_update_mo
+                    )
+                    checks_mo_updated += 1
+
+        finish_scheduler_process = time.time()
+        elapsed_time = finish_scheduler_process - start_scheduler_process
+        logger.info(
+            f'Scheduler task completed. Checks deleted: {checks_mfc_deleted}, checks mfc updated: {checks_mfc_updated}, checks mo updated: {checks_mo_updated} elapsed_time: {elapsed_time}')
 
     async def start_checking_process(
         self,

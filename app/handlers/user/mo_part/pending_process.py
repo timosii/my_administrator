@@ -1,5 +1,6 @@
 import asyncio
 import datetime as dt
+from uuid import UUID
 
 from aiogram import F, Router
 from aiogram.filters import StateFilter
@@ -113,18 +114,26 @@ async def add_comm_pending_text(
     violation_found_id = data['pending_vio']
     pending_period = dt.datetime.fromisoformat(data['pending_period'])
     violation_found_out = ViolationFoundOut(**data[f'vio_{violation_found_id}'])
+    current_time = dt.datetime.now(dt.timezone.utc)
+    check_id: str = data[f'vio_{violation_found_id}']['check_id']
+
+    current_check = await check_obj.get_check_by_id(check_id=UUID(check_id))
+
+    if not current_check.mo_start:
+        check_upd_mo_start = CheckUpdate(
+            mo_start=current_time
+        )
+        await check_obj.update_check(check_id=check_id, check_update=check_upd_mo_start)
+        logger.info('MO_START time updated from current_time')
 
     if violation_found_out.is_task:
-        current_time = dt.datetime.now(dt.timezone.utc)
         check_upd = CheckUpdate(
-            mo_start=current_time,
             mo_finish=current_time,
         )
-        check_id = data[f'vio_{violation_found_id}']['check_id']
         await check_obj.update_check(check_id=check_id, check_update=check_upd)
         await state.update_data(
             mo_start=None
-            )
+        )
 
         await state.update_data(
             **ViolationFoundClearData().model_dump(mode='json')
@@ -142,7 +151,7 @@ async def add_comm_pending_text(
     await state.update_data(
         {
             f'vio_{violation_found_id}': violation_found_out_after_pending.model_dump(mode='json')
-            }
+        }
     )
 
     data = await state.get_data()

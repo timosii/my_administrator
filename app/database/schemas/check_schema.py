@@ -69,7 +69,7 @@ class CheckOutUnfinished(BaseModel):
 {self.fil_}
 <b>Дата начала проверки:</b>
 {to_moscow_time(self.mfc_start).strftime('%d.%m.%Y %H:%M')}
-<b>Количество выявленных нарушений:</b>
+<b>Количество активных нарушений:</b>
 {self.violations_count}
         """
         return result

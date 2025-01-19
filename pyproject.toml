@@ -37,6 +37,7 @@ aiogram-calendar = {git = "https://github.com/timosii/aiogram_calendar.git"}
 uuid6 = "^2024.7.10"
 aiogram-media-group = "^0.5.1"
 poetry-plugin-export = "^1.8.0"
+apscheduler = "^3.11.0"
 
 
 [tool.poetry.group.dev.dependencies]

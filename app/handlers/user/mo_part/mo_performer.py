@@ -1,5 +1,6 @@
 import asyncio
 import datetime as dt
+from uuid import UUID
 
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter, or_f
@@ -555,6 +556,15 @@ async def save_violation_found_process(
     )
     data = await state.get_data()
 
+    check_id = data['check_id']
+    current_check = await check_obj.get_check_by_id(check_id=UUID(check_id))
+    if not current_check.mo_start:
+        check_upd_mo_start = CheckUpdate(
+            mo_start=current_time
+        )
+        await check_obj.update_check(check_id=check_id, check_update=check_upd_mo_start)
+        logger.info('MO_START time updated from current_time')
+
     if is_pending:
         await violation_obj.update_data_violations_found_pending(
             message=callback.message,
@@ -587,10 +597,8 @@ async def save_violation_found_process(
             )
 
     elif is_task:
-        check_id = data['check_id']
-        current_time = dt.datetime.now(dt.timezone.utc)
         check_upd = CheckUpdate(
-            mo_start=dt.datetime.fromisoformat(data['mo_start']),
+            # mo_start=dt.datetime.fromisoformat(data['mo_start']),
             mo_finish=current_time,
         )
         await check_obj.update_check(check_id=check_id, check_update=check_upd)
@@ -698,10 +706,7 @@ async def correct_vio_process_finish(
 ):
     data = await state.get_data()
     check_id = data['check_id']
-    logger.debug(f'check_id_is: {check_id}')
     violation_out_objects = await MoPerformerCard(data=data).get_current_check_violations(check_id=check_id)
-    logger.debug(f'check_id_is: {check_id}')
-    logger.debug(f'VIO_OUT: {violation_out_objects}')
     if violation_out_objects:
         await message.answer(
             text=MoPerformerMessages.cant_finish,

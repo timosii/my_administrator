@@ -68,9 +68,6 @@ class CheckRepo:
             stmt = delete(Check)
             await session.execute(stmt)
             await session.commit()
-            # await session.execute(text('ALTER SEQUENCE data.check_check_id_seq RESTART WITH 1'))
-            # await session.execute(text('ALTER SEQUENCE data.violation_found_violation_found_id_seq RESTART WITH 1'))
-            # await session.commit()
             logger.info('ALL checks deleted')
             await self.clear_cache()
 
@@ -81,6 +78,19 @@ class CheckRepo:
             checks = result.scalars().all()
             logger.info('get all checks')
             return [CheckInDB.model_validate(check) for check in checks]
+
+    async def get_mfc_all_active_checks(self) -> list[CheckInDB] | None:
+        async with self.session_maker() as session:
+            query = select(Check).where(
+                and_(
+                    Check.mfc_finish.is_(None),
+                    Check.is_task.is_(False)
+                )
+            )
+            result = await session.execute(query)
+            checks = result.scalars().all()
+            logger.info('get all active checks')
+            return [CheckInDB.model_validate(check) for check in checks] if checks else None
 
     async def get_mfc_fil_active_checks(self, fil_: str) -> list[CheckInDB] | None:
         async with self.session_maker() as session:
@@ -109,15 +119,25 @@ class CheckRepo:
         return (
             await self._get_scalar(query=query) or 0
         )
-    
+
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
+    async def get_all_violations_found_count_by_check(self, check_id: UUID) -> int:
+        query = select(func.count()).select_from(ViolationFound).where(
+            and_(
+                ViolationFound.check_id == check_id,
+            )
+        )
+        logger.info('get all violations found count by check')
+        return (
+            await self._get_scalar(query=query) or 0
+        )
+
     @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
     async def get_all_violations_found_dict_ids_for_check(self, check_id: UUID) -> Optional[list[int]]:
         async with self.session_maker() as session:
             query = select(ViolationFound.violation_dict_id).select_from(ViolationFound).where(
                 and_(
                     ViolationFound.check_id == check_id,
-                    # ViolationFound.violation_fixed.is_(None),
-                    # ViolationFound.is_pending.is_(False)
                 )
             )
             result = await session.execute(query)
@@ -141,6 +161,26 @@ class CheckRepo:
             result = await session.execute(query)
             checks = result.scalars().all()
             logger.info('get all active checks by fil')
+            return (
+                [CheckInDB.model_validate(check) for check in checks]
+                if checks
+                else None
+            )
+
+    @cached(ttl=CACHE_EXPIRE_SHORT, namespace='check')
+    async def get_all_active_checks(
+            self) -> Optional[list[CheckInDB]]:
+        async with self.session_maker() as session:
+            query = select(Check).where(
+                and_(
+                    Check.mfc_finish.is_not(None),
+                    Check.mo_finish.is_(None),
+                    Check.is_task.is_(False)
+                )
+            )
+            result = await session.execute(query)
+            checks = result.scalars().all()
+            logger.info('get all active checks')
             return (
                 [CheckInDB.model_validate(check) for check in checks]
                 if checks

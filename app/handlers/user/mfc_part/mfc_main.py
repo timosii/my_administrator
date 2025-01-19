@@ -61,7 +61,9 @@ async def cmd_menu(
 ):
     user = message.from_user
     logger.info(f'User {user.id} {user.username} passed authorization')
-    await state.update_data(mfc_user_id=user.id)
+    await state.update_data(
+        mfc_user_id=user.id,
+        violations_completed={})
     data = await state.get_data()
     mo = data.get('mo')
     fil = data.get('fil_')

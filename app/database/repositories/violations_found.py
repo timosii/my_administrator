@@ -94,8 +94,6 @@ class ViolationFoundRepo:
             stmt = delete(ViolationFound)
             await session.execute(stmt)
             await session.commit()
-            # await session.execute(text('ALTER SEQUENCE data.violation_found_violation_found_id_seq RESTART WITH 1'))
-            # await session.commit()
             logger.info('ALL violations found deleted')
             await self.clear_cache()
 
