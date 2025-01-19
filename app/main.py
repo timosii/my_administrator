@@ -21,6 +21,7 @@ from app.handlers.user.mo_part import (
 )
 from app.handlers.user.vacation import vacation
 from app.middlewares.main import ErrorProcessMiddleware, FSMMiddleware
+from app.middlewares.throttling import ThrottlingMiddleware
 
 WEBHOOK_HOST = settings.WEBHOOK_HOST
 WEBHOOK_PATH = '/webhook'
@@ -44,7 +45,7 @@ async def set_main(bot: Bot):
     ]
     await bot.set_my_commands(main_menu_commands)
     if not settings.IS_TEST:
-        await bot.set_webhook(WEBHOOK_URL)
+        await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
     logger.info('bot started')
     await bot.send_message(settings.DEV_ID, 'Bot is started!')
 
@@ -76,6 +77,7 @@ def all_register():
         mo_controler.router,
         authorization.router
     )
+    dp.update.middleware(ThrottlingMiddleware())
     dp.update.middleware(FSMMiddleware())
     dp.update.middleware(ErrorProcessMiddleware(bot=bot))
     dp.startup.register(set_main)
