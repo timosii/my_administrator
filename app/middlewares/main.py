@@ -128,3 +128,23 @@ class FSMMiddleware(BaseMiddleware):
             return result
 
         return await handler(event, data)
+
+
+class ChatExistsMiddleware(BaseMiddleware):
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: dict[str, Any],
+    ) -> Any:
+        user: User = data.get('event_from_user')
+        bot: Bot = data.get('bot')
+
+        if user:
+            try:
+                await bot.get_chat(user.id)
+            except TelegramBadRequest:
+                logger.warning('Chat not exists')
+                return
+
+        return await handler(event, data)

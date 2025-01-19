@@ -20,7 +20,11 @@ from app.handlers.user.mo_part import (
     take_process,
 )
 from app.handlers.user.vacation import vacation
-from app.middlewares.main import ErrorProcessMiddleware, FSMMiddleware
+from app.middlewares.main import (
+    ChatExistsMiddleware,
+    ErrorProcessMiddleware,
+    FSMMiddleware,
+)
 from app.middlewares.throttling import ThrottlingMiddleware
 
 WEBHOOK_HOST = settings.WEBHOOK_HOST
@@ -77,7 +81,8 @@ def all_register():
         mo_controler.router,
         authorization.router
     )
-    dp.update.middleware(ThrottlingMiddleware())
+    dp.update.outer_middleware(ChatExistsMiddleware())
+    dp.update.outer_middleware(ThrottlingMiddleware())
     dp.update.middleware(FSMMiddleware())
     dp.update.middleware(ErrorProcessMiddleware(bot=bot))
     dp.startup.register(set_main)
