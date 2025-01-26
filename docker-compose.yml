@@ -8,8 +8,6 @@ services:
       - "80:8080"
     command: bash -c "alembic upgrade head && export PYTHONPATH=$PYTHONPATH:$(pwd) && python run.py"
     depends_on:
-      # ngrok:
-      #   condition: service_started
       db:
         condition: service_healthy
       redis:
@@ -18,6 +16,9 @@ services:
       - type: bind
         source: ./
         target: /code
+      - type: bind
+        source: ${DATA_PATH}
+        target: /app/data
     networks:
       - my_admin
 
@@ -55,22 +56,6 @@ services:
       retries: 5
     networks:
       - my_admin
-
-  # ngrok:
-  #   image: ngrok/ngrok:latest
-  #   restart: unless-stopped
-  #   command:
-  #     - "start"
-  #     - "--all"
-  #     - "--config"
-  #     - "/etc/ngrok.yml"
-
-  #   volumes:
-  #     - ./ngrok.yml:/etc/ngrok.yml
-  #   ports:
-  #     - 4040:4040
-  #   networks:
-  #     - my_admin
 
 networks:
   my_admin:

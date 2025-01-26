@@ -27,6 +27,7 @@ class Settings:
     DOCS_URL: Final = os.getenv('DOCS_URL', 'need to define')
     DOCS_MFC: Final = os.getenv('DOCS_MFC', 'need to define')
     DOCS_MO: Final = os.getenv('DOCS_MO', 'need to define')
+    DATA_PATH: Final = os.getenv('DATA_PATH', 'need to define')
 
     @property
     def url_constructor(self):
