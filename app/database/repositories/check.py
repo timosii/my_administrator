@@ -84,7 +84,7 @@ class CheckRepo:
             query = select(Check).where(
                 and_(
                     Check.mfc_finish.is_(None),
-                    Check.is_task.is_(False)
+                    # Check.is_task.is_(False)
                 )
             )
             result = await session.execute(query)
@@ -175,7 +175,7 @@ class CheckRepo:
                 and_(
                     Check.mfc_finish.is_not(None),
                     Check.mo_finish.is_(None),
-                    Check.is_task.is_(False)
+                    # Check.is_task.is_(False)
                 )
             )
             result = await session.execute(query)
