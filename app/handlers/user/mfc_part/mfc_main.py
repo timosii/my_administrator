@@ -16,7 +16,7 @@ from app.database.schemas.violation_found_schema import (
 from app.database.services.check import CheckService
 from app.database.services.helpers import HelpService
 from app.database.services.violations_found import ViolationFoundService
-from app.filters.default import is_digit, not_constants
+from app.filters.default import not_constants
 from app.filters.form_menu import (
     IsInFilials,
     IsInMos,
@@ -84,14 +84,14 @@ async def cmd_menu(
 
 @router.message(
     F.text,
-    is_digit,
+    not_constants,
     StateFilter(MfcStates.choose_mo)
 )
 async def choose_mo(message: Message,
                     state: FSMContext,
                     helper: HelpService = HelpService()
                     ):
-    num = message.text
+    num = message.text.capitalize()
     mos = await helper.mo_define_by_num(num=num)
     if not mos:
         await message.answer(

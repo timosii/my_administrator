@@ -118,7 +118,7 @@ class MfcMessages:
 
     @staticmethod
     async def welcome_message(user_id: int, user_obj: UserService = UserService()) -> str:
-        result = f'{form_greeting()}, {await user_obj.get_name(user_id=user_id)}!\nПожалуйста, введите <b>номер</b> поликлиники для проверки:'
+        result = f'{form_greeting()}, {await user_obj.get_name(user_id=user_id)}!\nПожалуйста, введите <b>номер</b> поликлиники для проверки.\nЕсли у поликлиники нет номера, введите название, например <b>Кузнечики</b>:'
         return result
 
     @staticmethod

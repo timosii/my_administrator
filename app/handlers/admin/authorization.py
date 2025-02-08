@@ -8,7 +8,7 @@ from aiogram.types import Message, ReplyKeyboardRemove
 from app.database.schemas.user_schema import UserBaseInfo, UserCreate
 from app.database.services.helpers import HelpService
 from app.database.services.users import UserService
-from app.filters.default import is_digit, not_constants
+from app.filters.default import not_constants
 from app.filters.form_menu import IsInFilials, IsInMos
 from app.handlers.messages import AuthorizationMessages, DefaultMessages
 from app.handlers.states import RegStates
@@ -269,7 +269,7 @@ async def get_department(
 # Логика МО
 @router.message(
     F.text,
-    is_digit,
+    not_constants,
     StateFilter(RegStates.get_mo)
 )
 async def get_mo(
