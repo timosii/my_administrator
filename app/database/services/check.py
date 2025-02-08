@@ -105,7 +105,7 @@ class CheckService:
         checks_unfinished_mo: list[CheckInDB] = await self.db_repository.get_all_active_checks()
         checks_mfc_deleted = 0
         checks_mfc_updated = 0
-        checks_mo_updated = 0
+        checks_zero_violations_found = 0
 
         if not checks_unfinished_mfc:
             logger.info('There is no mfc unfinished_checks')
@@ -142,31 +142,18 @@ class CheckService:
             logger.info('There is no mo unfinished_checks')
         else:
             for check in checks_unfinished_mo:
-                violation_found_count_mo = await self.db_repository.get_violations_found_count_by_check(
+                violation_found_count_mo = await self.db_repository.get_all_violations_found_count_by_check(
                     check_id=check.check_id
                 )
                 if violation_found_count_mo == 0:
-                    mo_start = check.mo_start
-                    check_update_mo = CheckUpdate(
-                        mo_finish=dt.datetime(
-                            year=mo_start.year,
-                            month=mo_start.month,
-                            day=mo_start.day,
-                            hour=20,
-                            minute=59,
-                            second=59
-                        ),
-                    )
-                    await self.db_repository.update_check(
-                        check_id=check.check_id,
-                        check_update=check_update_mo
-                    )
-                    checks_mo_updated += 1
+                    await self.db_repository.delete_check(check_id=check.check_id)
+                    checks_zero_violations_found += 1
+                    continue
 
         finish_scheduler_process = time.time()
         elapsed_time = finish_scheduler_process - start_scheduler_process
         logger.info(
-            f'Scheduler task completed. Checks deleted: {checks_mfc_deleted}, checks mfc updated: {checks_mfc_updated}, checks mo updated: {checks_mo_updated} elapsed_time: {elapsed_time}')
+            f'Unfinished checks control task completed. Checks deleted: {checks_mfc_deleted}, checks mfc updated: {checks_mfc_updated}, checks zero violations deleted: {checks_zero_violations_found} elapsed_time: {elapsed_time}')
 
     async def start_checking_process(
         self,

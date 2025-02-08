@@ -26,7 +26,7 @@ from app.middlewares.main import (
     FSMMiddleware,
 )
 from app.middlewares.throttling import ThrottlingMiddleware
-from app.scheduler_tasks import scheduler_unfinished_checks
+from app.scheduler_tasks import scheduler
 
 WEBHOOK_HOST = settings.WEBHOOK_HOST
 WEBHOOK_PATH = '/webhook'
@@ -52,7 +52,7 @@ async def set_main(bot: Bot):
     if not settings.IS_TEST:
         await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
     logger.info('bot started')
-    scheduler_unfinished_checks.start()
+    scheduler.start()
     await bot.send_message(settings.DEV_ID, 'Bot is started!')
 
 
@@ -60,7 +60,7 @@ async def on_shutdown(bot: Bot) -> None:
     logger.info('bot stopped')
     cache = caches.get('default')
     await cache.close()
-    scheduler_unfinished_checks.shutdown(wait=False)
+    scheduler.shutdown(wait=False)
     await bot.send_message(settings.DEV_ID, 'Bot is stopped!')
 
 

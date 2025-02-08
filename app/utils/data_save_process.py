@@ -4,13 +4,13 @@ from dataclasses import dataclass
 
 import pandas as pd
 from aiogram import Bot
+from aiogram.client.bot import DefaultBotProperties
 from aiogram.types import File
 from loguru import logger
 from sqlalchemy import text
 
 from app.config import settings
 from app.database.database import session_maker
-from app.main import all_register
 
 
 @dataclass
@@ -25,17 +25,18 @@ class PhotoForSave:
     prefix: str  # mo или mfc в зависимости от того чья фото
 
     def get_photo_path(self):
-        month = self.day[:6]
+        # month = self.day[:6]
         path = os.path.join(
             settings.DATA_PATH,
-            month,
-            self.day,
-            self.mo,
-            self.fil,
-            self.zone,
-            self.violation_name,
-            self.problem,
-            f'{self.prefix}_{self.photo_id}.jpg'
+            # month,
+            # self.day,
+            # self.mo,
+            # self.fil,
+            # self.zone,
+            # self.violation_name,
+            # self.problem,
+            # f'{self.prefix}_{self.photo_id}.jpg'
+            f'{self.photo_id}.jpg'
         )
         return path
 
@@ -47,9 +48,8 @@ class PhotoSaver:
     ):
         self.day = day
 
-    async def get_photos(self):
-        async with session_maker() as session:
-            query = f"""
+    async def get_photos(self, all_photos=False):
+        query = f"""
             select
                 photo_id_mo,
                 photo_id_mfc,
@@ -68,7 +68,28 @@ class PhotoSaver:
                 on c.fil_ = f.fil_
             where cast(violation_detected as DATE) = '{self.day.strftime('%Y-%m-%d')}'
             """
-            result = await session.execute(text(query))
+
+        query_all = """
+            select
+                photo_id_mo,
+                photo_id_mfc,
+                mo_,
+                c.fil_,
+                zone,
+                problem,
+                violation_name,
+                cast(violation_detected as DATE) as violation_detected_day
+            from data.violation_found vf
+                join dicts.violations v
+                on vf.violation_dict_id = v.violation_dict_id
+                join data."check" c
+                on vf.check_id = c.check_id
+                join dicts.filials f
+                on c.fil_ = f.fil_
+            """
+
+        async with session_maker() as session:
+            result = await session.execute(text(query_all if all_photos else query))
             rows = result.fetchall()
             photos = []
             for row in rows:
@@ -85,7 +106,7 @@ class PhotoSaver:
                     ))
 
                 if row.photo_id_mfc:
-                    for photo_id_mfc in row.photo_id_mfc:  #
+                    for photo_id_mfc in row.photo_id_mfc:  # т.к. у МФЦ может быть несколько фотографий
                         photos.append(PhotoForSave(
                             photo_id=photo_id_mfc,
                             mo=row.mo_,
@@ -116,9 +137,20 @@ class PhotoSaver:
                     print(f'Ошибка при скачивании файла: {e}')
 
 
-if __name__ == '__main__':
-    report_date = pd.Timestamp('2025-01-19')
+async def scheduler_download_photos():
+    report_date = pd.Timestamp('today')
     obj = PhotoSaver(day=report_date)
-    asyncio.run(obj.get_photos())
-    bot, _ = all_register()
-    asyncio.run(obj.download_photos(bot=bot))
+    await obj.get_photos()
+    bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode='HTML'))
+    await obj.download_photos(bot=bot)
+
+
+async def download_all_photos():
+    report_date = pd.Timestamp('today')
+    obj = PhotoSaver(day=report_date)
+    await obj.get_photos(all_photos=True)
+    bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode='HTML'))
+    await obj.download_photos(bot=bot)
+
+if __name__ == '__main__':
+    asyncio.run(download_all_photos())

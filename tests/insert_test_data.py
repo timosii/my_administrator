@@ -53,7 +53,7 @@ class AddTestData:
     ):
         current_time = dt.datetime.now(dt.timezone.utc)
         check_id = self.check_id
-        violation_dict_id = randint(1, 110)
+        violation_dict_id = randint(1, 302)
         v = ViolationFoundTestCreate(
             check_id=check_id,
             violation_dict_id=violation_dict_id,
