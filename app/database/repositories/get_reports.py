@@ -34,8 +34,6 @@ async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
         'violation_pending': 'Время переноса нарушения',
         'pending_period': 'Срок переноса нарушения',
         'is_task': 'В рамках уведомления',
-        # 'photo_id_mo': 'Фотография МО',
-        # 'photo_id_mfc': 'Фотографии МФЦ',
     }
     async with session_maker() as session:
         query = """
@@ -143,7 +141,6 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
         'pending_period': 'Срок переноса нарушения',
         'is_task': 'В рамках уведомления',
         'photo_id_mo': 'Фото МО',
-        # 'photo_id_mfc': 'Фотографии МФЦ',
     }
     async with session_maker() as session:
         query = """
@@ -230,31 +227,26 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                         column_letter = get_column_letter(df.columns.get_loc(photo_col) + 1)
                         worksheet.column_dimensions[column_letter].width = img.width / 7 + 2
 
-                        # Обновление высоты строки
                         if img.height > max_height:
                             max_height = img.height
                     except Exception as e:
                         logger.error(f'Ошибка при вставке изображения: {e}')
 
-            # Вставка фото МО
             photo_id_mo = row['Фото МО']
             if photo_id_mo:
                 try:
                     img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpg')
                     img = Image(img_path)
 
-                    # Уменьшение размера изображения
-                    img.width = 200  # Ширина изображения
-                    img.height = 150  # Высота изображения
+                    img.width = 200
+                    img.height = 150
 
-                    # Вставка изображения
                     cell = f'{get_column_letter(df.columns.get_loc("Фото МО") + 1)}{index + 2}'
                     worksheet.add_image(img, cell)
                     worksheet[cell].value = None
                     column_letter = get_column_letter(df.columns.get_loc('Фото МО') + 1)
                     worksheet.column_dimensions[column_letter].width = img.width / 7 + 2
 
-                    # Обновление высоты строки
                     if img.height > max_height:
                         max_height = img.height
 
@@ -263,7 +255,6 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
 
             worksheet.row_dimensions[index + 2].height = max_height * 0.75
 
-        # Включение переноса текста для всех ячеек
         for row in worksheet.iter_rows():
             for cell in row:
                 cell.alignment = Alignment(wrap_text=True)  # type: ignore
