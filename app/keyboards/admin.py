@@ -7,8 +7,8 @@ class AdminKeyboards:
         self.kb = ReplyKeyboardBuilder()
 
     def main_menu(self) -> ReplyKeyboardMarkup:
-        self.kb.button(text='Добавить пользователей')
-        self.kb.button(text='Удалить пользователя')
+        # self.kb.button(text='Добавить пользователей')
+        # self.kb.button(text='Удалить пользователя')
         self.kb.button(text='Посмотреть пользователей')
         self.kb.button(text='Посмотреть отчеты')
         self.kb.button(text='Назад')
