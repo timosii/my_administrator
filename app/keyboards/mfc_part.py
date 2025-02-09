@@ -319,6 +319,7 @@ class MfcLeaderKeyboards:
 
     def get_report(self) -> ReplyKeyboardMarkup:
         self.kb.button(text='Получить отчет')
+        self.kb.button(text='Получить отчет с фото')
         self.kb.button(text='Назад')
         self.kb.adjust(1)
         return self.kb.as_markup(resize_keyboard=True)

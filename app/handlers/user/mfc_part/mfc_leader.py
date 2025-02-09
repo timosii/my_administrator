@@ -7,7 +7,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram_calendar import SimpleCalendar, SimpleCalendarCallback
 
-from app.database.repositories.get_reports import get_mfc_report
+from app.database.repositories.get_reports import (
+    get_mfc_report,
+    get_mfc_report_with_photo,
+)
 from app.filters.mfc_filters import MfcLeaderFilter
 from app.handlers.messages import DefaultMessages, MfcLeaderMessages
 from app.handlers.states import MfcLeaderStates
@@ -142,6 +145,28 @@ async def get_report(message: Message, state: FSMContext):
     start_date = dt.datetime.fromisoformat(data['start_date']).strftime('%Y-%m-%d')
     end_date = dt.datetime.fromisoformat(data['end_date']).strftime('%Y-%m-%d')
     mfc_report_doc = await get_mfc_report(
+        start_date=start_date,
+        end_date=end_date
+    )
+
+    if not mfc_report_doc:
+        await message.answer(text='Нет данных за выбранный период',
+                             reply_markup=MfcLeaderKeyboards().finish_process())
+    else:
+        await message.answer_document(document=mfc_report_doc,
+                                      caption='Отправляю отчет',
+                                      reply_markup=MfcLeaderKeyboards().finish_process())
+    await state.set_state(MfcLeaderStates.finish_stage)
+
+
+@router.message(F.text.lower() == 'получить отчет с фото',
+                StateFilter(MfcLeaderStates.full_period)
+                )
+async def get_report_with_photo(message: Message, state: FSMContext):
+    data = await state.get_data()
+    start_date = dt.datetime.fromisoformat(data['start_date']).strftime('%Y-%m-%d')
+    end_date = dt.datetime.fromisoformat(data['end_date']).strftime('%Y-%m-%d')
+    mfc_report_doc = await get_mfc_report_with_photo(
         start_date=start_date,
         end_date=end_date
     )

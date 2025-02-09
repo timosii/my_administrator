@@ -10,5 +10,6 @@ ngrok.yml
 users.xlsx
 tmp.xlsx
 mfc_report.xlsx
+mfc_report_with_photo.xlsx
 .mypy_cache
 .pytest_cache
