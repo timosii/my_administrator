@@ -1,13 +1,11 @@
 # import xlsxwriter
 import os
 
-import numpy as np
 import pandas as pd
 from aiogram import Bot, F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import FSInputFile, Message
-from loguru import logger
 from sqlalchemy import select
 
 from app.database.database import session_maker
@@ -30,68 +28,68 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.set_state(AdminStates.admin)
 
 
-@router.message(F.text.lower() == 'добавить пользователей',
-                StateFilter(AdminStates.admin))
-async def add_users_command(message: Message, state: FSMContext, bot: Bot):
-    await state.clear()
-    await message.answer(
-        text=AdminMessages.send_sample,
-    )
-    users_sample_path = 'app/database/insert_dicts/data/users_insert.xlsx'
-    users_sample_doc = FSInputFile(users_sample_path)
-    await message.answer_document(
-        document=users_sample_doc,
-    )
-    await state.set_state(AdminStates.admin)
+# @router.message(F.text.lower() == 'добавить пользователей',
+#                 StateFilter(AdminStates.admin))
+# async def add_users_command(message: Message, state: FSMContext, bot: Bot):
+#     await state.clear()
+#     await message.answer(
+#         text=AdminMessages.send_sample,
+#     )
+#     users_sample_path = 'app/database/insert_dicts/data/users_insert.xlsx'
+#     users_sample_doc = FSInputFile(users_sample_path)
+#     await message.answer_document(
+#         document=users_sample_doc,
+#     )
+#     await state.set_state(AdminStates.admin)
 
 
-@router.message(F.content_type == 'document',
-                StateFilter(AdminStates.admin))
-async def process_doc_command(
-        message: Message,
-        bot: Bot):
-    try:
-        doc_id = message.document.file_id
-        logger.info(f'DOC_ID: {doc_id}')
-        file = await bot.get_file(doc_id)
-        file_path = file.file_path
-        if os.path.exists('tmp.xlsx'):
-            os.remove('tmp.xlsx')
-        await bot.download_file(file_path, 'tmp.xlsx')
-        df = pd.read_excel('tmp.xlsx', sheet_name='new', engine='openpyxl')
-        df = df.replace(np.nan, None)
+# @router.message(F.content_type == 'document',
+#                 StateFilter(AdminStates.admin))
+# async def process_doc_command(
+#         message: Message,
+#         bot: Bot):
+#     try:
+#         doc_id = message.document.file_id
+#         logger.info(f'DOC_ID: {doc_id}')
+#         file = await bot.get_file(doc_id)
+#         file_path = file.file_path
+#         if os.path.exists('tmp.xlsx'):
+#             os.remove('tmp.xlsx')
+#         await bot.download_file(file_path, 'tmp.xlsx')
+#         df = pd.read_excel('tmp.xlsx', sheet_name='new', engine='openpyxl')
+#         df = df.replace(np.nan, None)
 
-        async with session_maker() as session:
-            for _, row in df.iterrows():
-                stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
+#         async with session_maker() as session:
+#             for _, row in df.iterrows():
+#                 stripped_row = {key: value.strip() if isinstance(value, str) else value for key, value in row.items()}
 
-                unique_field_value = stripped_row['user_id']
-                result = await session.execute(select(User).filter_by(user_id=unique_field_value))
-                existing_user = result.scalar()
-                if unique_field_value is None:
-                    logger.error(f'Missing user_id in row: {stripped_row}')
-                    continue
+#                 unique_field_value = stripped_row['user_id']
+#                 result = await session.execute(select(User).filter_by(user_id=unique_field_value))
+#                 existing_user = result.scalar()
+#                 if unique_field_value is None:
+#                     logger.error(f'Missing user_id in row: {stripped_row}')
+#                     continue
 
-                if existing_user:
-                    updated = False
-                    for key, value in stripped_row.items():
-                        if getattr(existing_user, key) != value:
-                            setattr(existing_user, key, value)
-                            updated = True
+#                 if existing_user:
+#                     updated = False
+#                     for key, value in stripped_row.items():
+#                         if getattr(existing_user, key) != value:
+#                             setattr(existing_user, key, value)
+#                             updated = True
 
-                    if updated:
-                        session.add(existing_user)
-                else:
-                    new_user = User(**stripped_row)
-                    session.add(new_user)
-            await session.commit()
-        await message.answer(
-            text=AdminMessages.success,
-        )
+#                     if updated:
+#                         session.add(existing_user)
+#                 else:
+#                     new_user = User(**stripped_row)
+#                     session.add(new_user)
+#             await session.commit()
+#         await message.answer(
+#             text=AdminMessages.success,
+#         )
 
-    except Exception as e:
-        await message.answer(text='Ошибка! Пожалуйста, проверьте отправленные данные (сверьтесь с шаблоном)')
-        logger.error(e)
+#     except Exception as e:
+#         await message.answer(text='Ошибка! Пожалуйста, проверьте отправленные данные (сверьтесь с шаблоном)')
+#         logger.error(e)
 
 
 @router.message(F.text.lower() == 'посмотреть пользователей',
