@@ -214,7 +214,8 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
             max_height = 15
             for i, photo_col in enumerate(df_expanded.columns):
                 photo_id = row[photo_col]
-                if photo_id:
+                if len(photo_id) > 10:
+                    logger.info(f'вижу фото МФЦ {photo_id}')
                     try:
                         img_path = os.path.join(settings.DATA_PATH, f'{photo_id}.jpg')
                         img = Image(img_path)
@@ -233,7 +234,8 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                         logger.error(f'Ошибка при вставке изображения: {e}')
 
             photo_id_mo = row['Фото МО']
-            if photo_id_mo:
+            if len(photo_id_mo) > 10:
+                logger.info(f'вижу фото МО {photo_id_mo}')
                 try:
                     img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpg')
                     img = Image(img_path)
