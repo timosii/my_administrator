@@ -48,8 +48,7 @@ class PhotoForSave:
             # self.zone,
             # self.violation_name,
             # self.problem,
-            # f'{self.prefix}_{self.photo_id}.jpg'
-            self.photo_id
+            f'{self.prefix}_{self.photo_id}.png'
         )
         return path
 
@@ -144,10 +143,10 @@ class PhotoSaver:
                 try:
                     os.makedirs(os.path.dirname(photo_path), exist_ok=True)
                     file: File = await bot.get_file(photo.photo_id)
-                    file_ext = Path(file.file_path).suffix
-                    photo_path_with_ext = f'{photo_path}{file_ext}'
-                    await bot.download_file(file_path=file.file_path, destination=photo_path_with_ext)
-                    logger.info(f'Фото успешно скачано: {photo_path_with_ext}')
+                    # file_ext = Path(file.file_path).suffix
+                    # photo_path_with_ext = f'{photo_path}{file_ext}'
+                    await bot.download_file(file_path=file.file_path, destination=photo_path)
+                    logger.info(f'Фото успешно скачано: {photo_path}')
                 except Exception as e:
                     logger.error(f'Ошибка при скачивании файла: {e}')
 
