@@ -13,10 +13,9 @@ from sqlalchemy import text
 
 from app.config import settings
 from app.database.database import session_maker
-   
 
-async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
-    OUT_COLS = {
+
+OUT_COLS_BASE = {
         'check_date': 'Дата проверки',
         'mfc_fio': 'ФИО проверяющего',
         'mfc_post': 'Должность',
@@ -35,6 +34,11 @@ async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
         'pending_period': 'Срок переноса нарушения',
         'is_task': 'В рамках уведомления',
     }
+
+
+
+async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
+    
     async with session_maker() as session:
         query = """
         SELECT
@@ -84,7 +88,7 @@ async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
         df.columns = result.keys()
         df = df.sort_values(by='check_date')
         df['is_task'] = df['is_task'].map({False: 'Нет', True: 'Да'})
-        df = df[OUT_COLS.keys()].rename(columns=OUT_COLS)
+        df = df[OUT_COLS_BASE.keys()].rename(columns=OUT_COLS_BASE)
     else:
         logger.info('mfc report is empty')
         return None
@@ -122,26 +126,9 @@ async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
 
 
 async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFile:
-    OUT_COLS = {
-        'check_date': 'Дата проверки',
-        'mfc_fio': 'ФИО проверяющего',
-        'mfc_post': 'Должность',
-        'mo_': 'МО',
-        'fil_': 'Филиал',
-        'comm_mfc': 'Комментарий МФЦ',
-        'zone': 'Зона',
-        'violation_name': 'Нарушение',
-        'problem': 'Проблематика',
-        'comm_mo': 'Комментарий МО',
-        'mo_fio': 'ФИО сотрудника МО',
-        'mo_post': 'Должность сотрудника МО',
-        'violation_detected': 'Время обнаружения нарушения',
-        'violation_fixed': 'Время исправления нарушения',
-        'violation_pending': 'Время переноса нарушения',
-        'pending_period': 'Срок переноса нарушения',
-        'is_task': 'В рамках уведомления',
-        'photo_id_mo': 'Фото МО',
-    }
+    OUT_COLS_PHOTO = OUT_COLS_BASE.copy()
+    OUT_COLS_PHOTO['photo_id_mo'] = 'Фото МО'
+
     async with session_maker() as session:
         query = """
         SELECT
@@ -191,10 +178,12 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
         df = df.sort_values(by='check_date')
         df_expanded = df['photo_id_mfc'].apply(pd.Series)
         df_expanded = df_expanded.rename(columns=lambda x: f'Фото МФЦ {x+1}')
+        df_expanded = df_expanded.fillna('').astype('str')
         df = pd.concat([df, df_expanded], axis=1)
         df = df.drop(columns=['photo_id_mfc'])
+        df['photo_id_mo'] = df['photo_id_mo'].fillna('').astype('str')
         df['is_task'] = df['is_task'].map({False: 'Нет', True: 'Да'})
-        df = df[list(OUT_COLS.keys()) + [col for col in df.columns if col.startswith('Фото МФЦ')]].rename(columns=OUT_COLS)
+        df = df[list(OUT_COLS_PHOTO.keys()) + [col for col in df.columns if col.startswith('Фото МФЦ')]].rename(columns=OUT_COLS_PHOTO)
     else:
         logger.info('mfc report is empty')
         return None
@@ -210,67 +199,63 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
 
         worksheet = writer.sheets[sheet_name]
         count_photos = 0
+        count_photos_downloaded = 0
         for index, row in df.iterrows():
             max_height = 15
-            for i, photo_col in enumerate(df_expanded.columns):
+            for photo_col in df_expanded.columns:
                 photo_id = row[photo_col]
-                if isinstance(photo_id, str):
+                if photo_id:
                     count_photos += 1
+                    img_path = os.path.join(settings.DATA_PATH, f'{photo_id}.jpg')
+                    logger.debug(f'Попытка загрузить изображение: {img_path}')
+                    if not os.path.exists(img_path):
+                        logger.error(f'Файл не найден: {img_path}')
                     try:
-                        img_path = os.path.join(settings.DATA_PATH, f'{photo_id}.jpg')
-                        logger.debug(f'Попытка загрузить изображение: {img_path}')
-                        if not os.path.exists(img_path):
-                            logger.error(f'Файл не найден: {img_path}')
-                        try:
-                            img = Image(img_path)
-                            logger.debug(f'Изображение успешно загружено: {img_path}')
-                        except Exception as e:
-                            logger.error(f'Ошибка при загрузке изображения {img_path}: {e}')
-                            continue
-                        try:
-                            img.width = 200
-                            img.height = 150
-                            cell = f'{get_column_letter(df.columns.get_loc(photo_col) + 1)}{index + 2}'
-                            worksheet.add_image(img, cell)
-                            worksheet[cell].value = None
-                            logger.debug(f'Изображение успешно добавлено в ячейку: {img_path}')
-                        except Exception as e:
-                            logger.error(f'Что-то не так с фото: {e}')
-                            continue
-
-                        column_letter = get_column_letter(df.columns.get_loc(photo_col) + 1)
-                        worksheet.column_dimensions[column_letter].width = img.width / 7 + 2
-
-                        if img.height > max_height:
-                            max_height = img.height
+                        img = Image(img_path)
+                        logger.debug(f'Изображение успешно загружено: {img_path}')
                     except Exception as e:
-                        logger.error(f'Ошибка при вставке изображения: {e}')
-
-            photo_id_mo = row['Фото МО']
-            if isinstance(photo_id_mo, str):
-                count_photos += 1
-                try:
-                    img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpg')
-                    img = Image(img_path)
-
+                        logger.error(f'Ошибка при загрузке изображения {img_path}: {e}')
+                        continue
                     try:
                         img.width = 200
                         img.height = 150
-
-                        cell = f'{get_column_letter(df.columns.get_loc("Фото МО") + 1)}{index + 2}'
+                        cell = f'{get_column_letter(df.columns.get_loc(photo_col) + 1)}{index + 2}'
                         worksheet.add_image(img, cell)
                         worksheet[cell].value = None
+                        logger.debug(f'Изображение успешно добавлено в ячейку: {img_path}')
+                        count_photos_downloaded += 1
                     except Exception as e:
                         logger.error(f'Что-то не так с фото: {e}')
                         continue
-                    column_letter = get_column_letter(df.columns.get_loc('Фото МО') + 1)
+
+                    column_letter = get_column_letter(df.columns.get_loc(photo_col) + 1)
                     worksheet.column_dimensions[column_letter].width = img.width / 7 + 2
 
                     if img.height > max_height:
                         max_height = img.height
 
+            photo_id_mo = row['Фото МО']
+            if photo_id_mo:
+                count_photos += 1
+                img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpg')
+                img = Image(img_path)
+
+                try:
+                    img.width = 200
+                    img.height = 150
+
+                    cell = f'{get_column_letter(df.columns.get_loc("Фото МО") + 1)}{index + 2}'
+                    worksheet.add_image(img, cell)
+                    worksheet[cell].value = None
+                    count_photos_downloaded += 1
                 except Exception as e:
-                    logger.error(f'Ошибка при вставке изображения: {e}')
+                    logger.error(f'Что-то не так с фото: {e}')
+                    continue
+                column_letter = get_column_letter(df.columns.get_loc('Фото МО') + 1)
+                worksheet.column_dimensions[column_letter].width = img.width / 7 + 2
+
+                if img.height > max_height:
+                    max_height = img.height
 
             worksheet.row_dimensions[index + 2].height = max_height * 0.75
 
@@ -295,7 +280,8 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
         worksheet.column_dimensions['O'].width = 30
         worksheet.column_dimensions['P'].width = 25
         worksheet.column_dimensions['Q'].width = 25
-        logger.debug(f'Всего фото загружено: {count_photos}')
+        logger.debug(f'Всего фото: {count_photos}')
+        logger.debug(f'Всего фото загружено: {count_photos_downloaded}')
 
     return mfc_report_doc
 
