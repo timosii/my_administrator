@@ -217,7 +217,7 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                 if isinstance(photo_id, str):
                     logger.info(f'вижу фото МФЦ {photo_id}')
                     try:
-                        img_path = os.path.join(settings.DATA_PATH, f'{photo_id}.jpg')
+                        img_path = os.path.join(settings.DATA_PATH, f'{photo_id.strip()}.jpg')
                         img = Image(img_path)
                         img.width = 200
                         img.height = 150
@@ -239,7 +239,7 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
             if isinstance(photo_id_mo, str):
                 logger.info(f'вижу фото МО {photo_id_mo}')
                 try:
-                    img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpg')
+                    img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo.strip()}.jpg')
                     img = Image(img_path)
 
                     img.width = 200
