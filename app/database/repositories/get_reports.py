@@ -226,11 +226,16 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                         except Exception as e:
                             logger.error(f'Ошибка при загрузке изображения {img_path}: {e}')
                             continue
-                        img.width = 400
-                        img.height = 300
-                        cell = f'{get_column_letter(df.columns.get_loc(photo_col) + 1)}{index + 2}'
-                        worksheet.add_image(img, cell)
-                        worksheet[cell].value = None
+                        try:
+                            img.width = 200
+                            img.height = 150
+                            cell = f'{get_column_letter(df.columns.get_loc(photo_col) + 1)}{index + 2}'
+                            worksheet.add_image(img, cell)
+                            worksheet[cell].value = None
+                            logger.debug(f'Изображение успешно добавлено в ячейку: {img_path}')
+                        except Exception as e:
+                            logger.error(f'Что-то не так с фото: {e}')
+                            continue
 
                         column_letter = get_column_letter(df.columns.get_loc(photo_col) + 1)
                         worksheet.column_dimensions[column_letter].width = img.width / 7 + 2
@@ -246,12 +251,16 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                     img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpg')
                     img = Image(img_path)
 
-                    img.width = 400
-                    img.height = 300
+                    try:
+                        img.width = 200
+                        img.height = 150
 
-                    cell = f'{get_column_letter(df.columns.get_loc("Фото МО") + 1)}{index + 2}'
-                    worksheet.add_image(img, cell)
-                    worksheet[cell].value = None
+                        cell = f'{get_column_letter(df.columns.get_loc("Фото МО") + 1)}{index + 2}'
+                        worksheet.add_image(img, cell)
+                        worksheet[cell].value = None
+                    except Exception as e:
+                        logger.error(f'Что-то не так с фото: {e}')
+                        continue
                     column_letter = get_column_letter(df.columns.get_loc('Фото МО') + 1)
                     worksheet.column_dimensions[column_letter].width = img.width / 7 + 2
 
