@@ -216,7 +216,7 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                 photo_id = row[photo_col]
                 if isinstance(photo_id, str):
                     try:
-                        img_path = os.path.join(settings.DATA_PATH, f'{photo_id}.jpeg')
+                        img_path = os.path.join(settings.DATA_PATH, f'{photo_id}.jpg')
                         logger.debug(f'Попытка загрузить изображение: {img_path}')
                         if not os.path.exists(img_path):
                             logger.error(f'Файл не найден: {img_path}')
@@ -226,8 +226,8 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                         except Exception as e:
                             logger.error(f'Ошибка при загрузке изображения {img_path}: {e}')
                             continue
-                        img.width = 100
-                        img.height = 100
+                        img.width = 200
+                        img.height = 150
                         cell = f'{get_column_letter(df.columns.get_loc(photo_col) + 1)}{index + 2}'
                         worksheet.add_image(img, cell)
                         worksheet[cell].value = None
@@ -243,11 +243,11 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
             photo_id_mo = row['Фото МО']
             if isinstance(photo_id_mo, str):
                 try:
-                    img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpeg')
+                    img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpg')
                     img = Image(img_path)
 
-                    img.width = 100
-                    img.height = 100
+                    img.width = 200
+                    img.height = 150
 
                     cell = f'{get_column_letter(df.columns.get_loc("Фото МО") + 1)}{index + 2}'
                     worksheet.add_image(img, cell)

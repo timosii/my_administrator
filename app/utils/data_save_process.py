@@ -16,27 +16,18 @@ from app.database.database import session_maker
 @dataclass
 class PhotoForSave:
     photo_id: str
-    mo: str
-    fil: str
-    day: str
-    zone: str
-    problem: str
-    violation_name: str
-    prefix: str  # mo или mfc в зависимости от того чья фото
+    # mo: str
+    # fil: str
+    # day: str
+    # zone: str
+    # problem: str
+    # violation_name: str
+    # prefix: str  # mo или mfc в зависимости от того чья фото
 
     def get_photo_path(self):
-        # month = self.day[:6]
         path = os.path.join(
             settings.DATA_PATH,
-            # month,
-            # self.day,
-            # self.mo,
-            # self.fil,
-            # self.zone,
-            # self.violation_name,
-            # self.problem,
-            f'{self.photo_id}.jpeg'
-            # f'{self.prefix}_{self.photo_id}.png'
+            f'{self.photo_id}.jpg'
         )
         return path
 
