@@ -87,26 +87,26 @@ class PhotoSaver:
                 if row.photo_id_mo:
                     photos.append(PhotoForSave(
                         photo_id=row.photo_id_mo,
-                        mo=row.mo_,
-                        fil=row.fil_,
-                        day=str(row.violation_detected_day).replace('-', ''),
-                        zone=row.zone,
-                        problem=row.problem,
-                        violation_name=row.violation_name,
-                        prefix='mo',
+                        # mo=row.mo_,
+                        # fil=row.fil_,
+                        # day=str(row.violation_detected_day).replace('-', ''),
+                        # zone=row.zone,
+                        # problem=row.problem,
+                        # violation_name=row.violation_name,
+                        # prefix='mo',
                     ))
 
                 if row.photo_id_mfc:
                     for photo_id_mfc in row.photo_id_mfc:  # т.к. у МФЦ может быть несколько фотографий
                         photos.append(PhotoForSave(
                             photo_id=photo_id_mfc,
-                            mo=row.mo_,
-                            fil=row.fil_,
-                            day=str(row.violation_detected_day).replace('-', ''),
-                            zone=row.zone,
-                            problem=row.problem,
-                            violation_name=row.violation_name,
-                            prefix='mfc',
+                            # mo=row.mo_,
+                            # fil=row.fil_,
+                            # day=str(row.violation_detected_day).replace('-', ''),
+                            # zone=row.zone,
+                            # problem=row.problem,
+                            # violation_name=row.violation_name,
+                            # prefix='mfc',
                         ))
 
             logger.info('get all_photos_day')
