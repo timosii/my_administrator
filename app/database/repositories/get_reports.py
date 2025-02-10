@@ -232,6 +232,8 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                             max_height = img.height
                     except Exception as e:
                         logger.error(f'Ошибка при вставке изображения: {e}')
+                else:
+                    logger.info(f'НЕ вижу фото МФЦ {photo_id}')
 
             photo_id_mo = row['Фото МО']
             if isinstance(photo_id_mo, str):
@@ -254,6 +256,9 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
 
                 except Exception as e:
                     logger.error(f'Ошибка при вставке изображения: {e}')
+            
+            else:
+                logger.info(f'НЕ вижу фото МО {photo_id_mo}')
 
             worksheet.row_dimensions[index + 2].height = max_height * 0.75
 
