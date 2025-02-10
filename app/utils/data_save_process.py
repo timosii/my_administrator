@@ -146,7 +146,8 @@ class PhotoSaver:
                     file: File = await bot.get_file(photo.photo_id)
                     # file_ext = Path(file.file_path).suffix
                     # photo_path_with_ext = f'{photo_path}{file_ext}'
-                    await bot.download_file(file_path=file.file_path, destination=photo_path)
+                    await bot.download(file_path=file.file_id, destination=photo_path)
+                    # await bot.download_file(file_path=file.file_path, destination=photo_path)
                     logger.info(f'Фото успешно скачано: {photo_path}')
                 except Exception as e:
                     logger.error(f'Ошибка при скачивании файла: {e}')
