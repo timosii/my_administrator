@@ -48,7 +48,8 @@ class PhotoForSave:
             # self.zone,
             # self.violation_name,
             # self.problem,
-            f'{self.prefix}_{self.photo_id}.jpeg'
+            f'{self.photo_id}.png'
+            # f'{self.prefix}_{self.photo_id}.png'
         )
         return path
 
