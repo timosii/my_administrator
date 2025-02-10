@@ -215,11 +215,17 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
             for i, photo_col in enumerate(df_expanded.columns):
                 photo_id = row[photo_col]
                 if isinstance(photo_id, str):
-                    logger.info(f'вижу фото МФЦ {photo_id}')
                     try:
-                        img_path = os.path.join(settings.DATA_PATH, f'{photo_id.strip()}.jpg')
-                        img = Image(img_path)
-                        logger.debug(f'Путь к фото МФЦ:{img_path}')
+                        img_path = os.path.join(settings.DATA_PATH, f'{photo_id}.jpg')
+                        logger.debug(f'Попытка загрузить изображение: {img_path}')
+                        if not os.path.exists(img_path):
+                            logger.error(f'Файл не найден: {img_path}')
+                        try:
+                            img = Image(img_path)
+                            logger.debug(f'Изображение успешно загружено: {img_path}')
+                        except Exception as e:
+                            logger.error(f'Ошибка при загрузке изображения {img_path}: {e}')
+                            continue
                         img.width = 200
                         img.height = 150
                         cell = f'{get_column_letter(df.columns.get_loc(photo_col) + 1)}{index + 2}'
@@ -236,9 +242,8 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
 
             photo_id_mo = row['Фото МО']
             if isinstance(photo_id_mo, str):
-                logger.info(f'вижу фото МО {photo_id_mo}')
                 try:
-                    img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo.strip()}.jpg')
+                    img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpg')
                     img = Image(img_path)
                     logger.debug(f'Путь к фото МО:{img_path}')
 
