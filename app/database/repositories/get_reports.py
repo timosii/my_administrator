@@ -259,9 +259,9 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
 
             worksheet.row_dimensions[index + 2].height = max_height * 0.75
 
-        # for row in worksheet.iter_rows():
-        #     for cell in row:
-        #         cell.alignment = Alignment(wrap_text=True)  # type: ignore
+        for row in worksheet.iter_rows():
+            for cell in row:
+                cell.alignment = Alignment(wrap_text=True)  # type: ignore
 
         worksheet.column_dimensions['A'].width = 15
         worksheet.column_dimensions['B'].width = 25
