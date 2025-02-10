@@ -1,30 +1,17 @@
 import asyncio
 import os
 from dataclasses import dataclass
-from pathlib import Path
 
 import pandas as pd
 from aiogram import Bot
 from aiogram.client.bot import DefaultBotProperties
 from aiogram.types import File
-# from openpyxl.drawing.image import Image
 from loguru import logger
 from sqlalchemy import text
 
 from app.config import settings
 from app.database.database import session_maker
 
-
-# def convert_to_jpeg(file_path):
-#     try:
-#         with Image.open(file_path) as img:
-#             rgb_img = img.convert("RGB")  # Приводим к RGB (некоторые PNG могут быть RGBA)
-#             jpeg_path = file_path  # Сохраняем с тем же именем, но в правильном формате
-#             rgb_img.save(jpeg_path, format="JPEG", quality=95)
-#             return jpeg_path
-#     except Exception as e:
-#         logger.error(f'Ошибка при конвертации {file_path}: {e}', exc_info=True)
-#         return None
 
 @dataclass
 class PhotoForSave:
