@@ -1,17 +1,30 @@
 import asyncio
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 import pandas as pd
 from aiogram import Bot
 from aiogram.client.bot import DefaultBotProperties
 from aiogram.types import File
+# from openpyxl.drawing.image import Image
 from loguru import logger
 from sqlalchemy import text
 
 from app.config import settings
 from app.database.database import session_maker
 
+
+# def convert_to_jpeg(file_path):
+#     try:
+#         with Image.open(file_path) as img:
+#             rgb_img = img.convert("RGB")  # Приводим к RGB (некоторые PNG могут быть RGBA)
+#             jpeg_path = file_path  # Сохраняем с тем же именем, но в правильном формате
+#             rgb_img.save(jpeg_path, format="JPEG", quality=95)
+#             return jpeg_path
+#     except Exception as e:
+#         logger.error(f'Ошибка при конвертации {file_path}: {e}', exc_info=True)
+#         return None
 
 @dataclass
 class PhotoForSave:
@@ -36,7 +49,7 @@ class PhotoForSave:
             # self.violation_name,
             # self.problem,
             # f'{self.prefix}_{self.photo_id}.jpg'
-            f'{self.photo_id}.jpg'
+            self.photo_id
         )
         return path
 
@@ -131,11 +144,12 @@ class PhotoSaver:
                 try:
                     os.makedirs(os.path.dirname(photo_path), exist_ok=True)
                     file: File = await bot.get_file(photo.photo_id)
-                    await bot.download_file(file_path=file.file_path, destination=photo_path)
-                    print(f'Фото успешно скачано: {photo_path}')
+                    file_ext = Path(file.file_path).suffix
+                    photo_path_with_ext = f'{photo_path}{file_ext}'
+                    await bot.download_file(file_path=file.file_path, destination=photo_path_with_ext)
+                    logger.info(f'Фото успешно скачано: {photo_path_with_ext}')
                 except Exception as e:
-                    print(f'Ошибка при скачивании файла: {e}')
-
+                    logger.error(f'Ошибка при скачивании файла: {e}')
 
 async def scheduler_download_photos():
     report_date = pd.Timestamp('today')
@@ -144,13 +158,13 @@ async def scheduler_download_photos():
     bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode='HTML'))
     await obj.download_photos(bot=bot)
 
-
 async def download_all_photos():
     report_date = pd.Timestamp('today')
     obj = PhotoSaver(day=report_date)
     await obj.get_photos(all_photos=True)
     bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode='HTML'))
     await obj.download_photos(bot=bot)
+
 
 if __name__ == '__main__':
     asyncio.run(download_all_photos())

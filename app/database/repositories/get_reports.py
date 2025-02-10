@@ -13,17 +13,7 @@ from sqlalchemy import text
 
 from app.config import settings
 from app.database.database import session_maker
-
-def convert_to_jpeg(file_path):
-    try:
-        with Image.open(file_path) as img:
-            rgb_img = img.convert("RGB")  # Приводим к RGB (некоторые PNG могут быть RGBA)
-            jpeg_path = file_path  # Сохраняем с тем же именем, но в правильном формате
-            rgb_img.save(jpeg_path, format="JPEG", quality=95)
-            return jpeg_path
-    except Exception as e:
-        logger.error(f'Ошибка при конвертации {file_path}: {e}', exc_info=True)
-        return None
+   
 
 async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
     OUT_COLS = {
@@ -227,7 +217,6 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                 if isinstance(photo_id, str):
                     try:
                         img_path = os.path.join(settings.DATA_PATH, f'{photo_id}.jpg')
-                        img_path = convert_to_jpeg(img_path)
                         logger.debug(f'Попытка загрузить изображение: {img_path}')
                         if not os.path.exists(img_path):
                             logger.error(f'Файл не найден: {img_path}')
@@ -255,7 +244,6 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
             if isinstance(photo_id_mo, str):
                 try:
                     img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpg')
-                    img_path = convert_to_jpeg(img_path)
                     img = Image(img_path)
 
                     img.width = 200
