@@ -219,6 +219,7 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                     try:
                         img_path = os.path.join(settings.DATA_PATH, f'{photo_id.strip()}.jpg')
                         img = Image(img_path)
+                        logger.debug(f'Путь к фото МФЦ:{img_path}')
                         img.width = 200
                         img.height = 150
                         cell = f'{get_column_letter(df.columns.get_loc(photo_col) + 1)}{index + 2}'
@@ -239,6 +240,7 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                 try:
                     img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo.strip()}.jpg')
                     img = Image(img_path)
+                    logger.debug(f'Путь к фото МО:{img_path}')
 
                     img.width = 200
                     img.height = 150
