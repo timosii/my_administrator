@@ -216,7 +216,7 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                 photo_id = row[photo_col]
                 if isinstance(photo_id, str):
                     try:
-                        img_path = os.path.join(settings.DATA_PATH, f'{photo_id}.png')
+                        img_path = os.path.join(settings.DATA_PATH, f'{photo_id}.jpeg')
                         logger.debug(f'Попытка загрузить изображение: {img_path}')
                         if not os.path.exists(img_path):
                             logger.error(f'Файл не найден: {img_path}')
@@ -243,7 +243,7 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
             photo_id_mo = row['Фото МО']
             if isinstance(photo_id_mo, str):
                 try:
-                    img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.png')
+                    img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpeg')
                     img = Image(img_path)
 
                     img.width = 200
