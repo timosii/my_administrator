@@ -209,12 +209,13 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
         df.to_excel(writer, index=False, sheet_name=sheet_name)
 
         worksheet = writer.sheets[sheet_name]
-
+        count_photos = 0
         for index, row in df.iterrows():
             max_height = 15
             for i, photo_col in enumerate(df_expanded.columns):
                 photo_id = row[photo_col]
                 if isinstance(photo_id, str):
+                    count_photos += 1
                     try:
                         img_path = os.path.join(settings.DATA_PATH, f'{photo_id}.jpg')
                         logger.debug(f'Попытка загрузить изображение: {img_path}')
@@ -247,6 +248,7 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
 
             photo_id_mo = row['Фото МО']
             if isinstance(photo_id_mo, str):
+                count_photos += 1
                 try:
                     img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpg')
                     img = Image(img_path)
@@ -293,6 +295,7 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
         worksheet.column_dimensions['O'].width = 30
         worksheet.column_dimensions['P'].width = 25
         worksheet.column_dimensions['Q'].width = 25
+        logger.debug(f'Всего фото загружено: {count_photos}')
 
     return mfc_report_doc
 

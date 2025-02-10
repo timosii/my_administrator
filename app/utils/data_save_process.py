@@ -16,13 +16,6 @@ from app.database.database import session_maker
 @dataclass
 class PhotoForSave:
     photo_id: str
-    # mo: str
-    # fil: str
-    # day: str
-    # zone: str
-    # problem: str
-    # violation_name: str
-    # prefix: str  # mo или mfc в зависимости от того чья фото
 
     def get_photo_path(self):
         path = os.path.join(
@@ -87,29 +80,15 @@ class PhotoSaver:
                 if row.photo_id_mo:
                     photos.append(PhotoForSave(
                         photo_id=row.photo_id_mo,
-                        # mo=row.mo_,
-                        # fil=row.fil_,
-                        # day=str(row.violation_detected_day).replace('-', ''),
-                        # zone=row.zone,
-                        # problem=row.problem,
-                        # violation_name=row.violation_name,
-                        # prefix='mo',
                     ))
 
                 if row.photo_id_mfc:
                     for photo_id_mfc in row.photo_id_mfc:  # т.к. у МФЦ может быть несколько фотографий
                         photos.append(PhotoForSave(
                             photo_id=photo_id_mfc,
-                            # mo=row.mo_,
-                            # fil=row.fil_,
-                            # day=str(row.violation_detected_day).replace('-', ''),
-                            # zone=row.zone,
-                            # problem=row.problem,
-                            # violation_name=row.violation_name,
-                            # prefix='mfc',
                         ))
 
-            logger.info('get all_photos_day')
+            logger.info('get photos success')
             self.photos: list[PhotoForSave] = photos.copy()
 
     async def download_photos(self, bot: Bot):
@@ -122,10 +101,7 @@ class PhotoSaver:
                 try:
                     os.makedirs(os.path.dirname(photo_path), exist_ok=True)
                     file: File = await bot.get_file(photo.photo_id)
-                    # file_ext = Path(file.file_path).suffix
-                    # photo_path_with_ext = f'{photo_path}{file_ext}'
                     await bot.download(file=file.file_id, destination=photo_path)
-                    # await bot.download_file(file_path=file.file_path, destination=photo_path)
                     logger.info(f'Фото успешно скачано: {photo_path}')
                 except Exception as e:
                     logger.error(f'Ошибка при скачивании файла: {e}')
