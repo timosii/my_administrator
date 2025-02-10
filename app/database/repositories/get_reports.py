@@ -226,8 +226,8 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                         except Exception as e:
                             logger.error(f'Ошибка при загрузке изображения {img_path}: {e}')
                             continue
-                        img.width = 200
-                        img.height = 150
+                        img.width = 400
+                        img.height = 300
                         cell = f'{get_column_letter(df.columns.get_loc(photo_col) + 1)}{index + 2}'
                         worksheet.add_image(img, cell)
                         worksheet[cell].value = None
@@ -246,8 +246,8 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                     img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpg')
                     img = Image(img_path)
 
-                    img.width = 200
-                    img.height = 150
+                    img.width = 400
+                    img.height = 300
 
                     cell = f'{get_column_letter(df.columns.get_loc("Фото МО") + 1)}{index + 2}'
                     worksheet.add_image(img, cell)
