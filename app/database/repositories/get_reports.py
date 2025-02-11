@@ -279,7 +279,7 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
                 if img.height > max_height:
                     max_height = img.height
 
-            worksheet.row_dimensions[index + 2].height = max_height * 0.75
+            worksheet.row_dimensions[index + 2].height = max(max_height * 0.8, 25)
 
         for row in worksheet.iter_rows():
             for cell in row:
