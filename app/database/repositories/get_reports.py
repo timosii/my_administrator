@@ -89,6 +89,7 @@ async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
         LEFT JOIN data.user AS mo_user
             ON mo_user.user_id = violation_found_t.mo_user_id
         WHERE DATE(check_t.mfc_start AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Moscow') BETWEEN :start_date AND :end_date
+            AND photo_id_mfc IS NOT NULL
         """
         result = await session.execute(text(query), {'start_date': start_date, 'end_date': end_date})
         rows = result.fetchall()
@@ -179,6 +180,7 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
         LEFT JOIN data.user AS mo_user
             ON mo_user.user_id = violation_found_t.mo_user_id
         WHERE DATE(check_t.mfc_start AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Moscow') BETWEEN :start_date AND :end_date
+            AND photo_id_mfc IS NOT NULL
         """
         result = await session.execute(text(query), {'start_date': start_date, 'end_date': end_date})
         rows = result.fetchall()
