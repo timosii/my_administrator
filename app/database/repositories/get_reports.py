@@ -215,7 +215,7 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
             for photo_col in df_expanded.columns:
                 photo_id = row[photo_col]
                 if photo_id in problem_ids:
-                    logger.debug('HERE IS PROBLEM_ID!!')
+                    logger.debug('HERE IS PROBLEM_ID_MFC!!')
                 if photo_id:
                     count_photos += 1
                     img_path = os.path.join(settings.DATA_PATH, f'{photo_id}.jpg')
@@ -249,10 +249,18 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
             photo_id_mo = row['Фото МО']
             if photo_id_mo:
                 if photo_id_mo in problem_ids:
-                    logger.debug('HERE IS PROBLEM_ID!!')
+                    logger.debug('HERE IS PROBLEM_ID_MO!!')
                 count_photos += 1
                 img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpg')
-                img = Image(img_path)
+                logger.debug(f'Попытка загрузить изображение: {img_path}')
+                if not os.path.exists(img_path):
+                    logger.error(f'Файл не найден: {img_path}')
+                try:
+                    img = Image(img_path)
+                    logger.debug(f'Изображение успешно загружено: {img_path}')
+                except Exception as e:
+                    logger.error(f'Ошибка при загрузке изображения {img_path}: {e}')
+                    continue
 
                 try:
                     img.width = 200
