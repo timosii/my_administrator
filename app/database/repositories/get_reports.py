@@ -35,6 +35,16 @@ OUT_COLS_BASE = {
         'is_task': 'В рамках уведомления',
     }
 
+problem_ids = [
+    'AgACAgIAAxkBAAKlfGeQ12u5O7J_Teed_TxEd5UgPwMLAALC6DEbetWJSO9KHjaFCv86AQADAgADeQADNgQ',
+    'AgACAgIAAxkBAAKloWeQ2OoVLV7lMJj1-IkDg0b9s5qKAALS6DEbetWJSAeXvkesKkhMAQADAgADeQADNgQ',
+    'AgACAgIAAxkBAAKn8WeQ6Erypq8Xz_06wG1-ML9e8Pm_AALE-jEbm_uJSPdVbJcomxJHAQADAgADeQADNgQ',
+    'AgACAgIAAxkBAAKoL2eQ6dS5aviQ1n9icDHb-v6bfVRgAALS6TEbetWJSNWjxDEqcQriAQADAgADeQADNgQ',
+    'AgACAgIAAxkBAAKjXmeQxo9827AjRwWS9tzN-VV7KCUaAAJP7TEbeviJSKVTzpUW50FWAQADAgADeQADNgQ',
+    'AgACAgIAAxkBAAKi1GeQxQOxma1immav3TLh98hHqxxFAAJF7TEbeviJSBohY6XWryRqAQADAgADeQADNgQ',
+    'AgACAgIAAxkBAAKh6WeQvIbVXp-C2S_XC2yont_Eum4WAAIQ6DEb2iaISM6CXQRg-8jPAQADAgADeQADNgQ',
+    'AgACAgIAAxkBAAKhVGeQtiwZ36seAryCTDpHCjtQQ_axAAKf7TEbLRGISPc6yFcH5kC1AQADAgADeQADNgQ',
+]
 
 
 async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
@@ -204,6 +214,8 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
             max_height = 15
             for photo_col in df_expanded.columns:
                 photo_id = row[photo_col]
+                if photo_id in problem_ids:
+                    logger.debug('HERE IS PROBLEM_ID!!')
                 if photo_id:
                     count_photos += 1
                     img_path = os.path.join(settings.DATA_PATH, f'{photo_id}.jpg')
@@ -236,6 +248,8 @@ async def get_mfc_report_with_photo(start_date: str, end_date: str) -> FSInputFi
 
             photo_id_mo = row['Фото МО']
             if photo_id_mo:
+                if photo_id_mo in problem_ids:
+                    logger.debug('HERE IS PROBLEM_ID!!')
                 count_photos += 1
                 img_path = os.path.join(settings.DATA_PATH, f'{photo_id_mo}.jpg')
                 img = Image(img_path)
