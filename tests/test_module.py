@@ -3,7 +3,6 @@ import asyncio
 
 from aiogram import Bot
 from aiogram.client.bot import DefaultBotProperties
-from app.config import settings
 from openpyxl.utils import get_column_letter
 import pandas as pd
 from openpyxl.styles import Alignment
@@ -12,7 +11,6 @@ from sqlalchemy import text
 from openpyxl.drawing.image import Image
 from app.database.database import session_maker
 import os
-from pathlib import Path
 
 # %%
 import pandas as pd
@@ -24,7 +22,8 @@ pd.set_option('display.max_columns', None)
 start_date = '2025-01-01'
 end_date = '2025-02-10'
 
-# %%
+DATA_PATH = '/home/timosii/my_administrator/data/'
+
 OUT_COLS = {
     'check_date': 'Дата проверки',
     'mfc_fio': 'ФИО проверяющего',
@@ -120,7 +119,7 @@ async def test():
                 photo_id = row[photo_col]
                 if isinstance(photo_id, str):
                     try:
-                        img_path = Path(os.path.join(settings.DATA_PATH, f'{photo_id}.png')).resolve()
+                        img_path = os.path.join(DATA_PATH, f'{photo_id}.jpg')
                         logger.debug(f'Попытка загрузить изображение: {img_path}')
                         if not os.path.exists(img_path):
                             logger.error(f'Файл не найден: {img_path}')
@@ -147,7 +146,7 @@ async def test():
             photo_id_mo = row['Фото МО']
             if isinstance(photo_id_mo, str):
                 try:
-                    img_path = Path(os.path.join(settings.DATA_PATH, f'{photo_id_mo}.png')).resolve()
+                    img_path = os.path.join(DATA_PATH, f'{photo_id_mo}.jpg')
                     img = Image(img_path)
 
                     img.width = 200
@@ -192,4 +191,3 @@ async def test():
 
 if __name__=='__main__':
     asyncio.run(test())
-
