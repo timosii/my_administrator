@@ -28,6 +28,7 @@ from app.handlers.messages import MfcMessages, MoPerformerMessages
 from app.handlers.user.mo_part.performer_card_constructor import MoPerformerCard
 from app.keyboards.mfc_part import MfcKeyboards
 from app.keyboards.mo_part import MoPerformerKeyboards
+from app.utils.save_photo_process import PhotoSaver
 
 CACHE_EXPIRE_SHORT = settings.CACHE_SHORT
 CACHE_EXPIRE_LONG = settings.CACHE_LONG
@@ -277,6 +278,9 @@ class ViolationFoundService:
         vio_found_update = ViolationFoundUpdate(
             **violation_found_out.model_dump()
         )
+        for photo_id in vio_found_update.photo_id_mfc:
+            await PhotoSaver(photo=photo_id).download_photo(bot=callback.bot)
+
         await self.update_violation(
             violation_found_id=violation_found_out.violation_found_id,
             violation_update=vio_found_update)

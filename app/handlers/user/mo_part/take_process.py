@@ -19,6 +19,7 @@ from app.filters.mo_filters import MoPerformerFilter
 from app.handlers.messages import MoPerformerMessages
 from app.handlers.states import MoPerformerStates
 from app.keyboards.mo_part import MoPerformerKeyboards
+from app.utils.save_photo_process import PhotoSaver
 
 router = Router()
 router.message.filter(MoPerformerFilter())
@@ -147,6 +148,7 @@ async def save_violation_found_process(
         comm_mo=data['comm_mo'],
         violation_fixed=current_time,
     )
+    await PhotoSaver(photo=vio_upd.photo_id_mo).download_photo(bot=callback.bot)
     await violation_obj.update_violation(
         violation_found_id=violation_found_id,
         violation_update=vio_upd
