@@ -66,8 +66,6 @@ async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
             vio_dict_t.zone AS zone,
             vio_dict_t.violation_name AS violation_name,
             vio_dict_t.problem AS problem,
-            violation_found_t.photo_id_mfc as photo_id_mfc,
-            violation_found_t.photo_id_mo as photo_id_mo,
             violation_found_t.comm_mo AS comm_mo,
             mo_user.last_name || ' ' || mo_user.first_name || ' ' || COALESCE(mo_user.patronymic, '') AS MO_FIO,
             mo_user.post AS mo_post,
@@ -89,7 +87,6 @@ async def get_mfc_report(start_date: str, end_date: str) -> FSInputFile:
         LEFT JOIN data.user AS mo_user
             ON mo_user.user_id = violation_found_t.mo_user_id
         WHERE DATE(check_t.mfc_start AT TIME ZONE 'UTC' AT TIME ZONE 'Europe/Moscow') BETWEEN :start_date AND :end_date
-            AND photo_id_mfc IS NOT NULL
         """
         result = await session.execute(text(query), {'start_date': start_date, 'end_date': end_date})
         rows = result.fetchall()
